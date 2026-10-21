@@ -3653,7 +3653,7 @@ function bankPickerHTML(h){
   <div class="field"><label for="bk-q">Search</label><input id="bk-q" type="search" placeholder="e.g. rhyme, past tense"></div></div>
   <p class="small muted" style="margin:0"><span id="bk-n"></span>. Press <b>Add</b> to put an activity into the homework. You can edit the text before you set it.</p>
   <div id="bk-list" class="banklist"></div>
-  <div class="bk-words"><div class="field" style="flex:1"><label for="bk-w">Make a word activity</label><input id="bk-w" type="text" maxlength="200" placeholder="Type words, e.g. brave, gentle, curious"><span class="hint">Meanings and examples come from the free, open Free Dictionary (dictionaryapi.dev). Check they suit your learner.</span></div><button type="button" class="btn btn-ghost btn-sm" data-bk="words">Make it</button></div>
+  <div class="bk-words"><div class="field" style="flex:1"><label for="bk-w">Make a word activity</label><input id="bk-w" type="text" maxlength="200" placeholder="Type words, e.g. brave, gentle, curious"><span class="hint">Meanings come from the free, open Datamuse word API (WordNet definitions). Check they suit your learner and edit if needed.</span></div><button type="button" class="btn btn-ghost btn-sm" data-bk="words">Make it</button></div>
   <div class="row"><button type="button" class="btn btn-ghost btn-sm" data-bk="save">Save this homework to our bank</button><span class="small muted">Saves the title and instructions above for other trainers, using the age group and skill chosen here.</span></div>
   <input type="hidden" name="bkids" value="${esc((h&&h.bankIds||[]).join(","))}"><input type="hidden" name="bkstage" value="${esc(h&&h.stage||"")}"><input type="hidden" name="bkskill" value="${esc(h&&h.skill||"")}">
   </details>`;
@@ -3672,12 +3672,16 @@ async function bankWords(form,btn){
   btn.disabled=true;const old=btn.textContent;btn.textContent="Looking up…";
   const st=(form.querySelector("#bk-stage")||{}).value||bankStageFor();
   const got=[],miss=[];
-  await Promise.all(words.map(async w=>{try{const r=await fetch("https://api.dictionaryapi.dev/api/v2/entries/en/"+encodeURIComponent(w));if(!r.ok)throw 0;const j=await r.json();
-    let best=null;for(const e of j)for(const m of (e.meanings||[]))for(const d of (m.definitions||[])){if(!best||(!best.ex&&d.example))best={pos:m.partOfSpeech,def:d.definition,ex:d.example||""};if(best&&best.ex)break;}
-    if(best)got.push({w,...best});else miss.push(w);}catch{miss.push(w)}}));
+  const POS={n:"noun",v:"verb",adj:"adjective",adv:"adverb"};
+  await Promise.all(words.map(async w=>{try{
+    const r=await fetch("https://api.datamuse.com/words?md=d&max=1&sp="+encodeURIComponent(w));if(!r.ok)throw 0;const j=await r.json();
+    const hit=(j||[]).find(x=>String(x.word||"").toLowerCase()===w&&(x.defs||[]).length);if(!hit)throw 0;
+    const [p,...rest]=String(hit.defs[0]).split("\t");let syn=[];
+    if(st!=="Seeds"){try{const s2=await fetch("https://api.datamuse.com/words?max=3&rel_syn="+encodeURIComponent(w)).then(x=>x.json());syn=(s2||[]).map(x=>x.word).filter(Boolean).slice(0,3);}catch{}}
+    got.push({w,pos:POS[p]||p,def:rest.join(" ").replace(/^\s+/,""),syn});}catch{miss.push(w)}}));
   btn.disabled=false;btn.textContent=old;
   got.sort((a,b)=>words.indexOf(a.w)-words.indexOf(b.w));
-  const list=got.map((x,i)=>`${i+1}. ${x.w}${x.pos?` (${x.pos})`:""}: ${x.def}${x.ex?`\n   Example: "${x.ex}"`:""}`).join("\n")+(miss.length?`\n${miss.map(w=>`• ${w}: ask your teacher what it means`).join("\n")}`:"");
+  const list=got.map((x,i)=>`${i+1}. ${x.w}${x.pos?` (${x.pos})`:""}: ${x.def}${x.syn&&x.syn.length?`\n   Similar words: ${x.syn.join(", ")}`:""}`).join("\n")+(miss.length?`\n${miss.map(w=>`• ${w}: ask your teacher what it means`).join("\n")}`:"");
   const task=st==="Seeds"?"Say each word out loud with a grown-up. Draw a picture for each one."
     :st==="Blooms"?"Write one sentence for each word. Then write a short paragraph (5–6 sentences) that uses at least three of the words, and find a synonym for two of them."
     :"Read each word and its meaning. Write your own sentence for each word and draw a picture for your favourite one.";
