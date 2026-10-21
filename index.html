@@ -721,6 +721,23 @@ button.stat{font:inherit;color:inherit;cursor:pointer}.stat.sel{box-shadow:inset
 .adopt{display:flex;gap:10px;align-items:flex-start;border:2px solid var(--line);border-radius:16px;padding:10px 12px;cursor:pointer;min-height:44px}
 .adopt:has(input:checked){border-color:var(--leafMid);background:var(--leafSoft)}
 .adopt input{width:22px;height:22px;accent-color:var(--leafMid);flex:none;margin-top:2px}.adopt b{display:block}.adopt small{color:var(--muted)}
+.dtask{display:flex;flex-direction:column;gap:10px;background:var(--sunSoft);border-radius:24px;padding:14px 16px}
+.dtask.done{flex-direction:row;align-items:center;gap:12px;background:var(--leafSoft)}
+.dtask .eyebrow{display:block}.dtask b{font-family:var(--display);font-size:1.2rem}.dtask.done span{font-size:.95rem}
+.dth{flex-wrap:nowrap;gap:10px}.dtq{margin:0;font-size:1.05rem}
+.dtword{display:flex;flex-direction:column;align-items:center;gap:2px;background:var(--card);border-radius:20px;padding:12px}
+.dtword b{font-size:2rem;line-height:1.1}.dtword small{color:var(--muted)}.dtemo{font-size:2.6rem;line-height:1}.dtemo.sm{font-size:1.6rem;vertical-align:middle}
+.dtbtns{gap:8px;flex-wrap:wrap}.dtbtns .btn{min-height:48px}
+.dtpics{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.dtpic{font-size:2.6rem;min-height:84px;border-radius:20px;border:3px solid var(--line);background:var(--card);cursor:pointer}
+.dtpic:active,.dttile:active,.dtopt:active{transform:scale(.96)}
+.dtpic.no,.dtopt.no{opacity:.45}
+.dtopts{display:grid;gap:8px}.dtopt{min-height:52px;border-radius:16px;border:2px solid var(--line);background:var(--card);font:inherit;font-weight:700;text-align:left;padding:10px 14px;cursor:pointer;color:var(--soil)}
+.dtslots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}.dtslot{width:44px;height:52px;border-bottom:4px solid var(--leafMid);display:grid;place-items:center;font-family:var(--display);font-size:1.6rem;font-weight:800;background:var(--card);border-radius:10px 10px 4px 4px}
+.dttiles{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}.dttile{width:52px;height:52px;border-radius:14px;border:0;background:var(--sun);font-family:var(--display);font-size:1.5rem;font-weight:800;color:var(--soil);cursor:pointer}
+.dttile:disabled{opacity:.3}
+.dtin{flex:1;min-width:0;min-height:48px;font-size:1.3rem;border:2px solid var(--line);border-radius:14px;padding:6px 12px;font-family:var(--display)}
+.dtmsg{margin:0;font-weight:700;color:var(--leaf)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -2661,10 +2678,11 @@ function studentHome(){
     <div class="stack" style="gap:16px">
       ${gardenHTML(n,msg)}
       ${nx?`<button class="btn btn-primary btn-big" data-go="lesson:${esc(nx.id)}">${ic("leaf",22)}Plant today's word</button><p class="small muted" style="text-align:center;margin-top:-6px">Next: ${esc(nx.title)} · ${esc(D.courses[nx.courseId]?.title||"")}</p>`:""}
+      ${dtHTML(L)}
     </div>
     <div class="stack" style="gap:16px">
       ${adaptKidHTML(L)}
-      <section class="daily ${dDone?"done":""}"><span class="dicon" aria-hidden="true">${dDone?"✅":"🎯"}</span><div class="grow"><b>Daily challenge</b><span>${dDone?`Done today! You got ${progOf(uid).daily[ymd(new Date())]} of 5. Come back tomorrow.`:"5 quick questions. Keep your streak going!"}</span></div>${dDone?"":`<button class="btn btn-sun" data-act="startGame" data-id="daily">Play</button>`}</section>
+      <section class="daily ${dDone?"done":""}"><span class="dicon" aria-hidden="true">${dDone?"✅":"🎯"}</span><div class="grow"><b>Word quiz</b><span>${dDone?`Done today! You got ${progOf(uid).daily[ymd(new Date())]} of 5. Come back tomorrow.`:"5 quick questions, just for fun."}</span></div>${dDone?"":`<button class="btn btn-sun" data-act="startGame" data-id="daily">Play</button>`}</section>
       <div class="kidtiles">
         <button class="kidtile t1" data-go="path"><span>🗺️</span>Lesson path</button><button class="kidtile t2" data-go="words"><span>🃏</span>My words</button>
         <button class="kidtile t3" data-go="play"><span>🎲</span>Games</button><button class="kidtile t4" data-go="me"><span>🏅</span>My stars</button>
@@ -4230,7 +4248,7 @@ function adaptAuto(L){
     .sort((a,b)=>(b[1].m-a[1].m)||((b[1].t||0)-(a[1].t||0))).map(([k])=>voc[k]||{w:k,m:"",lang:"en-IN",lid:null});
   /* 2. accuracy over the last two weeks */
   let r=0,m=0;for(const o of Object.values(wk))if(o&&now-(o.t||0)<D14){r+=+o.r||0;m+=+o.m||0;}
-  const games=Object.entries(p.pts||{}).map(([k,v])=>({t:tsOf(k),s:+v||0})).filter(g=>g.t&&now-g.t<D14).sort((a,b)=>b.t-a.t).slice(0,5);
+  const games=Object.entries(p.pts||{}).filter(([k])=>k[0]==="g"||k[0]==="m").map(([k,v])=>({t:tsOf(k),s:+v||0})).filter(g=>g.t&&now-g.t<D14).sort((a,b)=>b.t-a.t).slice(0,5);
   const daily=Object.entries(p.daily||{}).filter(([d])=>now-new Date(d+"T12:00").getTime()<D14).map(([,v])=>(+v||0)/5*3);
   const gs=[...games.map(g=>g.s),...daily];const gAvg=gs.length?gs.reduce((a,b)=>a+b,0)/gs.length:null;
   /* 3. homework stars and the teacher's speaking scores */
@@ -4288,12 +4306,12 @@ function reviseGame(L){const a=adaptFor(L), pool=gamePool(L), focus=a.words.filt
 /* ---------- parents: the reason in simple words ---------- */
 function adaptParentHTML(L){const a=pipTry(()=>adaptFor(L));if(!a||!L.uid)return "";const d=ADM[a.mode]||ADM.new;
   return `<section class="card panel adparent"><div class="ph"><h2>Learning path</h2><span class="pill ${d[1]}">${d[0]}</span></div><p>${esc(a.why)}</p>${a.over&&a.over.note?`<p class="small"><b>${esc(byWho(a.over.uid))}:</b> “${esc(a.over.note)}”</p>`:""}
-    ${a.mode==="revise"&&a.words.length?`<div class="row" style="gap:6px">${a.words.slice(0,6).map(x=>`<span class="pill p-mute">${esc(x.w)}</span>`).join("")}</div><p class="small muted">You can help at home: say these words together a few times this week.</p>`:""}</section>`;}
+    ${a.mode==="revise"&&a.words.length?`<div class="row" style="gap:6px">${a.words.slice(0,6).map(x=>`<span class="pill p-mute">${esc(x.w)}</span>`).join("")}</div><p class="small muted">You can help at home: say these words together a few times this week.</p>`:""}${dtWeek(L.uid)?`<p class="small muted">Daily challenges done this week: ${dtWeek(L.uid)}</p>`:""}</section>`;}
 
 /* ---------- teachers: see and override ---------- */
 function adaptStaffHTML(L){if(!L.uid)return "";const a=pipTry(()=>adaptFor(L));if(!a)return "";const d=ADM[a.mode]||ADM.new;const s=a.auto.stat||{};
   return `<p class="section-title">Lesson path</p><div class="adstaff"><div class="row" style="gap:6px"><span class="pill ${d[1]}">${d[0]}</span>${a.over?`<span class="small muted">Set by ${esc(byWho(a.over.uid))}</span>`:`<span class="small muted">Pip's suggestion</span>`}</div>
-    <p class="small">${esc(a.why)}</p><p class="small muted">Last 2 weeks: ${s.n?`${s.r}/${s.n} word answers right`:"no word games yet"}${s.gAvg!=null?` · games ${s.gAvg.toFixed(1)}/3 stars`:""}${s.hwLow?` · ${s.hwLow} low homework`:""}${s.spLow?` · ${s.spLow} low speaking scores`:""}</p>
+    <p class="small">${esc(a.why)}</p><p class="small muted">Last 2 weeks: ${s.n?`${s.r}/${s.n} word answers right`:"no word games yet"}${s.gAvg!=null?` · games ${s.gAvg.toFixed(1)}/3 stars`:""}${s.hwLow?` · ${s.hwLow} low homework`:""}${s.spLow?` · ${s.spLow} low speaking scores`:""} · daily challenges this week: ${dtWeek(L.uid)}</p>
     <button type="button" class="btn btn-ghost btn-sm" data-mact="adapt">${ic("edit")}Change suggestion</button></div>`;}
 A.adaptEdit=lid=>{const L=learner(lid);if(!L)return;const a=adaptFor(L), cur=a.over?a.over.mode:"auto", uid=L.uid;
   const done=doneList(uid).map(x=>lessonById(x.lid)).filter(Boolean), todo=learnerCourses(L).flatMap(lessonsOf).filter(l=>!isDone(uid,l.id));
@@ -4313,6 +4331,86 @@ A.adaptEdit=lid=>{const L=learner(lid);if(!L)return;const a=adaptFor(L), cur=a.o
      if(mode==="ahead"&&!f.al.value)throw userErr("Pick the lesson to jump to.");
      await S.db.doc(`tw/${S.uid}/x/adapt-${lid}`).set({kind:"adapt",lid,mode,lessonId:mode==="revise"?f.rl.value||null:mode==="ahead"?f.al.value:null,words:mode==="revise"?ws:[],note:f.n.value.trim(),at:Date.now()});}});};
 
+/* ================= Phase 3: Daily challenge (one small task a day) ================= */
+const EMO={apple:"🍎",banana:"🍌",mango:"🥭",grape:"🍇",grapes:"🍇",orange:"🍊",lemon:"🍋",pear:"🍐",peach:"🍑",cherry:"🍒",strawberry:"🍓",watermelon:"🍉",pineapple:"🍍",coconut:"🥥",carrot:"🥕",corn:"🌽",potato:"🥔",tomato:"🍅",onion:"🧅",egg:"🥚",milk:"🥛",bread:"🍞",cake:"🍰",rice:"🍚",ice:"🧊",icecream:"🍦","ice cream":"🍦",cheese:"🧀",pizza:"🍕",tea:"🍵",water:"💧",
+  cat:"🐱",dog:"🐶",cow:"🐄",hen:"🐔",chicken:"🐔",duck:"🦆",pig:"🐷",horse:"🐴",sheep:"🐑",goat:"🐐",rabbit:"🐰",mouse:"🐭",lion:"🦁",tiger:"🐯",elephant:"🐘",monkey:"🐒",bear:"🐻",fish:"🐟",bird:"🐦",frog:"🐸",snake:"🐍",turtle:"🐢",bee:"🐝",ant:"🐜",butterfly:"🦋",owl:"🦉",parrot:"🦜",peacock:"🦚",camel:"🐫",giraffe:"🦒",zebra:"🦓",fox:"🦊",whale:"🐳",dolphin:"🐬",octopus:"🐙",snail:"🐌",ladybird:"🐞",
+  sun:"☀️",moon:"🌙",star:"⭐",cloud:"☁️",rain:"🌧️",rainbow:"🌈",snow:"❄️",tree:"🌳",flower:"🌸",leaf:"🍃",seed:"🌱",plant:"🪴",mountain:"⛰️",sea:"🌊",ocean:"🌊",fire:"🔥",planet:"🪐",earth:"🌍",
+  ball:"⚽",book:"📖",pen:"🖊️",pencil:"✏️",bag:"🎒",car:"🚗",bus:"🚌",train:"🚆",plane:"✈️",boat:"⛵",bike:"🚲",bicycle:"🚲",house:"🏠",home:"🏠",school:"🏫",door:"🚪",chair:"🪑",bed:"🛏️",clock:"🕰️",phone:"📱",key:"🔑",cup:"☕",hat:"🎩",shoe:"👟",shirt:"👕",kite:"🪁",drum:"🥁",guitar:"🎸",gift:"🎁",balloon:"🎈",umbrella:"☂️",
+  eye:"👁️",ear:"👂",nose:"👃",mouth:"👄",hand:"✋",foot:"🦶",tooth:"🦷",baby:"👶",girl:"👧",boy:"👦",mother:"👩",father:"👨",family:"👪",teacher:"🧑‍🏫",doctor:"🧑‍⚕️",happy:"😊",sad:"😢",sleep:"😴",
+  red:"🔴",blue:"🔵",green:"🟢",yellow:"🟡",orange_colour:"🟠",purple:"🟣",black:"⚫",white:"⚪",brown:"🟤",circle:"⭕",square:"🟥",triangle:"🔺",heart:"❤️"};
+const STARTER={Seeds:[["cat","a pet that says meow"],["dog","a pet that barks"],["apple","a red fruit"],["ball","a round toy"],["sun","it shines in the sky"],["fish","it swims in water"],["tree","it has leaves and branches"],["car","we ride in it on the road"]],
+  Sprouts:[["rabbit","a small animal with long ears"],["banana","a long yellow fruit"],["flower","a pretty part of a plant"],["school","where we go to learn"],["rainbow","colours in the sky after rain"],["garden","where plants grow"],["happy","feeling good"],["friend","someone you like to play with"]],
+  Blooms:[["journey","a long trip"],["curious","wanting to know more"],["brave","not afraid"],["planet","a big world that goes round the sun"],["ocean","a very big sea"],["imagine","to make a picture in your mind"],["gentle","soft and kind"],["discover","to find something new"]]};
+const emoOf=w=>EMO[wkKey(w)]||null;
+const dtKinds={say:"Say a word",picture:"Match a picture",spell:"Spell a word",question:"One question"};
+function dtPool(L){const uid=L.uid,cids=learnerCourses(L),seen=new Set(),out=[];
+  const add=(w,m,lang)=>{const k=wkKey(w);if(!k||seen.has(k)||!m)return;seen.add(k);out.push({w:w.trim(),m,lang:lang||"en-IN"});};
+  const nx=nextLesson(uid,cids);const recent=doneList(uid).slice(0,2).map(x=>lessonById(x.lid)).filter(Boolean);
+  for(const l of [nx,...recent].filter(Boolean)){const c=D.courses[l.courseId];for(const [w,m] of parseVocab(l.vocab))add(w,m,langOf(c));}
+  if(out.length<4)for(const x of courseVocab(L))add(x.w,x.m,x.lang);
+  if(out.length<4)for(const [w,m] of STARTER[L.stage]||STARTER.Seeds)add(w,m,"en-IN");
+  return out;}
+function dtPlan(L){const day=ymd(new Date());if(S.dtPlan&&S.dtPlan.day===day&&S.dtPlan.lid===L.id)return S.dtPlan;
+  const r=rng(day+"|dt|"+(L.uid||L.id)), pool=shuffle(dtPool(L),r), stage=L.stage||"Seeds";
+  const order=["say","picture","spell","question"];const start=Math.floor(r()*4);let plan=null;
+  const spellable=x=>/^[A-Za-z]+$/.test(x.w)&&x.w.length>=3&&x.w.length<=(stage==="Seeds"?5:9);
+  for(let i=0;i<4&&!plan;i++){const k=order[(start+i)%4];
+    if(k==="say"&&pool.length)plan={k,x:pool[0]};
+    else if(k==="picture"){const x=pool.find(y=>emoOf(y.w));if(x){const others=shuffle(Object.entries(EMO).filter(([w,e])=>e!==emoOf(x.w)&&!w.includes("_")),r).slice(0,2).map(([,e])=>e);plan={k,x,opts:shuffle([emoOf(x.w),...others],r),ans:emoOf(x.w)};}}
+    else if(k==="spell"){const x=pool.find(spellable);if(x)plan={k,x,tiles:stage!=="Blooms",letters:shuffle(x.w.toLowerCase().split(""),r)};}
+    else if(k==="question"&&pool.length>=3){const x=pool[0];const others=pool.slice(1).filter(y=>y.m!==x.m).slice(0,2);
+      if(stage==="Seeds"&&emoOf(x.w)){const em=shuffle(Object.values(EMO).filter(e=>e!==emoOf(x.w)),r).slice(0,2);plan={k,x,listen:true,opts:shuffle([emoOf(x.w),...em],r),ans:emoOf(x.w),pics:true};}
+      else if(others.length===2)plan={k,x,opts:shuffle([x.m,...others.map(o=>o.m)],r),ans:x.m};}}
+  S.dtPlan=plan?{...plan,day,lid:L.id,tries:0,built:[],heard:null,msg:""}:{day,lid:L.id,k:null};return S.dtPlan;}
+const dtDone=uid=>(progOf(uid).dt||{})[ymd(new Date())]||null;
+function dtHTML(L){
+  if(!L||!L.uid&&!L.preview)return "";const done=dtDone(S.uid);
+  if(done)return `<section class="dtask done">${art("bloom",56,"Bloom")}<div class="grow"><span class="eyebrow">Daily challenge</span><b>${done.ok?"You did it!":"Good try!"}</b><span>${"⭐".repeat(done.s||1)} Your garden grew a little today. A new challenge comes tomorrow.</span></div></section>`;
+  const p=dtPlan(L);if(!p.k)return "";const x=p.x;const sp=canSpeak();
+  const head=`<div class="row dth">${art("buzz",48,"Buzz the ladybird")}<div class="grow"><span class="eyebrow">Daily challenge</span><b>${dtKinds[p.k]}</b></div><span class="pill p-sun">⭐⭐</span></div>`;
+  let body="";
+  if(p.k==="say"){body=`<p class="dtq">Can you say this word?</p><div class="dtword">${emoOf(x.w)?`<span class="dtemo" aria-hidden="true">${emoOf(x.w)}</span>`:""}<b>${esc(x.w)}</b>${x.m?`<small>${esc(x.m)}</small>`:""}</div>
+    <div class="row dtbtns">${sp?`<button class="btn btn-ghost" data-act="dtListen">${ic("sound",20)}Listen</button>`:""}${SR?`<button class="btn btn-primary" data-act="dtRec">${p.rec?"Listening…":"🎤 Say it"}</button>`:""}<button class="btn ${SR?"btn-ghost":"btn-primary"}" data-act="dtSaid">I said it!</button></div>
+    ${p.heard!=null?`<p class="dtmsg">Pip heard “${esc(p.heard||"…")}”. ${p.msg}</p>`:""}`;}
+  else if(p.k==="picture"||(p.k==="question"&&p.pics)){body=`<p class="dtq">${p.listen?`Listen to Pip. Which picture is it?`:`Which picture is <b>${esc(x.w)}</b>?`}</p>${sp?`<button class="btn btn-ghost btn-sm" data-act="dtListen">${ic("sound")}${p.listen?"Hear the word":"Hear it"}</button>`:p.listen?`<p class="small"><b>${esc(x.w)}</b></p>`:""}
+    <div class="dtpics">${p.opts.map((o,i)=>`<button class="dtpic ${p.wrong===i?"no":""}" data-act="dtPick" data-id="${i}" aria-label="Picture ${i+1}">${o}</button>`).join("")}</div>${p.msg?`<p class="dtmsg">${p.msg}</p>`:""}`;}
+  else if(p.k==="question"){body=`<p class="dtq">What does <b>${esc(x.w)}</b> mean?</p>${sp?`<button class="btn btn-ghost btn-sm" data-act="dtListen">${ic("sound")}Hear it</button>`:""}
+    <div class="dtopts">${p.opts.map((o,i)=>`<button class="dtopt ${p.wrong===i?"no":""}" data-act="dtPick" data-id="${i}">${esc(o)}</button>`).join("")}</div>${p.msg?`<p class="dtmsg">${p.msg}</p>`:""}`;}
+  else if(p.k==="spell"){const hint=emoOf(x.w);
+    body=`<p class="dtq">Listen and spell the word.${hint?` <span class="dtemo sm" aria-hidden="true">${hint}</span>`:""}</p>${sp?`<button class="btn btn-ghost btn-sm" data-act="dtListen">${ic("sound")}Hear the word</button>`:`<p class="small">The word means: ${esc(x.m)}</p>`}
+    ${p.tiles?`<div class="dtslots" aria-live="polite">${x.w.split("").map((_,i)=>`<span class="dtslot">${esc(p.built[i]!=null?p.letters[p.built[i]]:"")}</span>`).join("")}</div>
+      <div class="dttiles">${p.letters.map((c,i)=>`<button class="dttile" data-act="dtTile" data-id="${i}" ${p.built.includes(i)?"disabled":""} aria-label="Letter ${esc(c)}">${esc(c)}</button>`).join("")}</div>
+      <div class="row dtbtns"><button class="btn btn-ghost btn-sm" data-act="dtBack" ${p.built.length?"":"disabled"}>${ic("back")}Undo</button><button class="btn btn-primary" data-act="dtCheck" ${p.built.length===x.w.length?"":"disabled"}>Check</button></div>`
+     :`<div class="row dtbtns"><label for="dt-in" class="sr">Type the word</label><input id="dt-in" class="dtin" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="20" value="${esc(p.typed||"")}"><button class="btn btn-primary" data-act="dtCheck">Check</button></div>`}
+    ${p.msg?`<p class="dtmsg">${p.msg}</p>`:""}`;}
+  return `<section class="dtask">${head}${body}</section>`;}
+function dtGuard(){if(timeUp()){render();return true}return false;}
+A.dtListen=()=>{const p=S.dtPlan;if(p&&p.x)say(p.x.w,p.x.lang);};
+A.dtSaid=()=>{if(dtGuard())return;dtFinish(true,true);};
+A.dtRec=()=>{if(dtGuard())return;const p=S.dtPlan;if(!p||!SR||p.rec)return;try{const r=new SR();r.lang=p.x.lang||"en-IN";r.maxAlternatives=3;p.rec=true;render();
+  r.onresult=e=>{const alts=[...e.results[0]].map(a=>a.transcript);const hit=alts.find(a=>norm(a).split(" ").includes(norm(p.x.w))||norm(a)===norm(p.x.w));p.heard=hit||alts[0]||"";p.rec=false;
+    if(hit){dtFinish(true);}else{p.tries++;p.msg=p.tries>=2?"Lovely trying! Let's count that.":"Nearly! Listen once more and try again.";render();if(p.tries>=2)setTimeout(()=>dtFinish(false),1200);}};
+  r.onerror=()=>{p.rec=false;p.msg="Pip couldn't hear. You can tap “I said it!” instead.";p.heard=p.heard??"";render();};r.onend=()=>{if(p.rec){p.rec=false;render();}};r.start();setTimeout(()=>{try{r.stop()}catch{}},6000);}catch(e){p.rec=false;render();}};
+A.dtPick=i=>{if(dtGuard())return;const p=S.dtPlan;if(!p||p.fin)return;i=+i;if(p.opts[i]===p.ans){p.msg="";dtFinish(true);return;}
+  p.tries++;p.wrong=i;if(p.tries>=2){p.msg=`It was ${p.pics?p.ans:`“${esc(p.ans)}”`}. Good try!`;render();setTimeout(()=>dtFinish(false),1400);}else{p.msg="Not quite. Have another go!";render();}};
+A.dtTile=i=>{const p=S.dtPlan;if(!p||p.built.includes(+i)||p.built.length>=p.x.w.length)return;p.built.push(+i);p.msg="";render();};
+A.dtBack=()=>{const p=S.dtPlan;if(p&&p.built.length){p.built.pop();render();}};
+A.dtCheck=()=>{if(dtGuard())return;const p=S.dtPlan;if(!p||p.fin)return;let got;
+  if(p.tiles)got=p.built.map(i=>p.letters[i]).join("");else{const el=document.getElementById("dt-in");got=(el&&el.value||"").trim();p.typed=got;}
+  if(!got){p.msg="Type the word first.";render();return;}
+  if(got.toLowerCase()===p.x.w.toLowerCase()){dtFinish(true);return;}
+  p.tries++;if(p.tries>=2){p.msg=`It's spelled <b>${esc(p.x.w)}</b>. Good try!`;render();setTimeout(()=>dtFinish(false),1600);}else{p.msg="Almost! Listen again and have another go.";p.built=[];render();}};
+async function dtFinish(ok,honor){const p=S.dtPlan;if(!p||p.fin)return;p.fin=true;const day=ymd(new Date()), s=ok?2:1;
+  if(!honor&&p.x)wkLog(p.x.w,ok);
+  const rec={k:p.k,ok:!!ok,s,w:p.x?p.x.w:"",at:Date.now()};
+  if(!D.progress[S.uid])D.progress[S.uid]={};D.progress[S.uid].dt={...(D.progress[S.uid].dt||{}),[day]:rec};
+  await save(()=>earn({dt:{[day]:rec},pts:{["d"+Date.now().toString(36)]:s}}));render();
+  toast(ok?`You did it! +${s} stars ⭐`:`Good try! +${s} star ⭐`);}
+/* families and teachers: how many daily challenges this week */
+function dtWeek(uid){const dt=progOf(uid).dt||{};const t=Date.now()-7*864e5;return Object.entries(dt).filter(([d])=>new Date(d+"T12:00").getTime()>=t).length;}
+
+document.addEventListener("input",e=>{if(e.target&&e.target.id==="dt-in"&&S.dtPlan)S.dtPlan.typed=e.target.value;});
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target&&e.target.id==="dt-in"){e.preventDefault();e.target.blur();A.dtCheck();}});
 /* ================= events ================= */
 document.addEventListener("click",e=>{
   if(e.target.closest("#modal-root"))return;
