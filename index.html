@@ -810,6 +810,12 @@ body.boarding{overflow:hidden}
 .capcard audio{width:100%}.capcard.empty{border-style:dashed}
 .captree{align-items:center;text-align:center}
 .capmini{display:flex;flex-direction:row!important;align-items:center;gap:14px}
+.confask{display:flex;flex-direction:column;gap:10px;background:var(--skySoft);border-radius:24px;padding:14px 16px}
+.confask b{font-family:var(--display);font-size:1.2rem}
+.conffaces{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.cface{display:flex;flex-direction:column;align-items:center;gap:4px;border:2px solid var(--line);border-radius:18px;background:var(--card);padding:8px 4px;min-height:96px;cursor:pointer;font:inherit;font-weight:700;font-size:.85rem;color:var(--soil)}
+.cface:active{transform:scale(.95)}
+.confchart{width:100%;max-width:420px;height:auto}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -1688,6 +1694,7 @@ function childView(lid){
     </div>
     <div class="stack" style="gap:20px">
       ${adaptParentHTML(L)}
+      ${confParentHTML(L)}
       <section class="card panel"><h2>Attendance</h2>${hist.length?`<div class="list">${hist.slice(0,8).map(x=>`<div class="item"><div class="grow"><div class="t">${esc(x.title||D.courses[x.courseId]?.title||"Class")}</div><div class="s">${esc(fmtDay(new Date(x.date)))}</div></div>${attPill(x.st)}</div>`).join("")}</div>`:`<p class="muted">No classes marked yet.</p>`}</section>
       ${(()=>{const hs=hwFor(L);return `<section class="card panel"><h2>Homework</h2>${hs.length?`<div class="list">${hs.slice(0,6).map(h=>{const st=hwState(L,h);const rp=replyOf(L,h);return `<div class="item"><div class="grow"><div class="t">${esc(h.title)}</div><div class="s">${rp?`${esc(hwAuthor(h))}: “${esc(rp.text)}”`:`${esc(hwAuthor(h))}${h.due?` · due ${esc(fmtDay(hwDue(h)))}`:""}`}</div></div><span class="pill ${st.cls}">${esc(st.label)}</span></div>`}).join("")}</div>`:`<p class="muted">No homework set yet.</p>`}</section>`})()}
       ${pr.length?`<section class="card panel"><h2>What ${esc(first)} is practising</h2>${pr.map(p=>`<div class="h${p.h}"><div class="small" style="font-weight:700">${esc(p.label)}</div><div class="barrow"><div class="bar"><i style="width:${pctStr(p.v)}"></i></div><b class="num">${pctStr(p.v)}</b></div></div>`).join("")}</section>`:""}
@@ -1822,8 +1829,8 @@ A.learnerInfo=id=>{
     ${admin?`<p class="section-title">Fees</p>${fi?`<p>${money(fi.monthly)} a month · ${fi.balance?`<b style="color:var(--bad)">${money(fi.balance)} owed</b>`:"All paid up"}</p>${fi.pays.length?`<div class="list">${fi.pays.slice(0,5).map(p=>`<div class="item" style="min-height:0;padding:8px 0"><div class="grow"><div class="t small">${money(p.amount)} for ${esc(monthLabel(p.month))}</div><div class="s">${esc(p.date?fmtDay(new Date(p.date+"T12:00")):"")} · ${esc(p.method||"")}</div></div><button type="button" class="iconbtn" data-mact="delPay" data-id="${esc(p.id)}" aria-label="Delete payment">${ic("trash")}</button></div>`).join("")}</div>`:`<p class="small muted">No payments yet.</p>`}`:`<p class="small muted">No fee set.</p>`}`:""}`;
   if(L.uid&&!D.kp[L.uid])loadKp(L.uid).then(()=>{if(modalOpen&&document.getElementById("li-port"))A.learnerInfo(id)});
   const port=L.uid?kpItems(L.uid).filter(x=>x.kind!=="rate"&&x.kind!=="join").slice(0,6):[];const rec=assessFor(L).find(a=>a.recommend&&a.recommend!==L.stage&&NEXT_STAGE[L.stage]===a.recommend);
-  openModal(L.name,(rec?`<section class="alert a-sun"><b>${esc(byWho(rec.uid))} recommends moving to ${esc(rec.recommend)}</b>${admin?`<span class="spacer"></span><button type="button" class="btn btn-sun btn-sm" data-mact="promote">Move to ${esc(rec.recommend)}</button>`:""}</section>`:"")+body+adaptStaffHTML(L)+capStaffHTML(L)+`<p class="section-title">Stars and portfolio</p><p>⭐ ${starsOf(L)} stars · 🏅 ${badgesOf(L).filter(b=>b.ok).length} badges · 🏆 ${certsOf(L).length} certificates</p><div id="li-port">${port.length?`<div class="port">${port.map(x=>portTile(x,false)).join("")}</div>`:`<p class="small muted">Nothing in ${esc(firstOf(L.name))}'s portfolio yet.</p>`}</div>`,{wide:true,noFocus:true,footerExtra:`<button type="button" class="btn btn-ghost" data-mact="award">⭐ Award</button><button type="button" class="btn btn-ghost" data-mact="assess">📈 Assess</button><button type="button" class="btn btn-ghost" data-mact="stk">🌟 Sticker</button>`+(admin?`<button type="button" class="btn btn-ghost" data-mact="edit">${ic("edit")}Edit</button>${fi?`<button type="button" class="btn btn-ghost" data-mact="pay">${ic("rupee")}Record payment</button>`:""}`:""),
-    actions:{adapt:()=>{closeModal();A.adaptEdit(id)},capnote:v=>{closeModal();A.capNote(id,v)},chat:k=>{closeModal();S.itab="chats";S.thread=k;go("inbox");},asg:async v=>{if(await A.assignTrainer(id,v)){closeModal();A.learnerInfo(id);}},invite:()=>{A.copyInvite(id)},promote:()=>{closeModal();A.promote(id)},award:()=>{closeModal();A.award(id)},assess:()=>{closeModal();A.assess(id)},stk:()=>{closeModal();A.sendSticker(id)},edit:()=>{closeModal();A.editLearner(id)},pay:()=>{closeModal();A.pay(id)},delPay:async pid=>{if(await save(()=>S.db.doc("fees/"+id).update({payments:{[pid]:null}}),"Payment deleted")){closeModal();A.learnerInfo(id);}}}});
+  openModal(L.name,(rec?`<section class="alert a-sun"><b>${esc(byWho(rec.uid))} recommends moving to ${esc(rec.recommend)}</b>${admin?`<span class="spacer"></span><button type="button" class="btn btn-sun btn-sm" data-mact="promote">Move to ${esc(rec.recommend)}</button>`:""}</section>`:"")+body+adaptStaffHTML(L)+capStaffHTML(L)+confStaffHTML(L)+`<p class="section-title">Stars and portfolio</p><p>⭐ ${starsOf(L)} stars · 🏅 ${badgesOf(L).filter(b=>b.ok).length} badges · 🏆 ${certsOf(L).length} certificates</p><div id="li-port">${port.length?`<div class="port">${port.map(x=>portTile(x,false)).join("")}</div>`:`<p class="small muted">Nothing in ${esc(firstOf(L.name))}'s portfolio yet.</p>`}</div>`,{wide:true,noFocus:true,footerExtra:`<button type="button" class="btn btn-ghost" data-mact="award">⭐ Award</button><button type="button" class="btn btn-ghost" data-mact="assess">📈 Assess</button><button type="button" class="btn btn-ghost" data-mact="stk">🌟 Sticker</button>`+(admin?`<button type="button" class="btn btn-ghost" data-mact="edit">${ic("edit")}Edit</button>${fi?`<button type="button" class="btn btn-ghost" data-mact="pay">${ic("rupee")}Record payment</button>`:""}`:""),
+    actions:{adapt:()=>{closeModal();A.adaptEdit(id)},capnote:v=>{closeModal();A.capNote(id,v)},conf:async v=>{await A.confRate(id,v);closeModal();A.learnerInfo(id);},chat:k=>{closeModal();S.itab="chats";S.thread=k;go("inbox");},asg:async v=>{if(await A.assignTrainer(id,v)){closeModal();A.learnerInfo(id);}},invite:()=>{A.copyInvite(id)},promote:()=>{closeModal();A.promote(id)},award:()=>{closeModal();A.award(id)},assess:()=>{closeModal();A.assess(id)},stk:()=>{closeModal();A.sendSticker(id)},edit:()=>{closeModal();A.editLearner(id)},pay:()=>{closeModal();A.pay(id)},delPay:async pid=>{if(await save(()=>S.db.doc("fees/"+id).update({payments:{[pid]:null}}),"Payment deleted")){closeModal();A.learnerInfo(id);}}}});
 };
 
 /* ---- trainers (admin) ---- */
@@ -2342,7 +2349,7 @@ function parentProgress(){
   </div>
   <section class="card panel"><div class="ph"><h2>Words learned <span class="pill p-mute num">${ws.length}</span></h2>${speak&&ws.length?`<span class="small muted">Tap 🔊 to hear a word</span>`:""}</div>
     ${ws.length?`<div class="words">${ws.map(x=>`<div class="word"><div><b>${esc(x.w)}</b><span>${esc(x.m)}</span></div>${speak?`<button class="iconbtn" data-act="say" data-w="${esc(x.w)}" data-l="${esc(x.lang)}" aria-label="Hear ${esc(x.w)}">${ic("sound")}</button>`:""}</div>`).join("")}</div>`:`<p class="muted">Words from finished lessons collect here.</p>`}</section>
-  ${kidReports(L)}${kidExtras(L)}
+  ${kidReports(L)}${confParentHTML(L)}${kidExtras(L)}
   <section class="card panel"><h2>Topics covered</h2>${topics.length?`<div class="list">${topics.map(h=>`<div class="item" style="align-items:flex-start"><div class="when"><span>${esc(WD.format(new Date(h.date)))}</span><b class="num">${esc(DNUM.format(new Date(h.date)))}</b></div><div class="grow"><div class="t">${esc(h.topic||h.title||"Class")}</div>${h.objectives?`<ul class="obj small">${String(h.objectives).split("\n").map(x=>x.trim()).filter(Boolean).map(x=>`<li>${esc(x.replace(/^[-•*]\s*/,""))}</li>`).join("")}</ul>`:""}<div class="s">${esc(h.title||"")}</div></div></div>`).join("")}</div>`:`<p class="muted">When teachers add a topic and learning objectives to a class, they're listed here after ${esc(firstOf(L.name))} attends.</p>`}</section>`;
 }
 const SKILL={"Stories":"Reading (stories)","Speaking":"Speaking","Songs & videos":"Listening (songs & videos)","Games":"Word games"};
@@ -2761,6 +2768,7 @@ function studentHome(){
       ${dtHTML(L)}
     </div>
     <div class="stack" style="gap:16px">
+      ${confKidHTML(L)}
       ${capsuleDueHTML(L)}
       ${adaptKidHTML(L)}
       <section class="daily ${dDone?"done":""}"><span class="dicon" aria-hidden="true">${dDone?"✅":"🎯"}</span><div class="grow"><b>Word quiz</b><span>${dDone?`Done today! You got ${progOf(uid).daily[ymd(new Date())]} of 5. Come back tomorrow.`:"5 quick questions, just for fun."}</span></div>${dDone?"":`<button class="btn btn-sun" data-act="startGame" data-id="daily">Play</button>`}</section>
@@ -4154,6 +4162,7 @@ function pipUpdates(){
   else if(r==="trainer"||r==="admin"){
     const rv=pipTry(()=>toReview().length)||0;if(rv)add(`${rv} homework answer${rv===1?"":"s"} waiting for your reply`,"homework");
     const sp=pipTry(()=>speakingQueue().length)||0;if(sp)add(`${sp} speaking practice to review`,"review");
+    for(const L of (pipTry(()=>confFlagList())||[]).slice(0,3))add(`${firstOf(L.name)}'s speaking confidence has dipped two months running. A gentle boost could help.`,"learners",true);
     const cd=pipTry(()=>capDueList().length)||0;if(cd)add(`${cd} learner${cd===1?"":"s"} due a time-capsule recording this term`,"learners");
     const wa=pipTry(()=>wallAskedCount())||0;if(wa)add(`${wa} learner${wa===1?"":"s"} asked to share work on the Garden wall`,"review");
     const ib=pipTry(()=>inboxCount())||0;if(ib)add(`${ib} family conversation${ib===1?" needs":"s need"} a reply`,"inbox",true);
@@ -4897,6 +4906,42 @@ function capDueList(){const ls=role()==="admin"?activeLearners():pipTry(()=>teac
 function capParentHTML(L){if(!L||!L.uid)return "";if(!D.kp[L.uid])loadKp(L.uid);const xs=capItems(L);
   return `<section class="card panel"><div class="ph"><h2>Voice time capsule</h2><button class="btn btn-ghost btn-sm" data-go="capsule">Open</button></div>${xs.length?capThenNow(L):`<p class="small muted">Once a term, ${esc(firstOf(L.name))} records the same short message. You'll be able to play “Then” and “Now” side by side.</p>`}${capDue(L)?`<p class="small"><b>This term's recording is due.</b> ${esc(firstOf(L.name))} can record it from their garden.</p>`:""}</section>`;}
 function capMeHTML(L){if(!L||!L.uid)return "";const n=capItems(L).length;return `<section class="card panel capmini">${capTree(n,96)}<div class="grow"><h2>My voice time capsule</h2><p class="small muted">${n} ${n===1?"leaf":"leaves"} so far. ${capDue(L)?"This term's leaf is waiting for you!":"See you next term!"}</p><button class="btn btn-ghost btn-sm" data-go="capsule">Open my tree</button></div></section>`;}
+
+/* ================= Feature 2: Confidence meter (how brave speaking English feels) ================= */
+const CONF=[[1,"I feel shy"],[2,"I feel a bit shy"],[3,"I feel okay"],[4,"I feel brave"]];
+const CONF_T=["","Shy","A bit shy","Okay","Brave"];
+const ymOf=t=>ymd(new Date(t||Date.now())).slice(0,7);
+function pipFace(v,size){const s=size||56,m={1:"M84 150 q16 -6 32 0",2:"M84 148 q16 4 32 0",3:"M84 144 q16 14 32 0",4:"M82 140 q18 26 36 0 z"}[v];
+  return `<svg viewBox="30 50 140 150" width="${s}" height="${s}" aria-hidden="true"><ellipse cx="100" cy="128" rx="66" ry="62" fill="#2F8F46"/><ellipse cx="100" cy="148" rx="44" ry="28" fill="#3FA75A"/>${v===1?`<path d="M66 116 q10 -6 20 0 M114 116 q10 -6 20 0" stroke="#2E2219" stroke-width="6" fill="none" stroke-linecap="round"/>`:`<circle cx="78" cy="118" r="13" fill="#fff"/><circle cx="80" cy="${v===2?123:120}" r="7" fill="#2E2219"/><circle cx="122" cy="118" r="13" fill="#fff"/><circle cx="124" cy="${v===2?123:120}" r="7" fill="#2E2219"/>`}
+    <ellipse cx="60" cy="140" rx="9" ry="5" fill="#F7A8C4"/><ellipse cx="140" cy="140" rx="9" ry="5" fill="#F7A8C4"/><path d="${m}" ${v===4?'fill="#2E2219"':'fill="none" stroke="#2E2219" stroke-width="6" stroke-linecap="round"'}/></svg>`;}
+const confSelf=L=>(L&&L.uid&&progOf(L.uid).conf)||{};
+function confTeach(L){const o={};for(const x of txAll("conf"))if(x.lid===L.id&&x.ym&&(!o[x.ym]||(x.at||0)>(o[x.ym].at||0)))o[x.ym]=x;return o;}
+function confSeries(L,n){const months=[];const d=new Date();d.setDate(1);for(let i=(n||6)-1;i>=0;i--){const x=new Date(d.getFullYear(),d.getMonth()-i,1);months.push(ymd(x).slice(0,7));}
+  const me=confSelf(L),t=confTeach(L);return months.map(ym=>{const a=me[ym]&&+me[ym].v||null,b=t[ym]&&+t[ym].v||null;return {ym,self:a,teach:b,avg:a&&b?(a+b)/2:a||b||null};});}
+function confDropping(L){const s=confSeries(L,3).map(x=>x.avg);return s.every(v=>v!=null)&&s[1]<s[0]&&s[2]<s[1];}
+function confChart(L){const s=confSeries(L,6),W=320,H=150,px=i=>28+i*(W-44)/5,py=v=>H-24-(v-1)*(H-44)/3;
+  const line=(k,c,dash)=>{const pts=s.map((x,i)=>x[k]?[px(i),py(x[k])]:null);let d="";pts.forEach((p,i)=>{if(!p)return;d+=(d&&pts[i-1]?"L":"M")+p[0]+" "+p[1];});return `${d?`<path d="${d}" fill="none" stroke="${c}" stroke-width="3" ${dash?'stroke-dasharray="6 5"':""} stroke-linecap="round" stroke-linejoin="round"/>`:""}${pts.map(p=>p?`<circle cx="${p[0]}" cy="${p[1]}" r="5" fill="${c}"/>`:"").join("")}`;};
+  const mon=ym=>new Date(ym+"-15").toLocaleString(undefined,{month:"short"});
+  return `<svg viewBox="0 0 ${W} ${H}" class="confchart" role="img" aria-label="Confidence over the last 6 months">${[1,2,3,4].map(v=>`<line x1="28" x2="${W-16}" y1="${py(v)}" y2="${py(v)}" stroke="#D5E8BE"/><text x="2" y="${py(v)+4}" font-size="10" fill="#5C4F45">${["","Shy","Bit shy","Okay","Brave"][v]}</text>`).join("")}
+    ${s.map((x,i)=>`<text x="${px(i)}" y="${H-6}" font-size="10" text-anchor="middle" fill="#5C4F45">${mon(x.ym)}</text>`).join("")}${line("teach","#4BA3E3",true)}${line("self","#2F8F46")}</svg>
+    <p class="small muted" style="margin:0"><span style="color:#2F8F46">●</span> How ${esc(firstOf(L.name))} feels &nbsp; <span style="color:#4BA3E3">●</span> Teacher, in class</p>`;}
+function confSentence(L){const s=confSeries(L,6).filter(x=>x.avg!=null),f=firstOf(L.name);if(!s.length)return `${f} will start sharing how brave they feel speaking English each month.`;
+  const last=s[s.length-1],first=s[0];if(s.length===1)return `${f} feels “${CONF_T[Math.round(last.avg)].toLowerCase()}” speaking English this month. We'll track it gently each month.`;
+  if(last.avg>first.avg)return `${f} is growing braver about speaking English: from “${CONF_T[Math.round(first.avg)].toLowerCase()}” to “${CONF_T[Math.round(last.avg)].toLowerCase()}”.`;
+  if(last.avg<first.avg)return `${f} feels a little less sure speaking lately. That's normal while learning; lots of encouragement at home helps.`;
+  return `${f}'s speaking confidence is steady. Celebrating small tries at home keeps it growing.`;}
+function confParentHTML(L){if(!L||!L.uid)return "";return `<section class="card panel"><h2>Speaking confidence</h2><p>${esc(confSentence(L))}</p>${confChart(L)}</section>`;}
+/* kid: once a month */
+function confKidHTML(L){if(!L||!L.uid||confSelf(L)[ymOf()])return "";
+  return `<section class="confask"><b>How brave do you feel speaking English?</b><div class="conffaces">${CONF.map(([v,t])=>`<button class="cface" data-act="confPick" data-id="${v}" aria-label="${t}">${pipFace(v,60)}<span>${t.replace("I feel ","")}</span></button>`).join("")}</div><p class="small muted" style="margin:0">Every answer is a good answer!</p></section>`;}
+A.confPick=v=>{if(realRole()!=="student"||S.viewAs){toast("Only the learner can answer this.",true);return}const ym=ymOf();
+  save(async()=>{await upsert("progress/"+S.uid,{conf:{[ym]:{v:+v,at:Date.now()}}});if(!D.progress[S.uid])D.progress[S.uid]={};D.progress[S.uid].conf={...(D.progress[S.uid].conf||{}),[ym]:{v:+v,at:Date.now()}};render(true);},+v>=3?"Thanks for telling Pip! 🌟":"Thanks for telling Pip. Every try makes you braver! 🌱");};
+/* trainers */
+function confStaffHTML(L){if(!L.uid)return "";const t=confTeach(L)[ymOf()];
+  return `<p class="section-title">Speaking confidence</p><div class="adstaff">${confDropping(L)?`<span class="pill p-sun" style="align-self:flex-start">Dropped two months running: a kind word could help</span>`:""}${confChart(L)}
+    <div><span class="small"><b>Your rating for ${esc(new Date().toLocaleString(undefined,{month:"long"}))}:</b></span><div class="row" style="gap:6px;margin-top:4px">${CONF.map(([v])=>`<button type="button" class="btn btn-sm ${t&&+t.v===v?"btn-leaf":"btn-ghost"}" data-mact="conf" data-id="${v}">${CONF_T[v]}</button>`).join("")}</div></div></div>`;}
+A.confRate=(lid,v)=>{save(()=>S.db.doc(`tw/${S.uid}/x/conf-${lid}-${ymOf()}`).set({kind:"conf",lid,ym:ymOf(),v:+v,at:Date.now()}),"Confidence saved");};
+function confFlagList(){const ls=role()==="admin"?activeLearners():pipTry(()=>teacherLearners(myTid()))||[];return ls.filter(L=>L.uid&&confDropping(L));}
 
 /* ================= events ================= */
 document.addEventListener("click",e=>{
