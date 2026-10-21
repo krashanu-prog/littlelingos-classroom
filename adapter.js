@@ -350,6 +350,21 @@
       gate(`${brand}<h1>Password saved</h1><p class="lede">Next time, sign in with <b>${esc(session.user.email || "")}</b> and your password. No code needed.</p><button class="btn btn-primary btn-big" type="button" id="ll-done">Continue</button>`).querySelector("#ll-done").onclick = closeGate;
     });
   }
+  /* ---- Ask Pip (AI helper): calls the ask-pip edge function; the AI key stays on Supabase ---- */
+  window.LL_askPip = async (messages, updates) => {
+    if (!sb || !session) return { error: "signin" };
+    try {
+      const { data, error } = await sb.functions.invoke("ask-pip", { body: { messages, updates } });
+      if (error) {
+        const st = error.context && error.context.status;
+        if (st === 503 || st === 404) return { off: true };
+        if (st === 401) return { error: "signin" };
+        if (error.name === "FunctionsFetchError" || error.name === "FunctionsRelayError") return { off: true };
+        return { error: "failed" };
+      }
+      return data || { error: "failed" };
+    } catch (e) { return { error: "failed" }; }
+  };
   window.LL_setPassword = () => { if (session) passwordForm(); };
   window.LL_hasPassword = hasPassword;
   function maybeOffer() {
