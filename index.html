@@ -852,6 +852,32 @@ body.boarding{overflow:hidden}
 .sptips{display:flex;flex-direction:column;gap:8px;margin-top:12px}.sptip{display:flex;flex-direction:column;gap:2px;background:var(--sunSoft);border-radius:16px;padding:10px 14px;text-align:left;width:100%;max-width:420px;box-sizing:border-box}
 .kidtile.t7{background:var(--skySoft,var(--soft));flex-direction:row;align-items:center;gap:10px;min-height:72px;grid-column:1/-1}
 @media (max-width:420px){.spbar{grid-template-columns:1fr}.spbar .small{grid-column:1}.spbtn{min-height:120px}.spemo{font-size:2.8rem}}
+.ppmark{width:48px;height:48px;flex:none}
+.ppcard{display:flex;gap:14px;align-items:flex-start}.ppcard h2{margin:0 0 2px}
+.ppbar{gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:14px}
+.ppdoc{background:#FFFDF8;color:#2E2219;border-radius:28px;overflow:hidden;border:1px solid var(--line);max-width:820px;margin:0 auto 16px;font-family:"Atkinson Hyperlegible",system-ui,sans-serif}
+.pphead{background:#2E2219;color:#fff;display:flex;gap:16px;align-items:center;padding:22px 24px}
+.pphead .ppmark{width:64px;height:64px}.pphead h2{margin:2px 0;color:#fff;font-family:"Baloo 2",system-ui,sans-serif;font-weight:800;font-size:2rem;line-height:1;overflow-wrap:anywhere}
+.ppeyebrow{color:#FFC94A;font-weight:700;letter-spacing:.12em;text-transform:uppercase;font-size:.8rem}.ppsub{color:#E9DFD6;font-size:.95rem}
+.ppintro{margin:0;padding:18px 24px 0;font-size:1.15rem;font-style:italic;color:#5C4F45}
+.ppsec{padding:16px 24px;border-bottom:1px solid #EDE5DC}.ppsec:last-of-type{border-bottom:0}
+.ppsec h3{margin:0 0 10px;font-family:"Baloo 2",system-ui,sans-serif;font-size:1.15rem;color:#E8492F;letter-spacing:.02em}
+.pplist{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}.pplist li{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:center}
+.pplist li span{color:#5C4F45;font-size:.9rem}.pplist audio{width:100%;max-width:360px;height:40px}.ppnote{font-style:italic}
+.ppwrite{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(220px,100%),1fr));gap:12px}
+.ppwrite figure{margin:0;border:1px solid #EDE5DC;border-radius:16px;overflow:hidden;background:#fff}.ppwrite img{display:block;width:100%;max-height:260px;object-fit:contain;background:#F7F2EC}
+.ppwrite figcaption{padding:6px 10px;font-size:.85rem;color:#5C4F45}
+.ppwrite blockquote{margin:0;border-left:4px solid #E8492F;padding:8px 12px;background:#fff;border-radius:0 12px 12px 0;grid-column:1/-1}.ppwrite blockquote p{margin:4px 0 0;white-space:pre-wrap}
+.ppskills{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:8px}.ppskills div{background:#F7F2EC;border-radius:12px;padding:8px 12px;display:flex;flex-direction:column}.ppskills b{font-size:1.2rem}
+.ppsmall{font-size:.85rem;color:#5C4F45;margin:8px 0 0}
+.ppchips{list-style:none;margin:0;padding:0;display:flex;flex-wrap:wrap;gap:8px}.ppchips li{border:1.5px solid #2E2219;border-radius:99px;padding:4px 12px;font-size:.9rem}
+.ppend{margin:0}.ppend p{margin:0;font-size:1.05rem}.ppend cite{display:block;margin-top:6px;color:#5C4F45;font-style:normal;font-size:.9rem}
+.ppfoot{display:flex;justify-content:space-between;flex-wrap:wrap;gap:6px;padding:14px 24px;background:#2E2219;color:#E9DFD6;font-size:.85rem}.ppfoot b{color:#A6DB5C}
+.ppedit h3{margin:16px 0 8px}.ppopt{display:flex;gap:12px;align-items:center;min-height:44px;padding:6px 0;border-bottom:1px solid var(--line);cursor:pointer}.ppopt input{width:22px;height:22px;accent-color:var(--leafMid);flex:none}.ppopt .grow{display:flex;flex-direction:column;min-width:0}
+#pp-print{display:none}
+@media print{body.pp-printing>*:not(#pp-print){display:none!important}body.pp-printing #pp-print{display:block!important}body.pp-printing #pp-print,body.pp-printing #pp-print *{visibility:visible!important}body.pp-printing{background:#fff!important}
+  #pp-print .ppdoc{border:0;border-radius:0;max-width:none;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}#pp-print .ppsec{break-inside:avoid}}
+@media (max-width:480px){.pphead{padding:18px}.pphead h2{font-size:1.6rem}.ppsec,.ppintro{padding-left:16px;padding-right:16px}.ppfoot{padding:12px 16px}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -1305,7 +1331,7 @@ function mainHTML(){
   const r=realRole();
   if(!r)return onboardHTML();
   if(r==="pending")return pendingHTML();
-  const allowed=new Set(navItems().map(x=>x[0]).concat(["course","lesson","child","capsule","sounds"],role()==="parent"?["settings"]:[]));
+  const allowed=new Set(navItems().map(x=>x[0]).concat(["course","lesson","child","capsule","sounds","passport"],role()==="parent"?["settings"]:[]));
   const key=allowed.has(S.view)&&VIEWS[S.view]?S.view:"home";
   if(needsConsent())return consentHTML();
   if(gateNeeded(key))return gateHTML();
@@ -1421,6 +1447,7 @@ wall(){return wallView();},
 capsule(){return capsuleView();},
 india(){return indiaView();},
 sounds(){return soundsView();},
+passport(){return passportView();},
 myspace(){return mySpaceView();},
 review(){return reviewView();},
 reports(){return reportsView();},
@@ -1737,6 +1764,7 @@ function childView(lid){
       ${adaptParentHTML(L)}
       ${confParentHTML(L)}
       ${spParentHTML(L)}
+      ${ppParentHTML(L)}
       <section class="card panel"><h2>Attendance</h2>${hist.length?`<div class="list">${hist.slice(0,8).map(x=>`<div class="item"><div class="grow"><div class="t">${esc(x.title||D.courses[x.courseId]?.title||"Class")}</div><div class="s">${esc(fmtDay(new Date(x.date)))}</div></div>${attPill(x.st)}</div>`).join("")}</div>`:`<p class="muted">No classes marked yet.</p>`}</section>
       ${(()=>{const hs=hwFor(L);return `<section class="card panel"><h2>Homework</h2>${hs.length?`<div class="list">${hs.slice(0,6).map(h=>{const st=hwState(L,h);const rp=replyOf(L,h);return `<div class="item"><div class="grow"><div class="t">${esc(h.title)}</div><div class="s">${rp?`${esc(hwAuthor(h))}: “${esc(rp.text)}”`:`${esc(hwAuthor(h))}${h.due?` · due ${esc(fmtDay(hwDue(h)))}`:""}`}</div></div><span class="pill ${st.cls}">${esc(st.label)}</span></div>`}).join("")}</div>`:`<p class="muted">No homework set yet.</p>`}</section>`})()}
       ${pr.length?`<section class="card panel"><h2>What ${esc(first)} is practising</h2>${pr.map(p=>`<div class="h${p.h}"><div class="small" style="font-weight:700">${esc(p.label)}</div><div class="barrow"><div class="bar"><i style="width:${pctStr(p.v)}"></i></div><b class="num">${pctStr(p.v)}</b></div></div>`).join("")}</section>`:""}
@@ -1871,8 +1899,8 @@ A.learnerInfo=id=>{
     ${admin?`<p class="section-title">Fees</p>${fi?`<p>${money(fi.monthly)} a month · ${fi.balance?`<b style="color:var(--bad)">${money(fi.balance)} owed</b>`:"All paid up"}</p>${fi.pays.length?`<div class="list">${fi.pays.slice(0,5).map(p=>`<div class="item" style="min-height:0;padding:8px 0"><div class="grow"><div class="t small">${money(p.amount)} for ${esc(monthLabel(p.month))}</div><div class="s">${esc(p.date?fmtDay(new Date(p.date+"T12:00")):"")} · ${esc(p.method||"")}</div></div><button type="button" class="iconbtn" data-mact="delPay" data-id="${esc(p.id)}" aria-label="Delete payment">${ic("trash")}</button></div>`).join("")}</div>`:`<p class="small muted">No payments yet.</p>`}`:`<p class="small muted">No fee set.</p>`}`:""}`;
   if(L.uid&&!D.kp[L.uid])loadKp(L.uid).then(()=>{if(modalOpen&&document.getElementById("li-port"))A.learnerInfo(id)});
   const port=L.uid?kpItems(L.uid).filter(x=>x.kind!=="rate"&&x.kind!=="join").slice(0,6):[];const rec=assessFor(L).find(a=>a.recommend&&a.recommend!==L.stage&&NEXT_STAGE[L.stage]===a.recommend);
-  openModal(L.name,(rec?`<section class="alert a-sun"><b>${esc(byWho(rec.uid))} recommends moving to ${esc(rec.recommend)}</b>${admin?`<span class="spacer"></span><button type="button" class="btn btn-sun btn-sm" data-mact="promote">Move to ${esc(rec.recommend)}</button>`:""}</section>`:"")+body+adaptStaffHTML(L)+capStaffHTML(L)+confStaffHTML(L)+`<p class="section-title">Stars and portfolio</p><p>⭐ ${starsOf(L)} stars · 🏅 ${badgesOf(L).filter(b=>b.ok).length} badges · 🏆 ${certsOf(L).length} certificates</p><div id="li-port">${port.length?`<div class="port">${port.map(x=>portTile(x,false)).join("")}</div>`:`<p class="small muted">Nothing in ${esc(firstOf(L.name))}'s portfolio yet.</p>`}</div>`,{wide:true,noFocus:true,footerExtra:`<button type="button" class="btn btn-ghost" data-mact="award">⭐ Award</button><button type="button" class="btn btn-ghost" data-mact="assess">📈 Assess</button><button type="button" class="btn btn-ghost" data-mact="stk">🌟 Sticker</button>`+(admin?`<button type="button" class="btn btn-ghost" data-mact="edit">${ic("edit")}Edit</button>${fi?`<button type="button" class="btn btn-ghost" data-mact="pay">${ic("rupee")}Record payment</button>`:""}`:""),
-    actions:{adapt:()=>{closeModal();A.adaptEdit(id)},capnote:v=>{closeModal();A.capNote(id,v)},conf:async v=>{await A.confRate(id,v);closeModal();A.learnerInfo(id);},chat:k=>{closeModal();S.itab="chats";S.thread=k;go("inbox");},asg:async v=>{if(await A.assignTrainer(id,v)){closeModal();A.learnerInfo(id);}},invite:()=>{A.copyInvite(id)},promote:()=>{closeModal();A.promote(id)},award:()=>{closeModal();A.award(id)},assess:()=>{closeModal();A.assess(id)},stk:()=>{closeModal();A.sendSticker(id)},edit:()=>{closeModal();A.editLearner(id)},pay:()=>{closeModal();A.pay(id)},delPay:async pid=>{if(await save(()=>S.db.doc("fees/"+id).update({payments:{[pid]:null}}),"Payment deleted")){closeModal();A.learnerInfo(id);}}}});
+  openModal(L.name,(rec?`<section class="alert a-sun"><b>${esc(byWho(rec.uid))} recommends moving to ${esc(rec.recommend)}</b>${admin?`<span class="spacer"></span><button type="button" class="btn btn-sun btn-sm" data-mact="promote">Move to ${esc(rec.recommend)}</button>`:""}</section>`:"")+body+adaptStaffHTML(L)+capStaffHTML(L)+confStaffHTML(L)+ppStaffHTML(L)+`<p class="section-title">Stars and portfolio</p><p>⭐ ${starsOf(L)} stars · 🏅 ${badgesOf(L).filter(b=>b.ok).length} badges · 🏆 ${certsOf(L).length} certificates</p><div id="li-port">${port.length?`<div class="port">${port.map(x=>portTile(x,false)).join("")}</div>`:`<p class="small muted">Nothing in ${esc(firstOf(L.name))}'s portfolio yet.</p>`}</div>`,{wide:true,noFocus:true,footerExtra:`<button type="button" class="btn btn-ghost" data-mact="award">⭐ Award</button><button type="button" class="btn btn-ghost" data-mact="assess">📈 Assess</button><button type="button" class="btn btn-ghost" data-mact="stk">🌟 Sticker</button>`+(admin?`<button type="button" class="btn btn-ghost" data-mact="edit">${ic("edit")}Edit</button>${fi?`<button type="button" class="btn btn-ghost" data-mact="pay">${ic("rupee")}Record payment</button>`:""}`:""),
+    actions:{adapt:()=>{closeModal();A.adaptEdit(id)},capnote:v=>{closeModal();A.capNote(id,v)},conf:async v=>{await A.confRate(id,v);closeModal();A.learnerInfo(id);},ppend:()=>{closeModal();A.ppEndorseEdit(id)},ppview:()=>{closeModal();S.ppLid=id;go("passport")},chat:k=>{closeModal();S.itab="chats";S.thread=k;go("inbox");},asg:async v=>{if(await A.assignTrainer(id,v)){closeModal();A.learnerInfo(id);}},invite:()=>{A.copyInvite(id)},promote:()=>{closeModal();A.promote(id)},award:()=>{closeModal();A.award(id)},assess:()=>{closeModal();A.assess(id)},stk:()=>{closeModal();A.sendSticker(id)},edit:()=>{closeModal();A.editLearner(id)},pay:()=>{closeModal();A.pay(id)},delPay:async pid=>{if(await save(()=>S.db.doc("fees/"+id).update({payments:{[pid]:null}}),"Payment deleted")){closeModal();A.learnerInfo(id);}}}});
 };
 
 /* ---- trainers (admin) ---- */
@@ -2391,7 +2419,7 @@ function parentProgress(){
   </div>
   <section class="card panel"><div class="ph"><h2>Words learned <span class="pill p-mute num">${ws.length}</span></h2>${speak&&ws.length?`<span class="small muted">Tap 🔊 to hear a word</span>`:""}</div>
     ${ws.length?`<div class="words">${ws.map(x=>`<div class="word"><div><b>${esc(x.w)}</b><span>${esc(x.m)}</span></div>${speak?`<button class="iconbtn" data-act="say" data-w="${esc(x.w)}" data-l="${esc(x.lang)}" aria-label="Hear ${esc(x.w)}">${ic("sound")}</button>`:""}</div>`).join("")}</div>`:`<p class="muted">Words from finished lessons collect here.</p>`}</section>
-  ${kidReports(L)}${confParentHTML(L)}${spParentHTML(L)}${kidExtras(L)}
+  ${kidReports(L)}${confParentHTML(L)}${spParentHTML(L)}${ppParentHTML(L)}${kidExtras(L)}
   <section class="card panel"><h2>Topics covered</h2>${topics.length?`<div class="list">${topics.map(h=>`<div class="item" style="align-items:flex-start"><div class="when"><span>${esc(WD.format(new Date(h.date)))}</span><b class="num">${esc(DNUM.format(new Date(h.date)))}</b></div><div class="grow"><div class="t">${esc(h.topic||h.title||"Class")}</div>${h.objectives?`<ul class="obj small">${String(h.objectives).split("\n").map(x=>x.trim()).filter(Boolean).map(x=>`<li>${esc(x.replace(/^[-•*]\s*/,""))}</li>`).join("")}</ul>`:""}<div class="s">${esc(h.title||"")}</div></div></div>`).join("")}</div>`:`<p class="muted">When teachers add a topic and learning objectives to a class, they're listed here after ${esc(firstOf(L.name))} attends.</p>`}</section>`;
 }
 const SKILL={"Stories":"Reading (stories)","Speaking":"Speaking","Songs & videos":"Listening (songs & videos)","Games":"Word games"};
@@ -2973,6 +3001,7 @@ function meView(){
   return `<div class="head"><div class="row" style="flex-wrap:nowrap;gap:14px">${avatarHTML(uid,80)}<div><h1>${esc(L.name)}</h1><p class="lede">${esc(stageLabel(L.stage))}</p></div></div>${S.viewAs?"":`<div class="row"><button class="btn btn-ghost btn-sm" data-act="setPassword">My password</button><button class="btn btn-ghost btn-sm" data-act="signOut">Sign out</button></div>`}</div>
   <div class="stats"><div class="stat f" style="background:var(--sunSoft)"><b class="num">⭐ ${stars}</b><span>Stars</span></div><div class="stat f" style="background:var(--leafSoft)"><b class="num">🏅 ${got}/${bs.length}</b><span>Badges</span></div><div class="stat f" style="background:var(--petalSoft)"><b class="num">🔥 ${streak(uid)}</b><span>Day streak</span><small>Best: ${longestStreak(uid)} days</small></div><div class="stat f" style="background:var(--skySoft)"><b class="num">🏆 ${certs.length}</b><span>Certificates</span></div></div>
   ${capMeHTML(L)}
+  ${ppMeHTML(L)}
   <section class="card panel"><h2>My badges</h2><div class="badges">${bs.map(b=>`<div class="badge ${b.ok?"on":""}"><span>${b.ok?b.e:"🔒"}</span><b>${esc(b.t)}</b><i>${esc(b.d)}</i></div>`).join("")}</div></section>
   <section class="card panel"><h2>Rewards: dress up your buddy</h2><p class="small muted">Collect stars to unlock new buddies and colours.</p>
     <div class="avpick">${AV_MASCOTS.map(m=>`<button class="avopt ${av.m===m.m?"on":""}" data-act="setAv" data-id="m|${m.m}" ${stars<m.need?"disabled":""} aria-label="${esc(m.name)}${stars<m.need?`, needs ${m.need} stars`:""}">${art(m.m,56)}<span>${stars<m.need?`🔒 ${m.need}⭐`:esc(m.name)}</span></button>`).join("")}</div>
@@ -4768,6 +4797,7 @@ function notifItems(){const r=role(),out=[],add=(t,go,ico,urgent,key)=>out.push(
   if(r==="parent")for(const L of kidsList()){const f=pipTry(()=>pfKid(L.id));if(!f||!(f.balance>0)||!f.nextDue)continue;const due=new Date(f.nextDue+"T12:00").getTime(),days=Math.round((due-now)/864e5);
     if(f.statusK==="overdue"||days<0)add(`${firstOf(L.name)}'s fee of ${money(f.balance)} is overdue`,"fees","rupee",true,"fee|"+L.id+"|"+f.nextDue+"|o");
     else if(days<=5)add(`${firstOf(L.name)}'s fee of ${money(f.balance)} is due ${days===0?"today":days===1?"tomorrow":`on ${fmtDay(new Date(due))}`}`,"fees","rupee",days<=1,"fee|"+L.id+"|"+f.nextDue);}
+  if(r==="parent")for(const L of kidsList())if(ppIsBlooms(L)&&L.uid){const s=ppSel(L);if((s.items.length||s.hw.length)&&!ppApproved(L))add(`${firstOf(L.name)}'s speaking passport is ready for you to approve`,"passport","check",false,"spk|"+L.id+"|"+ppSig(s));}
   if(r==="parent"&&reelWeek().fresh)for(const L of kidsList()){if(L.uid&&!D.kp[L.uid])loadKp(L.uid);const n=(pipTry(()=>reelClips(L))||[]).length;if(n)add(`This week in ${firstOf(L.name)}'s garden: ${n} clip${n===1?"":"s"} to enjoy`,"progress","play",false,"reel|"+L.id+"|"+reelWeek().start);}
   if(r==="student"||r==="parent")for(const L of myKids())for(const h of pipTry(()=>hwFor(L))||[]){const f=replyOf(L,h);if(f&&f.at&&now-f.at<7*864e5)add(`${hwAuthor(h)} replied to “${h.title}”${r==="parent"?` (${firstOf(L.name)})`:""}`,"homework","chat",false,"rep|"+h.key+"|"+L.id+"|"+f.at);}
   if(r==="teacher"){const un=pipTry(()=>unreadCount())||0;if(un)add(`${un} new notice${un===1?"":"s"} from the academy`,"notices","chat",false,"un|"+un);}
@@ -5069,7 +5099,7 @@ const missionText=(pk,i,stage)=>{const t=pk.m[i%pk.m.length];return stage==="See
 const weekNo=t=>Math.floor((wkStart(t||Date.now()).getTime()-Date.UTC(2024,0,1))/(7*864e5));
 let msnSubs={};
 function msnLoad(L){if(!L||!S.db)return;for(const u of (L.parents||[])){if(msnSubs[u])continue;msnSubs[u]=1;try{S.db.collection(`msn/${u}/x`).onSnapshot(s=>{D.msn=D.msn||{};D.msn[u]={};for(const d of s.docs)D.msn[u][d.id]=d.data();schedule();},()=>{});}catch(e){}}}
-const stampsOf=L=>{msnLoad(L);const out=[];for(const [u,xs] of Object.entries(D.msn||{}))for(const [id,x] of Object.entries(xs||{}))if(x&&x.lid===L.id)out.push({...x,id,uid:u});return out.sort((a,b)=>(b.at||0)-(a.at||0));};
+const stampsOf=L=>{msnLoad(L);const out=[];for(const [u,xs] of Object.entries(D.msn||{}))for(const [id,x] of Object.entries(xs||{}))if(x&&x.lid===L.id&&x.kind!=="passport")out.push({...x,id,uid:u});return out.sort((a,b)=>(b.at||0)-(a.at||0));};
 function assignFor(L){let best=null;for(const x of txAll("msnassign"))if((x.lids||[]).includes(L.id)&&(!best||(x.at||0)>(best.at||0)))best=x;return best&&Date.now()-(best.at||0)<14*864e5?best:null;}
 function missionFor(L){const a=assignFor(L);if(a){const pk=PACKS.find(p=>p.id===a.pack);if(pk)return {pk,mi:a.mi||0,text:missionText(pk,a.mi||0,L.stage),assigned:true,by:a.uid};}
   const n=weekNo(),pk=PACKS[n%PACKS.length];return {pk,mi:Math.floor(n/PACKS.length)%3,text:missionText(pk,Math.floor(n/PACKS.length)%3,L.stage),assigned:false};}
@@ -5194,6 +5224,84 @@ function soundsView(){const r=role();
       <div class="s">${x.t?`${Math.round(x.rate*100)}% missed · ${x.t} tries · ${x.kids} learner${x.kids===1?"":"s"}`:"Not played yet"}${x.hard.length?` · Finding it tricky: ${x.hard.slice(0,4).map(h=>esc(firstOf(h.L.name))).join(", ")}${x.hard.length>4?` +${x.hard.length-4}`:""}`:""}</div></div></div>`).join("")}</div>`
       :`<p class="muted">No one has played Sound pairs yet. Learners find it on their home screen.</p>`}</section>
     <section class="card panel"><h2>The pairs</h2><div class="list">${SP.map(g=>`<div class="item"><div class="grow"><div class="t">${esc(g.label)}${g.seeds?` <span class="pill p-sun">Seeds too</span>`:""}</div><div class="s">${g.pairs.map(p=>`${p[1]} ${esc(p[0])} / ${p[3]} ${esc(p[2])}`).join(" · ")}</div><div class="s">${esc(g.tip)}</div></div></div>`).join("")}</div></section>`;}
+
+/* ================= Feature 7: Speaking passport (Blooms only) ================= */
+/* the learner picks items (progress/{uid}.spk), a parent approves that exact selection
+   (msn/{parent}/x/spk-{lid}, kind "passport"), the trainer adds an endorsement (tw kind "endorse").
+   Nothing leaves the app: "Download as PDF" uses the device's own print-to-PDF. */
+const ppIsBlooms=L=>!!L&&(L.stage||"")==="Blooms";
+const ppSel=L=>{const x=(L&&L.uid&&progOf(L.uid).spk)||{};return {items:(x.items||[]).filter(Boolean),hw:(x.hw||[]).filter(Boolean),intro:x.intro||"",at:x.at||0};};
+const ppSig=s=>{const t=JSON.stringify([[...s.items].sort(),[...s.hw].sort(),s.intro]);let h=5381;for(let i=0;i<t.length;i++)h=((h*33)^t.charCodeAt(i))>>>0;return h.toString(36);};
+function ppApproval(L){if(!L)return null;msnLoad(L);let best=null;for(const [u,xs] of Object.entries(D.msn||{})){const x=(xs||{})["spk-"+L.id];if(x&&x.kind==="passport"&&x.lid===L.id&&(!best||(x.at||0)>(best.at||0)))best={...x,uid:u};}return best;}
+const ppApproved=L=>{const a=ppApproval(L),s=ppSel(L);return !!(a&&a.sig&&a.sig===ppSig(s)&&(s.items.length||s.hw.length));};
+const ppEndorse=L=>{let best=null;for(const x of txAll("endorse"))if(x.lid===L.id&&x.text&&(!best||(x.at||0)>(best.at||0)))best=x;return best;};
+const ppSpeeches=L=>kpItems(L.uid).filter(x=>x.kind==="audio"&&x.data&&!PRACTICE_ACTS.has(x.act));
+const ppWriting=L=>kpItems(L.uid).filter(x=>(x.kind==="photo"||x.kind==="draw"||x.kind==="note")&&x.data);
+const ppHw=L=>(pipTry(()=>hwFor(L))||[]).map(h=>({h,a:answerOf(L,h)})).filter(x=>x.a&&String(x.a.text||"").trim().length>=40);
+const PP_MARK=`<svg class="ppmark" viewBox="0 0 200 200" aria-hidden="true"><circle cx="100" cy="56" r="30" fill="#E8492F"/><circle cx="144" cy="92" r="30" fill="#E8492F"/><circle cx="128" cy="146" r="30" fill="#E8492F"/><circle cx="72" cy="146" r="30" fill="#E8492F"/><circle cx="56" cy="92" r="30" fill="#E8492F"/><circle cx="100" cy="104" r="30" fill="#FFC94A"/></svg>`;
+/* the passport itself (used on screen and for the PDF) */
+function ppDocHTML(L,forPrint){const s=ppSel(L),f=firstOf(L.name),sp=ppSpeeches(L).filter(x=>s.items.includes(x.id)),wr=ppWriting(L).filter(x=>s.items.includes(x.id)),hw=ppHw(L).filter(x=>s.hw.includes(x.h.key));
+  const certs=pipTry(()=>certsOf(L))||[],bs=(pipTry(()=>badgesOf(L))||[]).filter(b=>b.ok),as=(pipTry(()=>assessFor(L))||[])[0],en=ppEndorse(L),ap=ppApproval(L),ok=ppApproved(L);
+  const sec=(t,b)=>b?`<section class="ppsec"><h3>${t}</h3>${b}</section>`:"";
+  return `<article class="ppdoc" aria-label="Speaking passport">
+    <header class="pphead">${PP_MARK}<div class="grow"><span class="ppeyebrow">Speaking passport</span><h2>${esc(L.name)}</h2><span class="ppsub">Blooms · ages 11–15 · Little Lingos</span></div></header>
+    ${s.intro?`<p class="ppintro">“${esc(s.intro)}”</p>`:""}
+    ${sec("Best speeches and debates",sp.length?`<ul class="pplist">${sp.map(x=>`<li><b>${esc(x.title||"Recording")}</b><span>${esc(fmtDay(new Date(x.at)))}</span>${forPrint?`<span class="ppnote">Audio: listen in the Little Lingos app</span>`:`<audio controls preload="none" src="${esc(x.data)}"></audio>`}</li>`).join("")}</ul>`:"")}
+    ${sec("Best writing",wr.length||hw.length?`<div class="ppwrite">${wr.map(x=>`<figure><img src="${esc(x.data)}" alt="${esc(x.title||"Writing")}"><figcaption>${esc(x.title||"Writing")} · ${esc(fmtDay(new Date(x.at)))}</figcaption></figure>`).join("")}${hw.map(x=>`<blockquote><b>${esc(x.h.title||"Writing task")}</b><p>${esc(String(x.a.text).trim().slice(0,600))}${String(x.a.text).trim().length>600?"…":""}</p></blockquote>`).join("")}</div>`:"")}
+    ${sec("Skills",as&&as.skills?`<div class="ppskills">${SKILLS.map(([k,l])=>`<div><span>${l}</span><b>${as.skills[k]?`${+as.skills[k]} / 5`:"–"}</b></div>`).join("")}</div><p class="ppsmall">From the trainer's assessment, ${esc(fmtDay(new Date(as.at)))}${as.level?` · ${esc(as.level)}`:""}</p>`:"")}
+    ${sec("Speaking confidence",`<p>${esc(pipTry(()=>confSentence(L))||"")}</p>`)}
+    ${sec("Certificates",certs.length?`<ul class="ppchips">${certs.map(c=>`<li>${esc((c.c&&c.c.title)||"Certificate")} · ${esc(fmtDay(new Date(c.at)))}</li>`).join("")}</ul>`:"")}
+    ${sec("Badges",bs.length?`<ul class="ppchips">${bs.map(b=>`<li>${esc(b.t)}</li>`).join("")}</ul>`:"")}
+    ${sec("Trainer's endorsement",en?`<blockquote class="ppend"><p>“${esc(en.text)}”</p><cite>${esc(byWho(en.uid))} · ${esc(fmtDay(new Date(en.at)))}</cite></blockquote>`:"")}
+    <footer class="ppfoot"><span><b>little lingos</b> · Where words grow.</span><span>${ok?`Approved by a parent on ${esc(fmtDay(new Date(ap.at)))}`:"Not yet approved by a parent"}</span></footer></article>`;}
+/* small cards that lead to the passport */
+function ppMeHTML(L){if(!ppIsBlooms(L))return "";const s=ppSel(L),n=s.items.length+s.hw.length,ok=ppApproved(L);
+  return `<section class="card panel ppcard">${PP_MARK}<div class="grow"><h2>My speaking passport</h2><p class="small muted">${n?`${n} item${n===1?"":"s"} picked · ${ok?"approved and ready to download":"waiting for a parent to approve"}`:"Pick your best speeches and writing for school, competitions and interviews."}</p><button class="btn btn-ghost btn-sm" data-go="passport">${n?"Open my passport":"Build my passport"}</button></div></section>`;}
+function ppParentHTML(L){if(!ppIsBlooms(L)||!L.uid)return "";const s=ppSel(L),n=s.items.length+s.hw.length,ok=ppApproved(L),f=firstOf(L.name);
+  return `<section class="card panel ppcard">${PP_MARK}<div class="grow"><h2>Speaking passport</h2><p class="small muted">${!n?`${esc(f)} hasn't picked anything yet.`:ok?"Approved. You can download it as a PDF.":`${esc(f)} picked ${n} item${n===1?"":"s"}. Please check and approve.`}</p><button class="btn ${n&&!ok?"btn-primary":"btn-ghost"} btn-sm" data-go="passport">${n&&!ok?"Review and approve":"Open passport"}</button></div></section>`;}
+function ppStaffHTML(L){if(!ppIsBlooms(L))return "";const en=ppEndorse(L),s=ppSel(L);
+  return `<p class="section-title">Speaking passport</p><div class="adstaff"><span class="small">${s.items.length+s.hw.length} item${s.items.length+s.hw.length===1?"":"s"} picked · ${ppApproved(L)?"approved by a parent":"not approved yet"}</span>
+    ${en?`<span class="small"><b>Your endorsement:</b> “${esc(en.text)}”</span>`:`<span class="small muted">Add a short endorsement (2–3 sentences) for ${esc(firstOf(L.name))}'s passport.</span>`}
+    <div class="row"><button type="button" class="btn btn-ghost btn-sm" data-mact="ppend">${en?"Edit endorsement":"Write endorsement"}</button><button type="button" class="btn btn-ghost btn-sm" data-mact="ppview">View passport</button></div></div>`;}
+A.ppEndorseEdit=lid=>{const L=learner(lid);if(!L||!isStaff())return;const en=ppEndorse(L);
+  openModal("Passport endorsement",`<p class="small muted">Shown on ${esc(firstOf(L.name))}'s speaking passport, which parents may share with schools. Keep it specific and true.</p><div class="field"><label for="pe-t">Endorsement</label><textarea id="pe-t" name="t" rows="4" maxlength="320" placeholder="[A short, honest note about how this learner speaks and presents]">${esc((en&&en.uid===S.uid&&en.text)||"")}</textarea></div>`,
+   {submitLabel:"Save endorsement",done:"Endorsement saved",onSubmit:async f=>{const t=f.t.value.trim();if(t.length<10)throw userErr("Please write at least a sentence.");
+     await S.db.doc(`tw/${S.uid}/x/endorse-${lid}`).set({kind:"endorse",lid,text:t,at:Date.now()});}});};
+/* the page */
+function passportView(){const r=role();let L=null;
+  if(r==="student")L=myLearner();else if(r==="parent")L=curKid();else L=learner(S.ppLid)||null;
+  if(!L)return isStaff()?`<div class="head"><div><h1>Speaking passport</h1><p class="lede">Open a Blooms learner and tap “View passport”.</p></div></div>`:pendingHTML();
+  if(L.uid&&!D.kp[L.uid])loadKp(L.uid);
+  const f=firstOf(L.name),s=ppSel(L),n=s.items.length+s.hw.length,ok=ppApproved(L),ap=ppApproval(L);
+  const head=`<div class="head"><div><h1>Speaking passport</h1><p class="lede">${r==="student"?"Your best English work in one polished page, for school admissions, competitions and interviews.":r==="parent"?`${esc(f)}'s best English work in one page. ${esc(f)} chooses what goes in; you approve it before it can be downloaded.`:`${esc(L.name)}'s passport. The learner picks the items; a parent approves before it can be downloaded.`}</p></div></div>${r==="parent"?kidBar():""}`;
+  if(!ppIsBlooms(L))return head+`<section class="card panel"><p>The speaking passport is for Blooms learners (ages 11–15). ${r==="parent"?`${esc(f)} is in ${esc(L.stage||"Seeds")}, so it will open when they move up to Blooms.`:""}</p></section>`;
+  if(r==="student"&&S.ppEdit)return head+ppEditHTML(L);
+  const bar=r==="student"?`<div class="row ppbar"><button class="btn btn-primary" data-act="ppEdit">${n?"Change my items":"Pick my items"}</button>${ok?`<button class="btn btn-ghost" data-act="ppPrint" data-id="${esc(L.id)}">${ic("doc")}Download as PDF</button>`:""}<span class="pill ${ok?"p-good":n?"p-sun":"p-mute"}">${ok?"Approved":n?"Waiting for a parent to approve":"Not started"}</span></div>`
+    :r==="parent"?`<div class="row ppbar">${n&&!ok?`<button class="btn btn-primary" data-act="ppApprove" data-id="${esc(L.id)}">${ic("check")}Approve this passport</button>`:""}${ok?`<button class="btn btn-primary" data-act="ppPrint" data-id="${esc(L.id)}">${ic("doc")}Download as PDF</button><button class="btn btn-ghost" data-act="ppWithdraw" data-id="${esc(L.id)}">Withdraw approval</button>`:""}<span class="pill ${ok?"p-good":n?"p-sun":"p-mute"}">${ok?"Approved":n?(ap?"Changed since you approved":"Needs your approval"):"Nothing picked yet"}</span></div>`
+    :`<div class="row ppbar"><button class="btn btn-ghost" data-act="ppEndorseEdit" data-id="${esc(L.id)}">${ppEndorse(L)?"Edit endorsement":"Write endorsement"}</button>${ok?`<button class="btn btn-ghost" data-act="ppPrint" data-id="${esc(L.id)}">${ic("doc")}Download as PDF</button>`:""}<span class="pill ${ok?"p-good":"p-mute"}">${ok?"Approved by a parent":"Not approved yet"}</span></div>`;
+  return head+bar+(n?ppDocHTML(L,false):`<section class="card panel"><p class="muted">${r==="student"?"Tap “Pick my items” to choose your best speeches and writing.":`${esc(f)} hasn't picked any items yet.`}</p></section>`)
+    +`<p class="small muted">The passport stays inside the app. “Download as PDF” opens your device's print screen: choose “Save as PDF”.</p>`;}
+function ppEditHTML(L){const s=ppSel(L),sp=ppSpeeches(L),wr=ppWriting(L),hw=ppHw(L);
+  const box=(name,val,on,label,sub)=>`<label class="ppopt"><input type="checkbox" name="${name}" value="${esc(val)}" ${on?"checked":""}><span class="grow"><b>${esc(label)}</b><span class="small muted">${esc(sub)}</span></span></label>`;
+  return `<form class="card panel ppedit" id="ppform"><h2>Pick your best work</h2><p class="small muted">Choose up to 8 items. A parent will check them before your passport can be downloaded.</p>
+    <div class="field"><label for="pp-i">One line about you (optional)</label><input id="pp-i" name="intro" maxlength="160" value="${esc(s.intro)}" placeholder="I love debating and want to speak at the school assembly."></div>
+    <h3>Speeches and debates</h3>${sp.length?sp.map(x=>box("it",x.id,s.items.includes(x.id),x.title||"Recording",fmtDay(new Date(x.at)))).join(""):`<p class="small muted">Record a speech from “Me › My portfolio › Record” and it will show here.</p>`}
+    <h3>Writing</h3>${wr.map(x=>box("it",x.id,s.items.includes(x.id),x.title||"Writing",fmtDay(new Date(x.at)))).join("")}${hw.map(x=>box("hw",x.h.key,s.hw.includes(x.h.key),x.h.title||"Writing task",String(x.a.text).trim().slice(0,70)+"…")).join("")}${!wr.length&&!hw.length?`<p class="small muted">Your written homework and photos of your writing will show here.</p>`:""}
+    <p class="small muted">Your certificates, badges, skills and your trainer's endorsement are added for you.</p>
+    <div class="row"><button type="button" class="btn btn-ghost" data-act="ppEdit">Cancel</button><button type="button" class="btn btn-primary" data-act="ppSave">Save my passport</button></div></form>`;}
+A.ppEdit=()=>{S.ppEdit=!S.ppEdit;render(true);window.scrollTo(0,0);};
+A.ppSave=async()=>{const f=document.getElementById("ppform");if(!f||role()!=="student")return;const it=[...f.querySelectorAll('input[name="it"]:checked')].map(x=>x.value),hw=[...f.querySelectorAll('input[name="hw"]:checked')].map(x=>x.value);
+  if(it.length+hw.length>8){toast("Pick up to 8 items.",true);return}
+  await upsert("progress/"+S.uid,{spk:{items:it,hw,intro:f.intro.value.trim().slice(0,160),at:Date.now()}});
+  S.ppEdit=false;toast(it.length+hw.length?"Saved! Ask a grown-up to approve it.":"Saved.");render(true);};
+A.ppApprove=lid=>{const L=learner(lid);if(!L||realRole()!=="parent")return;const s=ppSel(L);
+  openModal("Approve the passport",`<p>You're approving the ${s.items.length+s.hw.length} item${s.items.length+s.hw.length===1?"":"s"} ${esc(firstOf(L.name))} picked. After this, the passport can be downloaded as a PDF to share with schools or competitions.</p><p class="small muted">If ${esc(firstOf(L.name))} changes the items later, you'll be asked to approve again.</p>`,
+   {submitLabel:"Approve",done:"Approved",onSubmit:async()=>{await S.db.doc(`msn/${S.uid}/x/spk-${lid}`).set({kind:"passport",lid,sig:ppSig(s),at:Date.now()});}});};
+A.ppWithdraw=async lid=>{const L=learner(lid);if(!L||realRole()!=="parent")return;await S.db.doc(`msn/${S.uid}/x/spk-${lid}`).set({kind:"passport",lid,sig:"",at:Date.now()});toast("Approval withdrawn");};
+A.ppPrint=lid=>{const L=learner(lid);if(!L||!ppApproved(L)){toast("A parent needs to approve the passport first.",true);return}
+  let el=document.getElementById("pp-print");if(!el){el=document.createElement("div");el.id="pp-print";document.body.appendChild(el);}
+  el.innerHTML=ppDocHTML(L,true);document.body.classList.add("pp-printing");const done=()=>{document.body.classList.remove("pp-printing");window.removeEventListener("afterprint",done);};
+  window.addEventListener("afterprint",done);const old=document.title;document.title=`${L.name} - Speaking passport`;setTimeout(()=>{try{window.print()}catch(e){}document.title=old;setTimeout(done,1500);},150);};
 
 /* ================= events ================= */
 document.addEventListener("click",e=>{
