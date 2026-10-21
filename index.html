@@ -828,6 +828,18 @@ body.boarding{overflow:hidden}
 .reelbar{height:8px;border-radius:9px;background:var(--soft);overflow:hidden;margin-top:10px}.reelbar i{display:block;height:100%;width:0;background:var(--leafMid);transition:width .4s}
 .kidtile.t5,.kidtile.t6{grid-column:auto}.kidtile.t6{background:var(--petalSoft);flex-direction:row;align-items:center;gap:10px;min-height:72px}
 .teachpip .bubble.static{font-size:1.15rem}
+.packgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(190px,100%),1fr));gap:12px}.packcard{min-width:0}.packcard .btn{white-space:normal;max-width:100%}
+.packcard{display:flex;flex-direction:column;align-items:flex-start;gap:4px;border:2px solid var(--line);border-radius:20px;background:var(--card);padding:14px;min-height:110px;cursor:pointer;font:inherit;color:var(--soil);text-align:left}
+.packcard.st{cursor:default}.packcard b{font-family:var(--display);font-size:1.1rem}
+.packemo{font-size:2.2rem;line-height:1}.packemo.sm{font-size:1.6rem}
+.packwords{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.pword{display:flex;align-items:center;gap:12px;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:10px 12px}
+.pword b{display:block;font-family:var(--display);font-size:1.3rem}.pword span{font-size:.95rem;color:var(--muted)}.pwemo{font-size:2.2rem}
+.mission{display:flex;gap:12px;align-items:flex-start;border-radius:24px;padding:14px 16px;background:var(--sunSoft)}
+.mission.done{background:var(--leafSoft)}.mission b{display:block;font-family:var(--display);font-size:1.2rem;margin:2px 0}
+.stamps{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.stamp2{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;border:3px dashed var(--tomato);border-radius:18px;padding:10px;transform:rotate(-3deg);background:var(--card)}
+.stamp2:nth-child(even){transform:rotate(2deg)}.stamp2 span{font-size:2rem}.stamp2 b{font-size:.85rem}.stamp2 i{font-size:.75rem;color:var(--muted);font-style:normal}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -1235,10 +1247,10 @@ function clockChip(cur){
 function bindTop(){const v=document.getElementById("viewas");if(v)v.addEventListener("change",()=>{S.viewAs=v.value==="admin"?null:v.value;v.blur();go("home");});}
 function navItems(){
   const r=role();
-  if(r==="student")return [["home","My garden","leaf"],["path","Path","map"],["words","Words","cards"],["play","Games","star"],["fun","Fun corner","sunny"],["wall","Garden wall","wall"],["homework","Homework","pencil"],["schedule","Classes","cal"],["stories","Stories","book"],["me","Me","user"],["notices","Messages","bell"]];
-  if(r==="parent"){const un=unreadCount()+chatUnread().length;return [["home","Overview","heart"],["schedule","Classes","cal"],["progress","Progress","leaf"],["wall","Garden wall","wall"],["homework","Homework","pencil"],["messages","Messages","bell",un],["fees","Fees","rupee"],["help","Help","help",reqUpdates().length]];}
-  if(r==="teacher")return [["home","Today","sunny"],["learners","My learners","users"],["schedule","Classes","cal"],["attendance","Attendance","clip"],["homework","Homework","pencil"],["review","Review","star",speakingQueue().length],["wall","Garden wall","wall"],["library","Library","cards"],["reports","Reports","doc"],["inbox","Families","chat",inboxCount()],["notices","Messages","mega"],["courses","Courses","book"],["hours","Hours & pay","clock"],["myspace","My space","heart"]];
-  if(r==="admin")return [["home","Today","sunny"],["-","People"],["learners","Learners","users"],["parents","Parents","heart",waitingParents().length],["trainers","Trainers","trainer",txAll("leave").filter(l=>l.status==="pending").length],["leads","Leads","userplus",adList("leads").filter(x=>x.status==="new").length],["-","Teaching"],["schedule","Classes","cal"],["batches","Batches","swap"],["attendance","Attendance","clip"],["courses","Courses","book"],["library","Library","cards"],["review","Review","star"],["wall","Garden wall","wall"],["reports","Reports","doc",reportsPending().length],["-","Money"],["fees","Fees","rupee",remindersToday().length],["-","Families"],["inbox","Families","chat",inboxCount()],["notices","Notices","mega"],["events","Events","event"],["-","Insights"],["analytics","Analytics","leaf"],["settings","Settings","gear"]];
+  if(r==="student")return [["home","My garden","leaf"],["path","Path","map"],["words","Words","cards"],["play","Games","star"],["fun","Fun corner","sunny"],["wall","Garden wall","wall"],["india","My India","map"],["homework","Homework","pencil"],["schedule","Classes","cal"],["stories","Stories","book"],["me","Me","user"],["notices","Messages","bell"]];
+  if(r==="parent"){const un=unreadCount()+chatUnread().length;return [["home","Overview","heart"],["schedule","Classes","cal"],["progress","Progress","leaf"],["wall","Garden wall","wall"],["india","Missions","map"],["homework","Homework","pencil"],["messages","Messages","bell",un],["fees","Fees","rupee"],["help","Help","help",reqUpdates().length]];}
+  if(r==="teacher")return [["home","Today","sunny"],["learners","My learners","users"],["schedule","Classes","cal"],["attendance","Attendance","clip"],["homework","Homework","pencil"],["review","Review","star",speakingQueue().length],["wall","Garden wall","wall"],["india","India packs","map"],["library","Library","cards"],["reports","Reports","doc"],["inbox","Families","chat",inboxCount()],["notices","Messages","mega"],["courses","Courses","book"],["hours","Hours & pay","clock"],["myspace","My space","heart"]];
+  if(r==="admin")return [["home","Today","sunny"],["-","People"],["learners","Learners","users"],["parents","Parents","heart",waitingParents().length],["trainers","Trainers","trainer",txAll("leave").filter(l=>l.status==="pending").length],["leads","Leads","userplus",adList("leads").filter(x=>x.status==="new").length],["-","Teaching"],["schedule","Classes","cal"],["batches","Batches","swap"],["attendance","Attendance","clip"],["courses","Courses","book"],["library","Library","cards"],["review","Review","star"],["wall","Garden wall","wall"],["india","India packs","map"],["reports","Reports","doc",reportsPending().length],["-","Money"],["fees","Fees","rupee",remindersToday().length],["-","Families"],["inbox","Families","chat",inboxCount()],["notices","Notices","mega"],["events","Events","event"],["-","Insights"],["analytics","Analytics","leaf"],["settings","Settings","gear"]];
   return [];
 }
 function navHTML(){
@@ -1249,6 +1261,7 @@ function navHTML(){
 
 /* Pip, the seed: a friendly guide on every page of the child's portal (brand voice: short, warm, praise effort) */
 const PIP_LINES={
+  india:f=>[["English is everywhere around you!","Try this week's mission with a grown-up."],[`Let's explore, ${f}!`,"Tap a pack to learn everyday words."]],
   wall:f=>[["Look what your friends made!","Tap an emoji to cheer them on."],[`Your garden friends are blooming, ${f}!`,"Ask your teacher to share your best work too."]],
   path:f=>[[`Hi ${f}! Ready for your next lesson?`,"Tap the glowing seed to start."],["Every lesson plants a new flower!","Let's grow your garden together."],["One step at a time. You've got this!","Pick up where you left off."]],
   words:f=>[["Say it with me!","Tap a card to see what it means."],[`Look at all your words, ${f}!`,"Each one is a seed you planted."],["Hmm, tricky word? Let's try again together.","Tap the speaker to hear it."]],
@@ -1393,6 +1406,7 @@ library(){return libraryView();},
 fun(){return funView();},
 wall(){return wallView();},
 capsule(){return capsuleView();},
+india(){return indiaView();},
 myspace(){return mySpaceView();},
 review(){return reviewView();},
 reports(){return reportsView();},
@@ -4871,11 +4885,13 @@ A.cleanScan=async()=>{const ls=allLearners().filter(L=>L.uid);toast("Checking…
   for(const L of ls){const xs=kpItems(L.uid);for(const x of xs)if(isPractice(x)&&expiresAt(x)<now)del.push({uid:L.uid,x,why:"older than 90 days"});
     const byAct={};for(const x of xs)if(isPractice(x)&&expiresAt(x)>=now)(byAct[x.act]=byAct[x.act]||[]).push(x);
     for(const arr of Object.values(byAct))for(const x of arr.sort((a,b)=>(b.at||0)-(a.at||0)).slice(STORE.keepN))del.push({uid:L.uid,x,why:"more than 5 of the same practice"});}
+  const msnOld=[];const pus=new Set();for(const L of ls)for(const u of (L.parents||[]))pus.add(u);
+  for(const u of pus){try{const sn=await S.db.collection(`msn/${u}/x`).get();for(const d of sn.docs){const x=d.data();if(x&&x.photo&&now-(x.at||0)>STORE.days*864e5)msnOld.push({u,id:d.id,n:x.photo.length});}}catch(e){}}
   const wallOld=entries(D.wall||{}).filter(w=>w.status==="declined"&&now-(w.at||0)>30*864e5);
-  const bytes=del.reduce((n,d)=>n+String(d.x.data||"").length,0);
-  if(!del.length&&!wallOld.length){openModal("Clean up now","<p>Nothing to clean up. Everything is within the storage rules. 🌱</p>");return}
-  openModal("Clean up now",`<p>This frees about <b>${MB(bytes)}</b> by removing:</p><ul><li>${del.filter(d=>d.why[0]==="o").length} practice recordings or mission photos older than ${STORE.days} days</li><li>${del.filter(d=>d.why[0]==="m").length} extra practice recordings (only the latest ${STORE.keepN} per activity are kept)</li>${wallOld.length?`<li>${wallOld.length} old “not this time” wall records</li>`:""}</ul><p class="small muted">Time-capsule recordings and anything marked “Keep” are never removed.</p>`,
-   {danger:true,submitLabel:"Clean up",done:"Cleaned up",onSubmit:async()=>{for(const d of del)await S.db.doc(`kp/${d.uid}/x/${d.x.id}`).delete().catch(()=>{});for(const w of wallOld)await S.db.doc("wall/"+w.id).delete().catch(()=>{});
+  const bytes=del.reduce((n,d)=>n+String(d.x.data||"").length,0)+msnOld.reduce((n,m)=>n+m.n,0);
+  if(!del.length&&!wallOld.length&&!msnOld.length){openModal("Clean up now","<p>Nothing to clean up. Everything is within the storage rules. 🌱</p>");return}
+  openModal("Clean up now",`<p>This frees about <b>${MB(bytes)}</b> by removing:</p><ul><li>${del.filter(d=>d.why[0]==="o").length} practice recordings or mission photos older than ${STORE.days} days</li><li>${del.filter(d=>d.why[0]==="m").length} extra practice recordings (only the latest ${STORE.keepN} per activity are kept)</li>${wallOld.length?`<li>${wallOld.length} old “not this time” wall records</li>`:""}${msnOld.length?`<li>${msnOld.length} mission photos older than ${STORE.days} days (the passport stamps stay)</li>`:""}</ul><p class="small muted">Time-capsule recordings and anything marked “Keep” are never removed.</p>`,
+   {danger:true,submitLabel:"Clean up",done:"Cleaned up",onSubmit:async()=>{for(const d of del)await S.db.doc(`kp/${d.uid}/x/${d.x.id}`).delete().catch(()=>{});for(const w of wallOld)await S.db.doc("wall/"+w.id).delete().catch(()=>{});for(const m of msnOld)await S.db.doc(`msn/${m.u}/x/${m.id}`).update({photo:null}).catch(()=>{});
      await audit("Storage clean-up",`${del.length} items, about ${MB(bytes)}`);storeInfo=null;storeAt=0;}});};
 
 /* ================= Feature 1: Voice time capsule ================= */
@@ -5013,6 +5029,66 @@ A.teachPip=()=>{const L=myLearner();if(!L)return;if(timeUp()){render();return}co
         const p=progOf(S.uid);await earn({pts:{["t"+ts.toString(36)]:1},taught:{[x.k]:(+((p.taught||{})[x.k])||0)+1}});wkLog(x.w,true);
         if(clip)prunePractice(S.uid,"teachpip");done=true;setTimeout(draw,250);}});};
   draw();};
+
+/* ================= Feature 5: My India word packs + real-life missions ================= */
+/* words: [emoji, word, example, level] level 1 = Seeds and up, 2 = Sprouts and up, 3 = Blooms */
+const PACKS=[
+ {id:"cricket",e:"🏏",t:"Cricket",w:[["🏏","bat","I hold the bat.",1],["⚽","ball","Throw the ball to me.",1],["🏃","run","Run fast!",1],["🧤","catch","What a great catch!",1],["🏆","win","Our team will win today.",2],["👥","team","My team has eleven players.",2],["🎯","wicket","The ball hit the wicket.",2],["6️⃣","six","He hit a six over the boundary!",2],["🧑‍⚖️","umpire","The umpire raised his finger.",3],["🤝","sportsmanship","Shaking hands after the match shows good sportsmanship.",3]],
+  m:["Say “Well played!” in English after a game.","Tell a grown-up the score of a match in English.","Explain one cricket rule to someone at home in English."]},
+ {id:"festivals",e:"🪔",t:"Festivals",w:[["🪔","lamp","We light a lamp.",1],["🍬","sweets","Grandma makes sweets.",1],["🎁","gift","This gift is for you.",1],["🎆","fireworks","The fireworks are bright.",2],["🎨","colours","We play with colours on Holi.",2],["🌙","moon","We wait to see the moon on Eid.",2],["👗","new clothes","I wear new clothes for the festival.",2],["🙏","celebrate","Our family celebrates together.",3],["🌸","decorate","We decorate the door with flowers.",3],["🤗","greet","We greet our neighbours with a smile.",3]],
+  m:["Wish someone “Happy festival!” in English.","Name 3 festival things at home in English.","Tell a grown-up how your family celebrates, in English."]},
+ {id:"sabzi",e:"🥕",t:"At the sabzi market",w:[["🍅","tomato","The tomato is red.",1],["🥔","potato","I like potato curry.",1],["🧅","onion","Onions make me cry!",1],["🥕","carrot","A carrot is orange.",1],["🥬","spinach","Spinach is a green vegetable.",2],["🍋","lemon","This lemon is sour.",2],["⚖️","weigh","Please weigh one kilo.",2],["💰","price","What is the price of this?",3],["🛍️","bag","Can I have a bag, please?",2],["🌿","fresh","These vegetables are fresh.",3]],
+  m:["Name 3 things at the sabzi market in English.","Ask “How much is this?” in English (a grown-up can help).","Say “Thank you!” in English to the shopkeeper."]},
+ {id:"ride",e:"🛺",t:"Auto and bus rides",w:[["🛺","auto","We go in an auto.",1],["🚌","bus","The bus is big.",1],["🚦","stop","The bus will stop here.",1],["🎫","ticket","Here is my ticket.",2],["⬅️","left","Please turn left.",2],["➡️","right","Turn right at the shop.",2],["🗺️","route","Which route does this bus take?",3],["🧳","passenger","Every passenger needs a seat.",3],["🛣️","traffic","There is a lot of traffic today.",2]],
+  m:["Say “Please stop here” in English on a ride (with a grown-up).","Count 5 vehicles you see, in English.","Give directions home in English: left, right, straight."]},
+ {id:"chai",e:"☕",t:"Ordering chai and snacks",w:[["☕","tea","Can I have tea, please?",1],["🥛","milk","I drink milk.",1],["🍪","biscuit","One biscuit, please.",1],["🥟","samosa","The samosa is hot.",2],["🌶️","spicy","This is too spicy!",2],["🍽️","plate","Please give me a plate.",2],["🧾","bill","Can we have the bill, please?",3],["😋","delicious","The pakoras are delicious.",3],["🙋","order","I would like to order two samosas.",3]],
+  m:["Say “One ___, please” in English when you order a snack.","Say “Thank you, it was delicious!” in English.","Read a menu out loud in English at home or a café."]},
+ {id:"school",e:"🏫",t:"At school",w:[["🎒","bag","My bag is heavy.",1],["📖","book","Open your book.",1],["✏️","pencil","Can I borrow a pencil?",1],["🧑‍🏫","teacher","My teacher is kind.",1],["🔔","bell","The bell rings at nine.",2],["🖐️","raise","Raise your hand to answer.",2],["🧪","science","We have science today.",2],["📝","homework","I finished my homework.",2],["🤔","question","May I ask a question?",3],["🙌","assembly","We sing in the morning assembly.",3]],
+  m:["Say “Good morning” to your teacher in English.","Ask a friend “Can I borrow a pencil, please?” in English.","Tell a grown-up 3 things you learned at school today, in English."]},
+ {id:"home",e:"🏠",t:"At home",w:[["🛏️","bed","I sleep on my bed.",1],["🪑","chair","Sit on the chair.",1],["🍚","rice","We eat rice for lunch.",1],["🚪","door","Please close the door.",1],["🧹","sweep","I help to sweep the floor.",2],["🍳","cook","Mummy and Papa cook dinner.",2],["🧺","clothes","Fold the clothes, please.",2],["🪴","plant","I water the plant every day.",2],["🧑‍🤝‍🧑","family","My family eats together.",3],["🤲","chores","Everyone in our home shares the chores.",3]],
+  m:["Name 5 things in your kitchen in English.","Say “Good night, sleep well” in English to your family.","Help with a chore and describe it in English."]}];
+const STAGE_LV={Seeds:1,Sprouts:2,Blooms:3};
+const packWords=(pk,stage)=>pk.w.filter(x=>x[3]<=(STAGE_LV[stage]||1));
+const missionText=(pk,i,stage)=>{const t=pk.m[i%pk.m.length];return stage==="Seeds"?pk.m[0]:t;};
+const weekNo=t=>Math.floor((wkStart(t||Date.now()).getTime()-Date.UTC(2024,0,1))/(7*864e5));
+let msnSubs={};
+function msnLoad(L){if(!L||!S.db)return;for(const u of (L.parents||[])){if(msnSubs[u])continue;msnSubs[u]=1;try{S.db.collection(`msn/${u}/x`).onSnapshot(s=>{D.msn=D.msn||{};D.msn[u]={};for(const d of s.docs)D.msn[u][d.id]=d.data();schedule();},()=>{});}catch(e){}}}
+const stampsOf=L=>{msnLoad(L);const out=[];for(const [u,xs] of Object.entries(D.msn||{}))for(const [id,x] of Object.entries(xs||{}))if(x&&x.lid===L.id)out.push({...x,id,uid:u});return out.sort((a,b)=>(b.at||0)-(a.at||0));};
+function assignFor(L){let best=null;for(const x of txAll("msnassign"))if((x.lids||[]).includes(L.id)&&(!best||(x.at||0)>(best.at||0)))best=x;return best&&Date.now()-(best.at||0)<14*864e5?best:null;}
+function missionFor(L){const a=assignFor(L);if(a){const pk=PACKS.find(p=>p.id===a.pack);if(pk)return {pk,mi:a.mi||0,text:missionText(pk,a.mi||0,L.stage),assigned:true,by:a.uid};}
+  const n=weekNo(),pk=PACKS[n%PACKS.length];return {pk,mi:Math.floor(n/PACKS.length)%3,text:missionText(pk,Math.floor(n/PACKS.length)%3,L.stage),assigned:false};}
+const missionDone=(L,m)=>stampsOf(L).find(s=>s.week===weekNo()&&s.pack===m.pk.id);
+function packCard(pk,stage){return `<button class="packcard" data-act="packOpen" data-id="${pk.id}"><span class="packemo" aria-hidden="true">${pk.e}</span><b>${esc(pk.t)}</b><span class="small muted">${packWords(pk,stage).length} words</span></button>`;}
+function passportHTML(L){const st=stampsOf(L);return `<section class="card panel"><h2>${role()==="student"?"My passport":`${esc(firstOf(L.name))}'s passport`} <span class="pill p-sun num">${st.length}</span></h2>${st.length?`<div class="stamps">${st.slice(0,24).map(s=>{const pk=PACKS.find(p=>p.id===s.pack)||{e:"⭐",t:""};return `<div class="stamp2" title="${esc(s.text||"")}"><span aria-hidden="true">${pk.e}</span><b>${esc(pk.t)}</b><i>${esc(fmtDay(new Date(s.at)))}</i></div>`}).join("")}</div>`:`<p class="muted">Do a real-life mission to get your first stamp!</p>`}</section>`;}
+function missionHTML(L){const m=missionFor(L),d=missionDone(L,m),kid=role()==="student",par=role()==="parent";
+  return `<section class="mission ${d?"done":""}"><span class="packemo" aria-hidden="true">${m.pk.e}</span><div class="grow"><span class="eyebrow">${m.assigned?"Mission from your teacher":"This week's mission"} · ${esc(m.pk.t)}</span><b>${esc(m.text)}</b>
+    ${d?`<span>✅ Done! A passport stamp was added.${d.photo?" 📷":""}</span>`:kid?`<span>When you've done it, ask a grown-up to tick it in their app.</span>`:par?`<div class="row adbtns"><button class="btn btn-primary btn-sm" data-act="msnConfirm" data-id="${esc(L.id)}">${ic("check")}${esc(firstOf(L.name))} did it!</button></div>`:""}</div></section>`;}
+function indiaView(){const r=role();
+  if(r==="student"||r==="parent"){const L=r==="parent"?curKid():myLearner();if(!L)return pendingHTML();const pk=S.pack&&PACKS.find(p=>p.id===S.pack);
+    if(pk){const ws=packWords(pk,L.stage);return `<div class="head"><div><button class="btn btn-ghost btn-sm" data-act="packOpen" data-id="">${ic("back")}All packs</button><h1 style="margin-top:8px">${pk.e} ${esc(pk.t)}</h1><p class="lede">${r==="student"?"Tap 🔊 to hear each word.":`Words for ${esc(firstOf(L.name))}'s level (${esc(L.stage||"Seeds")}). Try them together this week.`}</p></div></div>
+      <div class="packwords">${ws.map(([e,w,ex])=>`<div class="pword"><span class="pwemo" aria-hidden="true">${e}</span><div class="grow"><b>${esc(w)}</b><span>${esc(ex)}</span></div>${canSpeak()?`<button class="iconbtn" data-act="say" data-w="${esc(w)}" data-l="en-IN" aria-label="Hear ${esc(w)}">${ic("sound")}</button>`:""}</div>`).join("")}</div>
+      <section class="card panel"><h2>Missions for this pack</h2><ol class="steps">${pk.m.map(t=>`<li>${esc(t)}</li>`).join("")}</ol></section>`;}
+    return `<div class="head"><div><h1>${r==="student"?"My India":"Missions and word packs"}</h1><p class="lede">${r==="student"?"English for everyday life: cricket, festivals, the market and more!":`Everyday English for ${esc(firstOf(L.name))}: a word pack and one small real-life mission each week. Tick the mission when it's done to add a passport stamp.`}</p></div></div>
+      ${r==="parent"?kidBar():""}${missionHTML(L)}<section class="panel"><h2>Word packs</h2><div class="packgrid">${PACKS.map(p=>packCard(p,L.stage)).join("")}</div></section>${passportHTML(L)}`;}
+  /* staff */
+  const bs=pipTry(()=>entries(D.batches))||[];const recent=[];for(const L of (role()==="admin"?activeLearners():pipTry(()=>teacherLearners(myTid()))||[]))for(const s of stampsOf(L))recent.push({...s,L});
+  return `<div class="head"><div><h1>My India packs</h1><p class="lede">Seven everyday-life word packs with stage-level words and missions. Assign a pack's mission to a batch; parents tick it when done and children collect passport stamps.</p></div></div>
+    <section class="panel"><h2>Packs</h2><div class="packgrid">${PACKS.map(p=>`<div class="packcard st"><span class="packemo" aria-hidden="true">${p.e}</span><b>${esc(p.t)}</b><span class="small muted">${p.w.length} words · ${p.m.length} missions</span><button class="btn btn-ghost btn-sm" data-act="msnAssign" data-id="${p.id}" ${bs.length?"":"disabled"}>Assign to a batch</button></div>`).join("")}</div>${bs.length?"":`<p class="small muted">Create a batch first to assign missions.</p>`}</section>
+    <section class="card panel"><h2>Recent passport stamps</h2>${recent.length?`<div class="list">${recent.sort((a,b)=>b.at-a.at).slice(0,20).map(s=>`<div class="item"><span class="packemo sm" aria-hidden="true">${(PACKS.find(p=>p.id===s.pack)||{}).e||"⭐"}</span><div class="grow"><div class="t">${esc(s.L.name)}</div><div class="s">${esc(s.text||"")} · ${esc(fmtDay(new Date(s.at)))}</div></div>${s.photo?`<button class="btn btn-ghost btn-sm" data-act="msnPhoto" data-id="${esc(s.uid+"|"+s.id)}">📷 Photo</button>`:""}</div>`).join("")}</div>`:`<p class="muted">No missions confirmed yet.</p>`}</section>`;}
+A.packOpen=id=>{S.pack=id||null;render(true);window.scrollTo(0,0);};
+A.msnConfirm=lid=>{const L=learner(lid);if(!L||realRole()!=="parent")return;const m=missionFor(L);let photo=null;
+  const draw=()=>openModal("Mission done? 🎉",`<p>Tick this when <b>${esc(firstOf(L.name))}</b> has done it:</p><p class="lede" style="margin:0">“${esc(m.text)}”</p>
+    <div class="row"><button type="button" class="btn btn-ghost btn-sm" data-mact="ph">📷 ${photo?"Change photo":"Add one photo (optional)"}</button></div>${photo?`<img src="${esc(photo)}" alt="Mission photo" class="bprev">`:""}
+    <p class="small muted">Photos are made smaller to save space and are removed after 90 days. Only you and ${esc(firstOf(L.name))}'s teachers see them.</p>`,
+   {submitLabel:"Add passport stamp",done:`Stamp added to ${firstOf(L.name)}'s passport! 🌟`,actions:{ph:()=>{const inp=document.createElement("input");inp.type="file";inp.accept="image/*";inp.onchange=()=>{const f=inp.files&&inp.files[0];if(!f)return;const fr=new FileReader();fr.onload=async()=>{try{photo=await shrinkTo(fr.result,1280,200000);draw();}catch(e){toast("Couldn't use that photo.",true);}};fr.readAsDataURL(f);};inp.click();}},
+    onSubmit:async()=>{await S.db.collection(`msn/${S.uid}/x`).doc().set({lid,kid:firstOf(L.name),pack:m.pk.id,mi:m.mi,text:m.text,week:weekNo(),at:Date.now(),...(photo?{photo}:{})});}});
+  draw();};
+A.msnPhoto=v=>{const [u,id]=v.split("|");const x=((D.msn||{})[u]||{})[id];if(x&&x.photo)openModal("Mission photo",`<img class="bfull" src="${esc(x.photo)}" alt="Mission photo">`);};
+A.msnAssign=pid=>{const pk=PACKS.find(p=>p.id===pid);const bs=entries(D.batches);if(!pk||!bs.length)return;
+  openModal(`Assign: ${pk.t}`,`<div class="field"><label for="ma-b">Batch</label><select id="ma-b" name="b">${bs.map(b=>opt(b.id,b.name||"Batch",false)).join("")}</select></div>
+    <div class="field"><label for="ma-m">Mission</label><select id="ma-m" name="m">${pk.m.map((t,i)=>opt(String(i),t,i===0)).join("")}</select><span class="hint">Seeds get the simplest mission automatically.</span></div>`,
+   {submitLabel:"Assign for 2 weeks",done:"Mission assigned. Families see it now.",onSubmit:async f=>{const b=D.batches[f.b.value]||{};const lids=(b.learners||[]).filter(Boolean);if(!lids.length)throw userErr("That batch has no learners yet.");
+     await S.db.collection(`tw/${S.uid}/x`).doc().set({kind:"msnassign",pack:pk.id,mi:+f.m.value,batch:f.b.value,lids,at:Date.now()});}});};
 
 /* ================= events ================= */
 document.addEventListener("click",e=>{
