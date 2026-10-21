@@ -223,14 +223,44 @@
   }
   function closeGate() { const el = document.getElementById("ll-gate"); if (el) el.remove(); }
   const brand = `<div class="ll-brand" role="img" aria-label="Little Lingos"><svg class="lg-pip" viewBox="24 12 152 186" aria-hidden="true"><path d="M100 58 c-4 -26 -30 -40 -54 -30 c8 24 30 34 54 30 z" fill="#A6DB5C"/><path d="M100 58 c4 -30 32 -46 60 -34 c-10 28 -34 38 -60 34 z" fill="#7CC243"/><path d="M100 56 v14" stroke="#22703A" stroke-width="6" stroke-linecap="round"/><ellipse cx="100" cy="128" rx="70" ry="64" fill="#2F8F46"/><ellipse cx="100" cy="150" rx="46" ry="30" fill="#3FA75A"/><circle cx="76" cy="116" r="15" fill="#FFFFFF"/><circle cx="79" cy="119" r="8" fill="#2E2219"/><circle cx="82" cy="115" r="2.6" fill="#FFFFFF"/><circle cx="124" cy="116" r="15" fill="#FFFFFF"/><circle cx="127" cy="119" r="8" fill="#2E2219"/><circle cx="130" cy="115" r="2.6" fill="#FFFFFF"/><ellipse cx="58" cy="140" rx="10" ry="6" fill="#F7A8C4"/><ellipse cx="142" cy="140" rx="10" ry="6" fill="#F7A8C4"/><path d="M84 140 q16 22 32 0 z" fill="#2E2219"/><path d="M92 148 q8 8 16 0 l-4 -2 h-8 z" fill="#E8492F"/></svg><span class="wm"><b>little</b><span>lingos<svg class="lg-leaf" viewBox="0 0 40 40" aria-hidden="true"><path d="M0 40 c2 -22 16 -36 40 -40 c-2 22 -16 36 -40 40 z" fill="#E8492F"/></svg></span></span></div>`;
+  const LS = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
+  let viaCode = false;
+  const pwFails = e => /invalid login|invalid credentials/i.test(e.message || "") ? "That password didn't work. If you haven't set a password yet, use \u201cEmail me a code\u201d instead."
+    : /rate|too many|seconds/i.test(e.message || "") ? "Too many tries. Wait a few minutes, or use \u201cEmail me a code\u201d." : (e.message || "Couldn't sign in.");
+  function passwordStep(prefill, note) {
+    const el = gate(`${brand}<h1>Sign in</h1><p class="lede">Sign in with your email and password.</p>
+      <form id="ll-pwf" novalidate><div class="field"><label for="ll-em">Email</label><input type="email" id="ll-em" name="em" required autocomplete="username" inputmode="email" value="${esc(prefill || "")}" placeholder="you@example.com"></div>
+      <div class="field"><label for="ll-pw">Password</label><input type="password" id="ll-pw" name="pw" required autocomplete="current-password" minlength="8"></div>
+      <label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="ll-show"> Show password</label>
+      <p class="formerr" id="ll-err" ${note ? "" : "hidden"}>${esc(note || "")}</p>
+      <button class="btn btn-primary btn-big" type="submit" id="ll-go">Sign in</button></form>
+      <div class="row"><button class="btn btn-ghost btn-sm" type="button" id="ll-code">Email me a code instead</button></div>
+      <p class="small muted">Forgot your password, or never set one? Use \u201cEmail me a code\u201d. Once you're in, you can set a new password.</p>`);
+    const f = el.querySelector("form"), err = el.querySelector("#ll-err"), btn = el.querySelector("#ll-go");
+    setTimeout(() => (prefill ? f.pw : f.em).focus(), 50);
+    el.querySelector("#ll-show").onchange = e => { f.pw.type = e.target.checked ? "text" : "password"; };
+    el.querySelector("#ll-code").onclick = () => { LS.set("ll-method", "code"); emailStep(f.em.value.trim()); };
+    f.addEventListener("submit", async e => {
+      e.preventDefault(); const email = f.em.value.trim().toLowerCase(), password = f.pw.value;
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent = "Check the email address."; err.hidden = false; return; }
+      if (!password) { err.textContent = "Type your password."; err.hidden = false; return; }
+      btn.disabled = true; btn.textContent = "Signing in…"; err.hidden = true;
+      const { error } = await sb.auth.signInWithPassword({ email, password });
+      if (error) { btn.disabled = false; btn.textContent = "Sign in"; err.textContent = pwFails(error); err.hidden = false; return; }
+      LS.set("ll-method", "password"); LS.set("ll-email", email);
+    });
+  }
+  function firstStep(prefill, note) { return LS.get("ll-method") === "password" ? passwordStep(prefill || LS.get("ll-email") || "", note) : emailStep(prefill, note); }
   function emailStep(prefill, note) {
     const el = gate(`${brand}<h1>Sign in</h1><p class="lede">Enter your email and we'll send you a 6-digit sign-in code. No password needed.</p>
       <form id="ll-email" novalidate><div class="field"><label for="ll-em">Email</label><input type="email" id="ll-em" name="em" required autocomplete="email" inputmode="email" value="${esc(prefill || "")}" placeholder="you@example.com"></div>
       <p class="formerr" id="ll-err" ${note ? "" : "hidden"}>${esc(note || "")}</p>
       <button class="btn btn-primary btn-big" type="submit" id="ll-go">Email me a code</button></form>
+      <div class="row"><button class="btn btn-ghost btn-sm" type="button" id="ll-usepw">Sign in with a password instead</button></div>
       <p class="small muted">Use the email you gave the academy. You'll go straight to your dashboard. If the academy doesn't have your email yet, they'll connect you after you sign in.</p>`);
     const f = el.querySelector("form"), err = el.querySelector("#ll-err"), btn = el.querySelector("#ll-go");
     setTimeout(() => f.em.focus(), 50);
+    el.querySelector("#ll-usepw").onclick = () => passwordStep(f.em.value.trim());
     f.addEventListener("submit", async e => {
       e.preventDefault(); const email = f.em.value.trim().toLowerCase();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent = "Check the email address."; err.hidden = false; return; }
@@ -258,7 +288,10 @@
       e.preventDefault(); const token = f.cd.value.replace(/\D/g, "");
       if (token.length < 6) { err.textContent = "Type the code from the email."; err.hidden = false; return; }
       btn.disabled = true; btn.textContent = "Checking…";
+      viaCode = true;
       const { error } = await sb.auth.verifyOtp({ email, token, type: "email" });
+      if (error) { viaCode = false; }
+      else LS.set("ll-email", email);
       if (error) { btn.disabled = false; btn.textContent = "Sign in"; err.textContent = /expired|invalid/i.test(error.message) ? "That code didn't work. Check it, or send a new one." : error.message; err.hidden = false; }
     });
   }
@@ -267,10 +300,67 @@
     try { await sb.rpc("ll_link"); } catch {}
     try { await checkLevel(); } catch {}
     startRealtime();
+    viaCode = viaCode || fromLink;
     closeGate(); readyResolve(true);
+    setTimeout(maybeOffer, 600);
+  }
+  /* ---- passwords: set once, then sign in without a code ---- */
+  const hasPassword = () => !!(session && session.user && session.user.user_metadata && session.user.user_metadata.pw_set);
+  function passwordForm(opts) {
+    const o = opts || {}, had = hasPassword();
+    const el = gate(`${brand}<h1>${had ? "Change your password" : "Set a password"}</h1>
+      <p class="lede">${o.offer ? "Want to skip the email code next time? Set a password and sign in with your email and password." : had ? "Choose a new password for " : "Set a password for "}${o.offer ? "" : `<b>${esc(session.user.email || "")}</b>. Next time, sign in with your email and this password. Email codes still work too.`}</p>
+      <form id="ll-setpw" novalidate><input type="email" name="u" autocomplete="username" value="${esc(session.user.email || "")}" hidden>
+      <div class="field"><label for="ll-np">New password</label><input type="password" id="ll-np" name="np" required minlength="8" autocomplete="new-password"><span class="hint">At least 8 characters. Don't reuse a password from another site.</span></div>
+      <div class="field"><label for="ll-np2">Type it again</label><input type="password" id="ll-np2" name="np2" required minlength="8" autocomplete="new-password"></div>
+      <label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="ll-show"> Show password</label>
+      <div class="field" id="ll-nonce-f" hidden><label for="ll-nonce">Code from your email</label><input type="text" id="ll-nonce" name="nonce" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456"><span class="hint">To keep your account safe, we emailed you a code. Type it here.</span></div>
+      <p class="formerr" id="ll-err" hidden></p>
+      <button class="btn btn-primary btn-big" type="submit" id="ll-go">Save password</button></form>
+      <div class="row"><button class="btn btn-ghost btn-sm" type="button" id="ll-skip">${o.offer ? "Not now" : "Cancel"}</button></div>`);
+    const f = el.querySelector("form"), err = el.querySelector("#ll-err"), btn = el.querySelector("#ll-go");
+    setTimeout(() => f.np.focus(), 50);
+    el.querySelector("#ll-show").onchange = e => { f.np.type = f.np2.type = e.target.checked ? "text" : "password"; };
+    el.querySelector("#ll-skip").onclick = () => { if (o.offer) LS.set("ll-pw-offer-" + session.user.id, String(Date.now())); closeGate(); };
+    const show = m => { err.textContent = m; err.hidden = false; };
+    f.addEventListener("submit", async e => {
+      e.preventDefault(); err.hidden = true;
+      const np = f.np.value, np2 = f.np2.value, nonce = f.nonce.value.replace(/\D/g, "");
+      if (np.length < 8) return show("Use at least 8 characters.");
+      if (np !== np2) return show("The two passwords don't match.");
+      if (np.toLowerCase() === String(session.user.email || "").toLowerCase()) return show("Don't use your email as your password.");
+      btn.disabled = true; btn.textContent = "Saving…";
+      const attrs = { password: np, data: { pw_set: true } }; if (nonce) attrs.nonce = nonce;
+      const { data, error } = await sb.auth.updateUser(attrs);
+      btn.disabled = false; btn.textContent = "Save password";
+      if (error) {
+        const m = error.message || "";
+        if (/reauthenticat|nonce/i.test(m) && !nonce) {
+          const r = await sb.auth.reauthenticate();
+          if (r.error) return show("Couldn't send the safety code: " + r.error.message);
+          el.querySelector("#ll-nonce-f").hidden = false; f.nonce.focus();
+          return show("We emailed you a 6-digit code. Type it below, then tap Save password again.");
+        }
+        if (/different from the old|same/i.test(m)) return show("That's your current password. Choose a new one.");
+        if (/weak|short|characters|pwned|leaked/i.test(m)) return show("That password is too easy to guess. Try a longer one.");
+        return show("Couldn't save the password: " + m);
+      }
+      if (data && data.user) session = { ...session, user: data.user };
+      LS.set("ll-method", "password"); LS.set("ll-email", session.user.email || "");
+      gate(`${brand}<h1>Password saved</h1><p class="lede">Next time, sign in with <b>${esc(session.user.email || "")}</b> and your password. No code needed.</p><button class="btn btn-primary btn-big" type="button" id="ll-done">Continue</button>`).querySelector("#ll-done").onclick = closeGate;
+    });
+  }
+  window.LL_setPassword = () => { if (session) passwordForm(); };
+  window.LL_hasPassword = hasPassword;
+  function maybeOffer() {
+    if (!viaCode || hasPassword()) return;
+    const k = "ll-pw-offer-" + session.user.id, t = +LS.get(k) || 0;
+    if (Date.now() - t < 7 * 864e5) return; // asked in the last week
+    passwordForm({ offer: true });
   }
   window.LL_signOut = async () => { try { await sb.auth.signOut(); } catch {} location.reload(); };
 
+  const fromLink = /access_token/.test(location.hash);
   async function init() {
     if (!sb) {
       gate(`${brand}<h1>Almost ready</h1><p class="lede">This copy of Little Lingos isn't connected to its database yet.</p><p class="small">Open <b>config.js</b> and paste in your Supabase project URL and anon key (see the setup guide).</p>`);
@@ -279,9 +369,9 @@
     const hashErr = new URLSearchParams(location.hash.slice(1)).get("error_description");
     const { data } = await sb.auth.getSession();
     if (data && data.session) started(data.session);
-    else emailStep("", hashErr ? "That sign-in link has expired. Send yourself a new code." : "");
+    else firstStep("", hashErr ? "That sign-in link has expired. Send yourself a new code." : "");
     sb.auth.onAuthStateChange((ev, s) => {
-      if (ev === "SIGNED_IN" && s) { if (location.hash.includes("access_token")) history.replaceState(null, "", location.pathname); started(s); }
+      if (ev === "SIGNED_IN" && s) { if (location.hash.includes("access_token")) history.replaceState(null, "", location.pathname); setTimeout(() => started(s), 0); } // defer: calling Supabase inside this callback can deadlock
       if (ev === "SIGNED_OUT") location.reload();
     });
   }

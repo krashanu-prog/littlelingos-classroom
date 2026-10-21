@@ -1519,10 +1519,11 @@ A.copyCode=code=>copyText(code,"Code");
 A.pipCheer=(_,btn)=>{const g=btn.closest(".pipguide"),sv=btn.querySelector("svg"),t=g&&g.querySelector(".pip-t");if(sv){sv.classList.remove("jump");void sv.getBoundingClientRect();sv.classList.add("jump")}if(t)t.textContent=PIP_CHEERS[Math.floor(Math.random()*PIP_CHEERS.length)];};
 A.flip=(_,btn)=>{const on=btn.classList.toggle("on");const w=btn.dataset.w,m=btn.dataset.m;btn.innerHTML=on?`<b>${esc(m)}</b><span>${esc(w)}</span>`:`<b>${esc(w)}</b><span>tap to flip</span>`;btn.setAttribute("aria-label",on?`${w}: ${m}`:`${w}. Tap to see the meaning`);};
 A.signOut=()=>{if(window.LL_signOut)LL_signOut();};
+A.setPassword=()=>{closeModal&&closeModal();if(window.LL_setPassword)LL_setPassword();};
 A.profile=()=>{if(isParent()&&!S.viewAs){go("settings");return}if(isKid()&&!S.viewAs){go("me");return}
   const p=D.profiles[S.uid]||{};
   openModal("Your profile",`<div class="field"><label for="pf-name">Display name</label><input type="text" id="pf-name" name="name" maxlength="60" required data-label="Display name" value="${esc(p.displayName||myName())}"><span class="hint">Names on learner and trainer lists are set by the admin.</span></div>`,
-    {submitLabel:"Save",done:"Saved",footerExtra:`<button type="button" class="btn btn-ghost" data-mact="out">Sign out</button>`,actions:{out:()=>A.signOut()},onSubmit:async f=>{await upsert("profiles/"+S.uid,{displayName:f.name.value.trim()})}});
+    {submitLabel:"Save",done:"Saved",footerExtra:`<button type="button" class="btn btn-ghost" data-mact="pw">Set or change password</button><button type="button" class="btn btn-ghost" data-mact="out">Sign out</button>`,actions:{out:()=>A.signOut(),pw:()=>A.setPassword()},onSubmit:async f=>{await upsert("profiles/"+S.uid,{displayName:f.name.value.trim()})}});
 };
 A.becomeParent=()=>save(()=>upsert("profiles/"+S.uid,{role:"parent"}));
 A.finish=async lid=>{if(await save(()=>upsert("progress/"+S.uid,{completed:{[lid]:Date.now()}}))){S.bloomed=lid;render(true);window.scrollTo({top:0,behavior:"smooth"});}};
@@ -2275,7 +2276,7 @@ function parentSettings(){
   <section class="card panel"><div class="ph"><h2>Children</h2></div>
     ${ks.length?`<div class="list">${ks.map(k=>`<div class="item"><span class="kidchip on" style="pointer-events:none"><span class="av">${esc((firstOf(k.name)[0]||"?").toUpperCase())}</span></span><div class="grow"><div class="t">${esc(k.name)}</div><div class="s">${esc(stageLabel(k.stage))} · ${esc(kidTeacher(k))}</div></div></div>`).join("")}</div>`:`<p class="muted">No children connected yet.</p>`}
     <p class="small muted">The Little Lingos team manages which children are on your account. To add or remove a child, raise a ticket in Help.</p>
-    <p class="section-title">Sign-in</p><p class="small">You sign in with your email and a one-time code. Both parents can sign in with their own emails; ask the academy to connect each one.</p><button class="btn btn-ghost btn-sm" data-act="signOut">Sign out</button></section>
+    <p class="section-title">Sign-in</p><p class="small">You sign in with your email and a one-time code, or with a password once you set one. Both parents can sign in with their own emails; ask the academy to connect each one.</p><div class="row"><button class="btn btn-ghost btn-sm" data-act="setPassword">Set or change password</button><button class="btn btn-ghost btn-sm" data-act="signOut">Sign out</button></div></section>
   </div>`;
 }
 document.addEventListener("submit",async e=>{
@@ -2668,7 +2669,7 @@ function storiesView(){
 function meView(){
   const L=myLearner(); if(!L)return pendingHTML(); const uid=L.uid, stars=starsOf(L), bs=badgesOf(L), certs=certsOf(L), av=avatarOf(uid), items=kpItems(uid).filter(x=>x.kind!=="rate"&&x.kind!=="join"), lim=limitFor(L), p=D.profiles[uid]||{};
   const got=bs.filter(b=>b.ok).length;
-  return `<div class="head"><div class="row" style="flex-wrap:nowrap;gap:14px">${avatarHTML(uid,80)}<div><h1>${esc(L.name)}</h1><p class="lede">${esc(stageLabel(L.stage))}</p></div></div>${S.viewAs?"":`<button class="btn btn-ghost btn-sm" data-act="signOut">Sign out</button>`}</div>
+  return `<div class="head"><div class="row" style="flex-wrap:nowrap;gap:14px">${avatarHTML(uid,80)}<div><h1>${esc(L.name)}</h1><p class="lede">${esc(stageLabel(L.stage))}</p></div></div>${S.viewAs?"":`<div class="row"><button class="btn btn-ghost btn-sm" data-act="setPassword">My password</button><button class="btn btn-ghost btn-sm" data-act="signOut">Sign out</button></div>`}</div>
   <div class="stats"><div class="stat f" style="background:var(--sunSoft)"><b class="num">⭐ ${stars}</b><span>Stars</span></div><div class="stat f" style="background:var(--leafSoft)"><b class="num">🏅 ${got}/${bs.length}</b><span>Badges</span></div><div class="stat f" style="background:var(--petalSoft)"><b class="num">🔥 ${streak(uid)}</b><span>Day streak</span><small>Best: ${longestStreak(uid)} days</small></div><div class="stat f" style="background:var(--skySoft)"><b class="num">🏆 ${certs.length}</b><span>Certificates</span></div></div>
   <section class="card panel"><h2>My badges</h2><div class="badges">${bs.map(b=>`<div class="badge ${b.ok?"on":""}"><span>${b.ok?b.e:"🔒"}</span><b>${esc(b.t)}</b><i>${esc(b.d)}</i></div>`).join("")}</div></section>
   <section class="card panel"><h2>Rewards: dress up your buddy</h2><p class="small muted">Collect stars to unlock new buddies and colours.</p>
