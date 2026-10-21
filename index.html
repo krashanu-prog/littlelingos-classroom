@@ -826,6 +826,8 @@ body.boarding{overflow:hidden}
 .reelwave i:nth-child(2){animation-delay:.15s}.reelwave i:nth-child(3){animation-delay:.3s}.reelwave i:nth-child(4){animation-delay:.45s}.reelwave i:nth-child(5){animation-delay:.6s}
 @keyframes rwave{0%,100%{height:10px}50%{height:38px}}
 .reelbar{height:8px;border-radius:9px;background:var(--soft);overflow:hidden;margin-top:10px}.reelbar i{display:block;height:100%;width:0;background:var(--leafMid);transition:width .4s}
+.kidtile.t5,.kidtile.t6{grid-column:auto}.kidtile.t6{background:var(--petalSoft);flex-direction:row;align-items:center;gap:10px;min-height:72px}
+.teachpip .bubble.static{font-size:1.15rem}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -2769,7 +2771,7 @@ function studentHome(){
   const classCard=todays.length?(()=>{const s=todays[0],d=new Date(s.startsAt),url=safeUrl(s.joinUrl),live=Date.now()>=d.getTime()-15*6e4;
     return `<section class="todayclass ${live?"live":""}"><span class="ticon" aria-hidden="true">${topicIcon(s)}</span><div class="grow"><span class="eyebrow">Today's class</span><h2>${esc(s.title||"Live class")}</h2><p>${esc(fmtTime(d))} · ${esc(s.topic||D.courses[s.courseId]?.title||"")}</p></div>
     ${url?`<a class="btn ${live?"btn-primary":"btn-ghost"} btn-huge" href="${esc(url)}" target="_blank" rel="noopener" ${live?"":'aria-disabled="true"'}>${ic("video",26)}${live?"Join!":`Join at ${esc(fmtTime(new Date(d.getTime()-15*6e4)))}`}</a>`:`<span class="pill p-mute">At the centre</span>`}</section>`;})():"";
-  return `<div class="head"><div class="row" style="flex-wrap:nowrap;gap:14px">${avatarHTML(uid,64)}<div><h1>${esc(first)}'s Garden</h1><div class="row" style="margin-top:6px"><span class="pill p-sun">⭐ ${stars} star${stars===1?"":"s"}</span>${st?`<span class="pill p-warn">🔥 ${st}-day streak</span>`:""}<span class="pill p-good">🌸 ${n} flower${n===1?"":"s"}</span>${L.trainerId&&D.trainers[L.trainerId]?`<span class="pill p-info">👩‍🏫 ${esc(firstOf(trainerName(L.trainerId)))}</span>`:""}${L.preview?`<span class="pill p-mute">Admin preview</span>`:""}</div></div></div></div>
+  return `<div class="head"><div class="row" style="flex-wrap:nowrap;gap:14px">${avatarHTML(uid,64)}<div><h1>${esc(first)}'s Garden</h1><div class="row" style="margin-top:6px"><span class="pill p-sun">⭐ ${stars} star${stars===1?"":"s"}</span>${st?`<span class="pill p-warn">🔥 ${st}-day streak</span>`:""}<span class="pill p-good">🌸 ${n} flower${n===1?"":"s"}</span>${teachStars(uid)?`<span class="pill p-info">🎓 ${teachStars(uid)} teacher star${teachStars(uid)===1?"":"s"}</span>`:""}${L.trainerId&&D.trainers[L.trainerId]?`<span class="pill p-info">👩‍🏫 ${esc(firstOf(trainerName(L.trainerId)))}</span>`:""}${L.preview?`<span class="pill p-mute">Admin preview</span>`:""}</div></div></div></div>
   ${classCard}
   ${msgBanner()}
   <div class="cols">
@@ -2785,7 +2787,7 @@ function studentHome(){
       <section class="daily ${dDone?"done":""}"><span class="dicon" aria-hidden="true">${dDone?"✅":"🎯"}</span><div class="grow"><b>Word quiz</b><span>${dDone?`Done today! You got ${progOf(uid).daily[ymd(new Date())]} of 5. Come back tomorrow.`:"5 quick questions, just for fun."}</span></div>${dDone?"":`<button class="btn btn-sun" data-act="startGame" data-id="daily">Play</button>`}</section>
       <div class="kidtiles">
         <button class="kidtile t1" data-go="path"><span>🗺️</span>Lesson path</button><button class="kidtile t2" data-go="words"><span>🃏</span>My words</button>
-        <button class="kidtile t3" data-go="play"><span>🎲</span>Games</button><button class="kidtile t4" data-go="me"><span>🏅</span>My stars</button><button class="kidtile t5" data-go="wall"><span>🖼️</span>Garden wall</button>
+        <button class="kidtile t3" data-go="play"><span>🎲</span>Games</button><button class="kidtile t4" data-go="me"><span>🏅</span>My stars</button><button class="kidtile t5" data-go="wall"><span>🖼️</span>Garden wall</button><button class="kidtile t6" data-act="teachPip"><span>🎓</span>Teach Pip</button>
       </div>
       ${stk.length?`<section class="card panel"><h2>From your teacher</h2>${stk.map(x=>`<div class="stickerrow"><span class="bigsticker">${esc(x.s)}</span><div><b>${esc(x.text||"Well done!")}</b><div class="small muted">${esc(x.who)} · ${esc(fmtDay(new Date(x.at)))}</div></div></div>`).join("")}</section>`:""}
       ${kidHwCard(L)}
@@ -4986,6 +4988,31 @@ function reelNext(){if(!REEL)return;clearTimeout(REEL.timer);if(REEL.audio){try{
   const done=()=>{if(REEL!==r||r.audio!==a)return;r.used+=Math.min(left,(Date.now()-started)/1000);const p=document.getElementById("reel-p");if(p)p.style.width=Math.min(100,r.used/60*100)+"%";reelNext();};
   a.onended=done;a.onerror=()=>{r.timer=setTimeout(done,1200);};a.play().catch(()=>{r.timer=setTimeout(done,2500);});
   r.timer=setTimeout(()=>{try{a.pause()}catch(e){}done();},left*1000);}
+
+/* ================= Feature 4: Teach Pip (role reversal) ================= */
+function teachWord(L){const uid=L&&L.uid;if(!uid)return null;const p=progOf(uid),wk=p.wk||{},taught=p.taught||{};
+  const recent=doneList(uid).slice(0,4).map(x=>lessonById(x.lid)).filter(Boolean);const nx=nextLesson(uid,learnerCourses(L));if(nx)recent.push(nx);
+  const pool=[];const seen=new Set();for(const l of recent){const c=D.courses[l.courseId];for(const [w,m] of parseVocab(l.vocab)){const k=wkKey(w);if(!k||seen.has(k))continue;seen.add(k);pool.push({w,m,lang:langOf(c),k});}}
+  if(!pool.length)for(const [w,m] of (STARTER[L.stage]||STARTER.Seeds)){pool.push({w,m,lang:"en-IN",k:wkKey(w)});}
+  const score=x=>{const o=wk[x.k]||{};return (+o.r||0)+(+o.m||0)+(+taught[x.k]||0)*3;};
+  const skip=S.teachSkip||[];const order=pool.filter(x=>!skip.includes(x.k)).sort((a,b)=>score(a)-score(b));return order[0]||pool[0];}
+const teachStars=uid=>Object.keys(progOf(uid).pts||{}).filter(k=>k[0]==="t").length;
+A.teachPip=()=>{const L=myLearner();if(!L)return;if(timeUp()){render();return}const x=teachWord(L);if(!x){toast("Finish a lesson first, then teach Pip!",true);return}
+  const seeds=(L.stage||"Seeds")==="Seeds",lim=recLimit(L),emo=emoOf(x.w);let clip=null,rec=false,done=false;
+  const draw=()=>{if(done){openModal("Thank you, teacher!",`<div class="drill">${art("pip",110,"Pip")}<p class="lede" style="margin:0">Yay! Now I know <b>${esc(x.w)}</b>! You're a great teacher!</p><p class="bigstars">🎓</p><p class="small muted">You earned a Teacher star. Your teacher can listen to your lesson too.</p></div>`,{footerExtra:`<button type="button" class="btn btn-leaf" data-mact="again">Teach another word</button>`,actions:{again:()=>{closeModal();setTimeout(A.teachPip,200);}}});return}
+    openModal("Teach Pip",`<div class="drill teachpip">${art("pip",96,"Pip")}<div class="bubble static">I don't know this word! Can you teach me?</div>
+      ${emo?`<span class="dtemo" aria-hidden="true" style="font-size:3.4rem">${emo}</span>`:""}<b class="dword">${esc(x.w)}</b>
+      <p class="small muted" style="margin:0">${seeds?(emo?"Point at the picture and say the word to Pip.":"Say the word to Pip and show what it means."):"Tell Pip what it means, and use it in a sentence."} Up to ${lim} seconds.</p>
+      ${canSpeak()?`<button type="button" class="btn btn-ghost btn-sm" data-mact="hear">${ic("sound")}How do I say it?</button>`:""}
+      ${canRecord()?`<button type="button" class="btn ${rec?"btn-danger":"btn-sun"} btn-big" data-mact="rec">${rec?"■ Stop":clip?"🎤 Teach again":"🎤 Teach Pip"}</button>${clip?`<audio controls src="${esc(clip)}"></audio>`:""}`:`<p class="small">This device can't record, so teach Pip out loud, then tap “I taught Pip”.</p>`}</div>`,
+     {noFocus:true,submitLabel:canRecord()?"Send my lesson to Pip":"I taught Pip",footerExtra:`<button type="button" class="btn btn-ghost" data-mact="other">Another word</button>`,
+      actions:{hear:()=>say(x.w,x.lang),other:()=>{S.teachSkip=[...(S.teachSkip||[]),x.k].slice(-6);closeModal();setTimeout(A.teachPip,150);},
+        rec:async()=>{if(rec){stopRec();return}const ok=await startRec(lim,u=>{rec=false;clip=u;draw();});if(ok){rec=true;draw();}}},
+      onSubmit:async()=>{if(canRecord()&&!clip)throw userErr("Teach Pip first: tap the microphone and talk.");
+        const ts=Date.now();if(clip)await S.db.collection(`kp/${S.uid}/x`).doc().set({kind:"audio",title:`Teaching Pip “${x.w}”`,data:clip,at:ts,act:"teachpip",word:x.w});
+        const p=progOf(S.uid);await earn({pts:{["t"+ts.toString(36)]:1},taught:{[x.k]:(+((p.taught||{})[x.k])||0)+1}});wkLog(x.w,true);
+        if(clip)prunePractice(S.uid,"teachpip");done=true;setTimeout(draw,250);}});};
+  draw();};
 
 /* ================= events ================= */
 document.addEventListener("click",e=>{
