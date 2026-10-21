@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#22703A">
-<meta name="description" content="LittleLingos Classroom: classes, progress, homework and fees for learners, parents and trainers.">
+<meta name="description" content="Little Lingos Classroom: classes, progress, homework and fees for learners, parents and trainers.">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -13,16 +13,16 @@
 #ll-gate .center{margin:auto;padding:24px 16px;width:100%;box-sizing:border-box;display:flex;justify-content:center}
 #ll-gate .ll-gate-card{max-width:440px;width:100%;align-items:stretch;gap:14px}
 #ll-gate h1{margin:0}#ll-gate form{display:flex;flex-direction:column;gap:12px}
-.ll-brand{font-family:var(--display);font-weight:800;font-size:1.7rem;line-height:1;color:var(--leaf)}.ll-brand span{font-weight:700;font-size:1.1rem;margin-right:4px;color:var(--soil)}</style>
+.ll-brand{--ls:40px;display:flex;align-items:center;gap:8px;align-self:center;margin-bottom:4px}.ll-brand .lg-pip{width:52px;height:64px;flex:none}</style>
 <script src="config.js"></script>
 <script src="supabase.js"></script>
 <script src="adapter.js"></script>
 </head>
 <body>
-<title>LittleLingos Classroom</title>
+<title>Little Lingos Classroom</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@700;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap">
 <style>
 /* Layout: app shell — left rail on desktop, scrollable bottom tab bar on phones, content column ~1080px.
    Word Garden (brand Concept B): one bright daylight look on purpose, so there is no dark variant. */
@@ -60,9 +60,13 @@ button,input,select,textarea{font:inherit;color:inherit}
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--card)}
 .top-in{max-width:1320px;margin:0 auto;display:flex;align-items:center;gap:10px;min-height:64px}
-.brand{display:flex;align-items:flex-end;gap:6px;text-decoration:none;color:var(--soil);margin-right:auto}
-.brand b{font-family:var(--display);font-weight:700;font-size:19px;line-height:1;padding-bottom:5px}
-.brand span{font-family:var(--display);font-weight:800;font-size:36px;line-height:.85;color:var(--leaf)}
+.brand{--ls:34px;display:flex;align-items:center;gap:calc(var(--ls)*.2);text-decoration:none;color:var(--soil);margin-right:auto}
+.brand .lg-pip{width:calc(var(--ls)*1.3);height:calc(var(--ls)*1.6);flex:none}
+.wm{display:inline-flex;align-items:baseline;gap:calc(var(--ls)*.13);font-family:var(--display);line-height:1;white-space:nowrap}
+.wm b{font-weight:700;font-size:calc(var(--ls)*.46);color:var(--soil)}
+.wm span{position:relative;font-weight:800;font-size:var(--ls);color:#22703A;letter-spacing:-.01em}
+.wm .lg-leaf{position:absolute;right:-.16em;top:-.02em;width:.3em;height:.3em}
+.brand:hover .lg-pip{transform:rotate(-6deg)}.brand .lg-pip{transition:transform .2s}
 .viewas{display:flex;align-items:center;gap:6px;font-size:.85rem;color:var(--muted);font-weight:700;white-space:nowrap}
 .viewas select{border:2px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-weight:700;color:var(--soil);min-height:40px}
 .me{display:flex;align-items:center;gap:8px;border:0;background:none;cursor:pointer;padding:4px;border-radius:999px;min-height:44px}
@@ -89,7 +93,7 @@ main{min-width:0;display:flex;flex-direction:column;gap:24px}
   .nav::-webkit-scrollbar{display:none}
   .nav a{flex:1 0 74px;flex-direction:column;gap:2px;font-size:.7rem;padding:6px 4px;text-align:center;border-radius:18px;min-height:52px;justify-content:center}
   .me span.nm,.viewas label{display:none}
-  .brand span{font-size:30px}
+  .brand{--ls:29px}
 }
 
 /* building blocks */
@@ -576,6 +580,20 @@ button.stat{font:inherit;color:inherit;cursor:pointer}.stat.sel{box-shadow:inset
 .unith:first-child{border-top:0;padding-top:0}
 .cal-d.hol{background:var(--sunSoft)}
 .cd-sig{font-family:var(--display);font-size:1.2rem;border-top:2px solid #2E2219;padding-top:4px;margin-top:10px;display:flex;flex-direction:column;align-items:center}.cd-sig i{font-style:normal;font-size:.8rem;color:#5C4F45;font-family:var(--body)}
+@media (max-width:340px){.brand .wm{display:none}}
+/* Pip guide in the child's portal */
+.pipguide{display:flex;align-items:flex-end;gap:12px;background:var(--sky);border-radius:28px;padding:12px 18px 0;position:relative;overflow:hidden;min-height:104px;flex:none}
+.pipguide::after{content:"";position:absolute;left:-30px;right:-30px;bottom:0;height:22px;background:var(--grass);border-radius:600px 600px 0 0}
+.pipguide svg{width:92px;height:92px;flex:none;position:relative;z-index:1;margin-bottom:-4px;animation:pipbob 3.2s ease-in-out infinite;transform-origin:50% 100%}
+.pipguide .say{position:relative;z-index:1;align-self:center;background:#fff;border-radius:20px 20px 20px 6px;padding:10px 16px;font-family:var(--display);font-weight:700;font-size:1.12rem;line-height:1.2;color:var(--soil);max-width:46ch;margin-bottom:24px}
+.pipguide .say small{display:block;font-family:var(--body);font-weight:400;font-size:.92rem;color:var(--muted);margin-top:2px}
+.pipguide button.pip-tap{all:unset;cursor:pointer;position:relative;z-index:1;display:block;border-radius:50%}
+.pipguide button.pip-tap:focus-visible{outline:3px solid var(--leaf);outline-offset:2px}
+@keyframes pipbob{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-6px) rotate(-3deg)}}
+@keyframes pipjump{0%{transform:translateY(0)}30%{transform:translateY(-22px) rotate(8deg)}60%{transform:translateY(0)}80%{transform:translateY(-6px)}100%{transform:none}}
+.pipguide svg.jump{animation:pipjump .7s ease-out}
+.garden .pip{animation:pipbob 3.4s ease-in-out infinite;transform-origin:50% 100%}
+@media (max-width:560px){.pipguide svg{width:72px;height:72px}.pipguide .say{font-size:1rem}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -593,7 +611,7 @@ button.stat{font:inherit;color:inherit;cursor:pointer}.stat.sel{box-shadow:inset
 </svg>
 
 <div class="top"><div class="top-in" id="topbar">
-  <a class="brand" href="#home" aria-label="LittleLingos"><b>little</b><span>lingos</span></a>
+  <a class="brand" href="#home" aria-label="Little Lingos"><svg class="lg-pip" viewBox="24 12 152 186" aria-hidden="true"><use href="#pip" x="0" y="0" width="200" height="200"/></svg><span class="wm"><b>little</b><span>lingos<svg class="lg-leaf" viewBox="0 0 40 40" aria-hidden="true"><path d="M0 40 c2 -22 16 -36 40 -40 c-2 22 -16 36 -40 40 z" fill="#E8492F"/></svg></span></span></a>
 </div></div>
 <div class="shell">
   <nav class="nav" id="nav" aria-label="Main"></nav>
@@ -665,6 +683,8 @@ const ICON={
  x:'<path d="M6 6l12 12M18 6L6 18"/>'
 };
 const ic=(n,s)=>`<svg viewBox="0 0 24 24" ${s?`width="${s}" height="${s}"`:""} fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${ICON[n]}</svg>`;
+const PIPSVG=(cls,label)=>`<svg class="${cls}" viewBox="24 12 152 186" ${label?`role="img" aria-label="${label}"`:'aria-hidden="true"'}><use href="#pip" x="0" y="0" width="200" height="200"/></svg>`;
+const LOGO=`${PIPSVG("lg-pip")}<span class="wm"><b>little</b><span>lingos<svg class="lg-leaf" viewBox="0 0 40 40" aria-hidden="true"><path d="M0 40 c2 -22 16 -36 40 -40 c-2 22 -16 36 -40 40 z" fill="#E8492F"/></svg></span></span>`;
 const art=(id,size,label)=>`<svg class="m" width="${size}" height="${size}" ${label?`role="img" aria-label="${label}"`:'aria-hidden="true"'}><use href="#${id}"/></svg>`;
 const flowerSvg=(color,h)=>`<svg viewBox="0 0 50 110" width="${Math.round(h*.45)}" height="${h}" style="color:${color}" aria-hidden="true"><use href="#flower"/></svg>`;
 
@@ -858,7 +878,7 @@ function noticesFor(r){
   else{const ids=new Set(myKids().map(l=>l.id));const kids=myKids().filter(Boolean);list=[...team.filter(n=>noticeHitsKids(n,kids)),...tr.filter(n=>noteLearners(n).some(l=>ids.has(l.id)))];}
   return list.sort((a,b)=>(b.at||0)-(a.at||0));
 }
-const noteAuthor=n=>n.src==="team"?"LittleLingos team":(trainerByUid(n.uid)?.name||"Your teacher");
+const noteAuthor=n=>n.src==="team"?"Little Lingos team":(trainerByUid(n.uid)?.name||"Your teacher");
 const lastSeen=()=>+(D.profiles[S.uid]?.lastSeenNotice||0);
 const unreadList=()=>role()==="admin"?[]:noticesFor(role()).filter(n=>n.by!==S.uid&&n.uid!==S.uid&&(n.at||0)>lastSeen());
 const unreadCount=()=>unreadList().length;
@@ -877,7 +897,7 @@ function hwState(L,h){const f=replyOf(L,h),a=answerOf(L,h),d=hwDue(h);
   if(a)return {k:"done",cls:"p-info",label:"Handed in"};
   if(d&&d<new Date())return {k:"late",cls:"p-bad",label:relDue(d)};
   return {k:"open",cls:d&&d-new Date()<2*864e5?"p-warn":"p-mute",label:d?relDue(d):"No due date"};}
-const hwAuthor=h=>trainerByUid(h.uid)?.name||(h.uid===D.config.ownerUid?"LittleLingos team":"Your teacher");
+const hwAuthor=h=>trainerByUid(h.uid)?.name||(h.uid===D.config.ownerUid?"Little Lingos team":"Your teacher");
 const hwTarget=h=>h.learnerIds&&h.learnerIds.length?`${h.learnerIds.length} chosen learner${h.learnerIds.length===1?"":"s"}`:(D.courses[h.courseId]?.title||"Course removed");
 const myHw=()=>scopeAll()?allHw():allHw().filter(h=>h.uid===S.uid);
 const canReview=h=>role()==="admin"||h.uid===S.uid;
@@ -886,7 +906,7 @@ function toReview(){const out=[];for(const h of myHw())for(const L of hwLearners
 /* ================= writes ================= */
 function handleErr(e){
   const c=e&&e.code;
-  if(c==="invalid_argument")toast("This account can't save that. Only the LittleLingos admin can change it.",true);
+  if(c==="invalid_argument")toast("This account can't save that. Only the Little Lingos admin can change it.",true);
   else if(c==="quota_exceeded")toast("Storage is full. Remove old records, then try again.",true);
   else if(c==="unavailable"||c==="revoked")toast("Lost the connection. Reload the page and try again.",true);
   else toast("Couldn't save: "+(e&&e.message||"unknown error"),true);
@@ -968,7 +988,7 @@ function topHTML(){
       ${cur!=="admin"&&noticesFor(cur).length?`<button class="bell" data-go="${cur==="parent"?"messages":"notices"}" ${cur==="parent"?'data-act="mtab" data-id="news"':""} aria-label="Notices${un?`, ${un} new`:""}">${ic("bell")}${un?`<span class="badge">${un}</span>`:""}</button>`:""}
       <button class="me" data-act="profile" aria-label="Edit your profile">${cur==="student"&&!S.viewAs?avatarHTML(S.uid,44):`<span class="av">${esc(ini)}</span>`}<span class="nm">${esc(myName())}</span></button>`;
   }
-  return `<a class="brand" href="#home" data-go="home" aria-label="LittleLingos home"><b>little</b><span>lingos</span></a>${right}`;
+  return `<a class="brand" href="#home" data-go="home" aria-label="Little Lingos home">${LOGO}</a>${right}`;
 }
 function clockChip(cur){
   if(cur!=="teacher")return ""; const tid=myTid(); if(!tid)return "";
@@ -990,9 +1010,32 @@ function navHTML(){
   const parent={course:"courses",lesson:"courses",child:"home",settings:isParent()?"help":"home"}[S.view]||S.view;
   return navItems().map(([v,l,i,n])=>v==="-"?`<span class="navsec">${esc(l)}</span>`:`<a href="#${v}" data-go="${v}" ${parent===v?'aria-current="page"':""}>${ic(i)}<span>${l}</span>${n?`<em class="nbadge" aria-label="${n} new">${n}</em>`:""}</a>`).join("");
 }
+
+/* Pip, the seed: a friendly guide on every page of the child's portal (brand voice: short, warm, praise effort) */
+const PIP_LINES={
+  path:f=>[[`Hi ${f}! Ready for your next lesson?`,"Tap the glowing seed to start."],["Every lesson plants a new flower!","Let's grow your garden together."],["One step at a time. You've got this!","Pick up where you left off."]],
+  words:f=>[["Say it with me!","Tap a card to see what it means."],[`Look at all your words, ${f}!`,"Each one is a seed you planted."],["Hmm, tricky word? Let's try again together.","Tap the speaker to hear it."]],
+  play:f=>[["Let's play with your words!","Every game helps your garden grow."],[`Pick a game, ${f}!`,"Trying is what makes words bloom."]],
+  homework:f=>[["Homework time! I'll keep you company.","Hand it in to collect stars."],[`You can do it, ${f}!`,"Take your time. Growing is not a race."]],
+  schedule:f=>[["Here are your classes this week.","See you in class! Say hi to your teacher."],[`Class days are sunny days, ${f}!`,"Tap a class to join when it's time."]],
+  stories:f=>[["Story time! Pick one you like.","Listen, read and sing along."],["Every story is full of new words.","Which one will you plant today?"]],
+  me:f=>[[`This is you, ${f}! Look how you've grown.`,"Every star is a try you made."],["Wow, look at your badges!","Keep trying and more will bloom."]],
+  notices:f=>[["News from your garden!","Here's what your teacher shared."]]
+};
+const PIP_CHEERS=["Yay! You're doing great!","I'm so happy you're here!","Let's grow together!","Say it with me!","You make the garden bloom!"];
+function pipGuide(key,first){
+  const fn=PIP_LINES[key]; if(!fn)return "";
+  const opts=fn(first||"friend"), d=new Date(), i=(d.getDate()+key.length)%opts.length, [t,sub]=opts[i];
+  return `<div class="pipguide"><button class="pip-tap" type="button" data-act="pipCheer" aria-label="Pip, the seed. Tap for a cheer">${PIPSVG("pipsvg")}</button><p class="say" aria-live="polite"><span class="pip-t">${esc(t)}</span><small>${esc(sub)}</small></p></div>`;
+}
+function withPip(key,html){
+  if(!PIP_LINES[key]||(key==="play"&&S.game))return html;
+  const L=myLearner(); if(!L)return html;
+  return pipGuide(key,firstOf(L.name))+html;
+}
 function mainHTML(){
   if(S.status==="nodb")return centerMsg("Can't reach the classroom","Check your internet connection, then reload the page.");
-  if(S.status==="noid")return centerMsg("Sign in to join the garden","You're viewing LittleLingos without a signed-in account. Reload the page and sign in with your email.");
+  if(S.status==="noid")return centerMsg("Sign in to join the garden","You're viewing Little Lingos without a signed-in account. Reload the page and sign in with your email.");
   if(S.status!=="ready")return `<div class="stack" style="max-width:520px;margin-top:20px"><div class="skel" style="width:40%;height:28px"></div><div class="skel"></div><div class="skel" style="width:80%"></div></div>`;
   const r=realRole();
   if(!r)return onboardHTML();
@@ -1003,7 +1046,7 @@ function mainHTML(){
   if(gateNeeded(key))return gateHTML();
   if(lockNeeded())return lockHTML();
   if(isKid()&&timeUp())return breakHTML();
-  if(isKid())return (key==="home"?"":kidReminder())+VIEWS[key]();
+  if(isKid())return (key==="home"?"":kidReminder())+withPip(key,VIEWS[key]());
   return VIEWS[key]();
 }
 function centerMsg(t,b){return `<div class="center"><div class="card" style="align-items:center;text-align:center">${art("pip",110,"Pip")}<h1>${esc(t)}</h1><p class="lede">${esc(b)}</p></div></div>`;}
@@ -1017,8 +1060,8 @@ function monthNav(){const m=S.month;return `<div class="monthnav" role="group" a
 function onboardHTML(){
   return `<div class="center"><form class="card" id="onboard" novalidate>
     <div class="row" style="align-items:flex-end;flex-wrap:nowrap">${art("pip",90,"Pip")}<div class="bubble static">Who's joining the garden?</div></div>
-    <div><h1>Set up your account</h1><p class="lede" style="margin-top:6px">Tell us who you are. The LittleLingos team then connects your account.</p></div>
-    <div class="field"><label for="ob-name">Your name</label><input type="text" id="ob-name" name="name" required maxlength="60" value="${esc(S.names[S.uid]||"")}" placeholder="e.g. Aarav Sharma"><span class="hint">Use the name the LittleLingos team knows you by, so they can find you.</span></div>
+    <div><h1>Set up your account</h1><p class="lede" style="margin-top:6px">Tell us who you are. The Little Lingos team then connects your account.</p></div>
+    <div class="field"><label for="ob-name">Your name</label><input type="text" id="ob-name" name="name" required maxlength="60" value="${esc(S.names[S.uid]||"")}" placeholder="e.g. Aarav Sharma"><span class="hint">Use the name the Little Lingos team knows you by, so they can find you.</span></div>
     <fieldset class="field" style="border:0;padding:0;margin:0"><legend class="lbl" style="margin-bottom:8px">I am a…</legend>
     <div class="choice">
       <label><input type="radio" name="role" value="student" checked><b>Learner</b><span>Lessons, my garden and live classes</span></label>
@@ -1042,7 +1085,7 @@ document.addEventListener("submit",async e=>{
 function pendingHTML(){
   const p=D.profiles[S.uid]||{}; const asT=p.role==="teacher";
   return `<div class="center"><div class="card" style="align-items:flex-start">${art("drizzle",96,"Drizzle the cloud")}<span class="pill p-warn">Waiting to be connected</span><h1>Thanks, ${esc(firstOf(p.displayName||myName()))}</h1>
-  <p class="lede">You've asked to join as a ${asT?"trainer":"learner"}. The LittleLingos admin will connect your account to your ${asT?"trainer":"learner"} record. This page updates on its own once they do.</p>
+  <p class="lede">You've asked to join as a ${asT?"trainer":"learner"}. The Little Lingos admin will connect your account to your ${asT?"trainer":"learner"} record. This page updates on its own once they do.</p>
   <div class="row"><button class="btn btn-ghost" data-act="becomeParent">I'm a parent instead</button><button class="btn btn-ghost" data-act="profile">Change my name</button></div></div></div>`;
 }
 
@@ -1056,7 +1099,7 @@ function gardenHTML(n,msg,h){
     <div class="hill"></div>${fl}<svg class="pip" aria-hidden="true"><use href="#pip"/></svg>
     <div class="bubble" style="left:16px;top:16px">${esc(msg)}</div></div>`;
 }
-const courseTeacher=c=>c&&c.teacherId&&D.trainers[c.teacherId]?trainerName(c.teacherId):"LittleLingos team";
+const courseTeacher=c=>c&&c.teacherId&&D.trainers[c.teacherId]?trainerName(c.teacherId):"Little Lingos team";
 function courseCard(c,uid){
   const ls=lessonsOf(c.id), pct=uid?coursePct(uid,c.id):null, done=uid?ls.filter(l=>isDone(uid,l.id)).length:0;
   return `<article class="card course ${hue(c)}" data-go="course:${esc(c.id)}" tabindex="0" role="link" aria-label="${esc(c.title)}">
@@ -1174,7 +1217,7 @@ function learnersView(){
   const unlinked=activeLearners().filter(l=>!l.uid);
   const left=allLearners().length-activeLearners().length;
   return `<div class="head"><div><h1>${admin?"Learners":"My learners"}</h1><p class="lede">${admin?"Add learners, assign each one a trainer and courses, and see how they're doing.":"Learners the admin has assigned to you, directly or through your batches."}</p></div>${admin?`<div class="row"><button class="btn btn-ghost" data-act="bulkAssign">${ic("swap")}Assign trainers</button><button class="btn btn-primary" data-act="newLearner">${ic("userplus")}Add learner</button></div>`:""}</div>
-  ${admin&&ts.length&&activeLearners().filter(l=>!l.trainerId).length?`<section class="alert a-sun"><b>${activeLearners().filter(l=>!l.trainerId).length} learner${activeLearners().filter(l=>!l.trainerId).length===1?" has":"s have"} no trainer yet.</b><span class="small">Their parents see "LittleLingos team" until you assign one.</span><span class="spacer"></span><button class="btn btn-sun btn-sm" data-act="bulkAssign">Assign now</button></section>`:""}
+  ${admin&&ts.length&&activeLearners().filter(l=>!l.trainerId).length?`<section class="alert a-sun"><b>${activeLearners().filter(l=>!l.trainerId).length} learner${activeLearners().filter(l=>!l.trainerId).length===1?" has":"s have"} no trainer yet.</b><span class="small">Their parents see "Little Lingos team" until you assign one.</span><span class="spacer"></span><button class="btn btn-sun btn-sm" data-act="bulkAssign">Assign now</button></section>`:""}
   ${admin&&!ts.length?`<section class="alert a-sky"><b>Add a trainer first</b><span class="small">Then you can assign learners to them here.</span><span class="spacer"></span><button class="btn btn-ghost btn-sm" data-go="trainers">Trainers</button></section>`:""}
   ${admin?"":newAssignCard()}
   ${waiting.length?`<section class="suncard"><h2>Waiting to be connected</h2><p class="small">These people signed in as learners. Connect each one to a learner record so they see their garden and classes.</p><div class="list">${waiting.map(w=>`<div class="item"><div class="grow"><div class="t">${esc(w.displayName||accountName(w.uid))}</div><div class="s">${w.createdAt?"Signed up "+esc(fmtDay(new Date(w.createdAt))):""}</div></div>
@@ -1298,7 +1341,7 @@ function noticesView(){
   const tabs=r==="teacher"?(()=>{const all=ns,fromA=all.filter(n=>n.src==="team"),sent=all.filter(n=>n.src!=="team"),un=fromA.filter(n=>(n.at||0)>S.seenBefore).length;
     ns=tab==="sent"?sent:fromA;
     return `<div class="seg" role="tablist" aria-label="Messages"><button class="tog ${tab==="admin"?"on":""}" role="tab" aria-selected="${tab==="admin"}" data-act="msgTab" data-id="admin">From the admin (${fromA.length})${un?` · ${un} new`:""}</button><button class="tog ${tab==="sent"?"on":""}" role="tab" aria-selected="${tab==="sent"}" data-act="msgTab" data-id="sent">Sent to my learners (${sent.length})</button></div>`;})():"";
-  const lede=r==="admin"?"Send an update to all your trainers, or to everyone, at once. Trainers' messages to their learners show here too.":r==="teacher"?"Updates from the LittleLingos team, and messages you've sent to your learners.":r==="parent"?"Messages from your children's teachers and the LittleLingos team.":"Messages from your teacher and the LittleLingos team.";
+  const lede=r==="admin"?"Send an update to all your trainers, or to everyone, at once. Trainers' messages to their learners show here too.":r==="teacher"?"Updates from the Little Lingos team, and messages you've sent to your learners.":r==="parent"?"Messages from your children's teachers and the Little Lingos team.":"Messages from your teacher and the Little Lingos team.";
   const btn=r==="admin"?`<button class="btn btn-primary" data-act="newNotice">${ic("mega")}New notice</button>`:r==="teacher"?`<button class="btn btn-primary" data-act="newNote">${ic("send")}Announce to a class</button>`:"";
   const emptyBody=r==="admin"?"Write your first notice: a schedule change, a holiday or a training session.":r==="teacher"?"Send your learners a reminder, a class change or a well done.":"Messages from your teacher will appear here.";
   const emptyT=tab==="admin"?"No messages from the admin yet":"No messages yet", emptyB=tab==="admin"?"Holidays, schedule changes and other updates from the admin will show here.":emptyBody;
@@ -1324,7 +1367,7 @@ function hoursView(){
 function studentCourses(){
   const L=myLearner(); if(!L)return pendingHTML();
   const mine=new Set(learnerCourses(L)), others=courseList().filter(c=>!mine.has(c.id));
-  return `<div class="head"><div><h1>Courses</h1><p class="lede">Your courses, and everything else growing at LittleLingos.</p></div></div>
+  return `<div class="head"><div><h1>Courses</h1><p class="lede">Your courses, and everything else growing at Little Lingos.</p></div></div>
   <section class="panel"><h2>My courses</h2>${mine.size?`<div class="grid">${[...mine].map(id=>courseCard(byId(D.courses,id),L.uid)).join("")}</div>`:`<p class="muted">Your teacher hasn't added you to a course yet.</p>`}</section>
   ${others.length?`<section class="panel"><h2>Other courses</h2><p class="small muted">Want to join one? Ask your teacher.</p><div class="grid">${others.map(c=>courseCard(c,null)).join("")}</div></section>`:""}`;
 }
@@ -1391,11 +1434,11 @@ function childSummary(L){
   const uid=L.uid, cids=learnerCourses(L), next=upcoming(cids,1)[0], a=attendanceOf(L.id,thisMonth());
   return {uid,cids,next,a,wf:flowersSince(uid,weekAgo()),ww:wordsOf(uid,weekAgo())};
 }
-function weekLine(L,s){const f=esc(firstOf(L.name));if(!s.uid)return `${f}'s garden starts once they sign in to LittleLingos.`;return s.wf?`${f} grew <b>${s.wf} new flower${s.wf===1?"":"s"}</b>${s.ww.length?` and planted <b>${s.ww.length} new word${s.ww.length===1?"":"s"}</b>. Ask ${f} about “${esc(s.ww[0])}”!`:"."}`:`${f} hasn't finished a lesson this week yet. A little encouragement goes a long way.`;}
+function weekLine(L,s){const f=esc(firstOf(L.name));if(!s.uid)return `${f}'s garden starts once they sign in to Little Lingos.`;return s.wf?`${f} grew <b>${s.wf} new flower${s.wf===1?"":"s"}</b>${s.ww.length?` and planted <b>${s.ww.length} new word${s.ww.length===1?"":"s"}</b>. Ask ${f} about “${esc(s.ww[0])}”!`:"."}`:`${f} hasn't finished a lesson this week yet. A little encouragement goes a long way.`;}
 function parentHome(){
   const kids=childrenOf(S.uid).map(learner);
   if(!kids.length)return `<div class="head"><div><p class="eyebrow">Garden updates</p><h1>Your children</h1><p class="lede">Your child's garden and attendance appear here.</p></div></div>
-    ${emptyBox("Waiting for the academy","The LittleLingos team will connect your account to your child.","","drizzle")}`;
+    ${emptyBox("Waiting for the academy","The Little Lingos team will connect your account to your child.","","drizzle")}`;
   return `<div class="head"><div><p class="eyebrow">Garden updates</p><h1>Your children</h1><p class="lede">Their gardens, homework and attendance, week by week.</p></div></div>
   ${msgBanner()}
   <div class="grid">${kids.map(L=>{const s=childSummary(L);return `<article class="card panel course" style="padding:20px" data-go="child:${esc(L.id)}" role="link" tabindex="0" aria-label="${esc(L.name)}">
@@ -1462,7 +1505,7 @@ function scheduleView(){
   const rowOpts=s=>side?{tag:showAll&&mineSet.has(s.courseId)?(r==="parent"?"Your child's class":"Your class"):null,noJoin:!mineSet.has(s.courseId)}:{manage:staff,attend:staff};
   const groups=new Map(); for(const s of up){const k=new Date(s.startsAt).toDateString();if(!groups.has(k))groups.set(k,[]);groups.get(k).push(s);}
   const earlier=staff?scopedSessions().filter(s=>sessEnd(s)<=Date.now()&&Date.now()-new Date(s.startsAt).getTime()<7*864e5).sort((a,b)=>String(b.startsAt).localeCompare(String(a.startsAt))):[];
-  const intro=showAll?"Every upcoming class at LittleLingos. Yours are marked.":r==="student"?"Classes for your courses.":r==="parent"?"Classes for your children's courses.":"Every class across LittleLingos.";
+  const intro=showAll?"Every upcoming class at Little Lingos. Yours are marked.":r==="student"?"Classes for your courses.":r==="parent"?"Classes for your children's courses.":"Every class across Little Lingos.";
   const toggle=side?`<div class="seg" role="group" aria-label="Which classes"><button class="tog ${showAll?"":"on"}" data-act="schedMode" data-id="mine" aria-pressed="${!showAll}">${r==="parent"?"My children's":"My classes"}</button><button class="tog ${showAll?"on":""}" data-act="schedMode" data-id="all" aria-pressed="${showAll}">All classes</button></div>`:"";
   return `<div class="head"><div><h1>Classes</h1><p class="lede">${intro} Times are shown in your time zone.</p></div>${staff?`<button class="btn btn-primary" data-act="newSession">${ic("plus")}Schedule a class</button>`:toggle}</div>
   ${groups.size?[...groups].map(([k,list])=>`<section class="card panel"><h3>${esc(fmtDay(new Date(k)))}${k===new Date().toDateString()?` <span class="pill p-info">Today</span>`:""}</h3><div class="list">${list.map(s=>sessionRow(s,rowOpts(s))).join("")}</div></section>`).join(""):emptyBox("No upcoming classes",staff?"Schedule a class, with a Zoom or Google Meet link if it's online.":"When a teacher schedules a class, it appears here.",staff?`<button class="btn btn-primary" data-act="newSession">${ic("plus")}Schedule a class</button>`:"","drizzle")}
@@ -1473,6 +1516,7 @@ function scheduleView(){
 const A={};
 A.monthShift=k=>{const n=shiftMonth(S.month,+k);if(n<=thisMonth()){S.month=n;render(true);}};
 A.copyCode=code=>copyText(code,"Code");
+A.pipCheer=(_,btn)=>{const g=btn.closest(".pipguide"),sv=btn.querySelector("svg"),t=g&&g.querySelector(".pip-t");if(sv){sv.classList.remove("jump");void sv.getBoundingClientRect();sv.classList.add("jump")}if(t)t.textContent=PIP_CHEERS[Math.floor(Math.random()*PIP_CHEERS.length)];};
 A.flip=(_,btn)=>{const on=btn.classList.toggle("on");const w=btn.dataset.w,m=btn.dataset.m;btn.innerHTML=on?`<b>${esc(m)}</b><span>${esc(w)}</span>`:`<b>${esc(w)}</b><span>tap to flip</span>`;btn.setAttribute("aria-label",on?`${w}: ${m}`:`${w}. Tap to see the meaning`);};
 A.signOut=()=>{if(window.LL_signOut)LL_signOut();};
 A.profile=()=>{if(isParent()&&!S.viewAs){go("settings");return}if(isKid()&&!S.viewAs){go("me");return}
@@ -1537,7 +1581,7 @@ A.connectParent=uid=>{const sel=document.getElementById("cp-"+uid);const lid=sel
 A.connectTrainer=uid=>{const sel=document.getElementById("cn-"+uid);const v=sel?sel.value:"new";
   if(v==="new")return A.newTrainer(null,null,{name:D.profiles[uid]?.displayName||accountName(uid),uid});
   save(()=>S.db.doc("trainers/"+v).update({uid}),`Connected to ${trainerName(v)}`);};
-A.dismissAccount=uid=>openModal("Dismiss this request?",`<p>${esc(D.profiles[uid]?.displayName||accountName(uid))} will be asked to set up their account again next time they open LittleLingos.</p>`,{danger:true,submitLabel:"Dismiss",done:"Request dismissed",onSubmit:async()=>{await S.db.doc("profiles/"+uid).delete()}});
+A.dismissAccount=uid=>openModal("Dismiss this request?",`<p>${esc(D.profiles[uid]?.displayName||accountName(uid))} will be asked to set up their account again next time they open Little Lingos.</p>`,{danger:true,submitLabel:"Dismiss",done:"Request dismissed",onSubmit:async()=>{await S.db.doc("profiles/"+uid).delete()}});
 A.learnerInfo=id=>{
   const L=learner(id); if(!L)return; const admin=role()==="admin", pv=D.priv[id]||{}, m=thisMonth(), a=attendanceOf(id,m), all=attendanceOf(id), fi=admin?feeInfo(id,m):null;
   const body=`<dl class="kv"><dt>Stage</dt><dd>${esc(stageLabel(L.stage))}</dd><dt>Trainer</dt><dd>${admin&&L.active!==false?`<select class="inline" data-mchange="asg" aria-label="Trainer">${opt("","Unassigned",!L.trainerId)}${activeTrainers().map(t=>opt(t.id,t.name,t.id===L.trainerId)).join("")}</select>`:esc(trainerName(L.trainerId))}${L.assignedAt?` <span class="small muted">since ${esc(fmtDay(new Date(L.assignedAt)))}</span>`:""}</dd><dt>Courses</dt><dd>${learnerCourses(L).map(c=>esc(D.courses[c].title)).join(", ")||"None"}</dd>
@@ -1672,7 +1716,7 @@ A.newNotice=()=>openModal("New notice",`<div class="field"><label for="nt-title"
   <div class="three"><div class="field"><label for="nt-l">Language</label><select id="nt-l" name="lang">${[...new Set(courseList().map(c=>langCode(c)))].map(l=>opt(l,l)).join("")}</select></div><div class="field"><label for="nt-b">Batch</label><select id="nt-b" name="batch">${batchList().map(b=>opt(b.id,b.name)).join("")||opt("","No batches yet")}</select></div><div class="field"><label for="nt-s">Student</label><select id="nt-s" name="stu">${activeLearners().map(L=>opt(L.id,L.name)).join("")}</select></div></div><p class="small muted">The language, batch and student boxes are only used when you pick that option above.</p>`,
   {wide:true,submitLabel:"Send notice",done:"Notice sent",onSubmit:async f=>{const aud=f.aud.value;const target=aud==="lang"?f.lang.value:aud==="batch"?f.batch.value:aud==="student"?f.stu.value:null;if(["lang","batch","student"].includes(aud)&&!target)throw userErr("Pick who it's for.");await S.db.collection("notices").doc().set({title:f.title.value.trim(),body:f.body.value.trim(),audience:aud,target,at:Date.now(),by:S.uid})}});
 A.delNotice=key=>{const n=noticesFor(role()).find(x=>x.key===key);if(!n)return;openModal("Delete this message?",`<p>“${esc(n.title)}” will disappear for everyone.</p>`,{danger:true,submitLabel:"Delete",done:"Deleted",onSubmit:async()=>{await S.db.doc(n.src==="team"?"notices/"+n.id:`tw/${n.uid}/x/${n.id}`).delete()}});};
-A.copyNotice=key=>{const n=noticesFor(role()).find(x=>x.key===key);if(n)copyText(`*${n.title}*\n\n${n.body}\n\n– ${noteAuthor(n)}, LittleLingos`,"Message");};
+A.copyNotice=key=>{const n=noticesFor(role()).find(x=>x.key===key);if(n)copyText(`*${n.title}*\n\n${n.body}\n\n– ${noteAuthor(n)}, Little Lingos`,"Message");};
 A.schedMode=v=>{S.schedAll=v==="all";render(true);};
 function hwForm(h={}){
   const cs=courseList(), ls=scopedLearners(), byL=!!(h.learnerIds&&h.learnerIds.length), chosen=new Set(h.learnerIds||[]);
@@ -1732,7 +1776,7 @@ function courseForm(c={}){
   <fieldset class="field" style="border:0;padding:0;margin:0"><legend class="lbl" style="margin-bottom:8px">Stage</legend><div class="choice">${STAGES.map(s=>`<label><input type="radio" name="level" value="${s.v}" ${s.v===lv?"checked":""}><b>${s.v}</b><span>${s.ages}</span></label>`).join("")}</div></fieldset>
   <div class="three"><div class="field"><label for="c-lang">Language taught</label><select id="c-lang" name="lang">${Object.entries(LANGS).map(([k,v])=>opt(k,v,k===(c.langCode||"en"))).join("")}</select></div>
   <div class="field"><label for="c-hue">Colour</label><select id="c-hue" name="hue">${["Leaf","Tomato","Sky","Petal","Sun"].map((n,i)=>opt(i,n,i===((c.hue|0)%5))).join("")}</select></div>
-  <div class="field"><label for="c-teacher">Trainer</label><select id="c-teacher" name="teacher" ${admin?"":"disabled"}>${opt("","LittleLingos team",!tdef)}${activeTrainers().map(t=>opt(t.id,t.name,t.id===tdef)).join("")}</select></div></div>
+  <div class="field"><label for="c-teacher">Trainer</label><select id="c-teacher" name="teacher" ${admin?"":"disabled"}>${opt("","Little Lingos team",!tdef)}${activeTrainers().map(t=>opt(t.id,t.name,t.id===tdef)).join("")}</select></div></div>
   <div class="field"><label for="c-desc">Description</label><textarea id="c-desc" name="desc" rows="3" maxlength="600" placeholder="Who it's for and what they'll learn">${esc(c.description||"")}</textarea></div>`;
 }
 const courseData=(f,c)=>({title:f.title.value.trim(),langCode:f.lang.value,language:LANGS[f.lang.value],level:f.level.value,description:f.desc.value.trim(),hue:+f.hue.value,teacherId:role()==="admin"?(f.teacher.value||null):(c?c.teacherId??null:myTid())});
@@ -1799,8 +1843,8 @@ function classMessage(s,L){
   const d=new Date(s.startsAt),end=new Date(sessEnd(s)),c=D.courses[s.courseId],url=safeUrl(s.joinUrl);
   const ct=L?contactOf(L.id):{};
   const hi=L?`Hello${ct.guardian?" "+ct.guardian:""}! ${firstOf(L.name)}'s`:"Hello! Your";
-  const lines=[`${hi} LittleLingos class is coming up 🌱`,"",`📚 ${s.title||"Live class"}${c?` (${c.title})`:""}`,`🗓 ${fmtDay(d)}`,`⏰ ${fmtTime(d)} – ${fmtTime(end)} ${tzName(d)}`.trim()];
-  if(url)lines.push(`🔗 Join: ${url}`);else lines.push("📍 At the LittleLingos centre");
+  const lines=[`${hi} Little Lingos class is coming up 🌱`,"",`📚 ${s.title||"Live class"}${c?` (${c.title})`:""}`,`🗓 ${fmtDay(d)}`,`⏰ ${fmtTime(d)} – ${fmtTime(end)} ${tzName(d)}`.trim()];
+  if(url)lines.push(`🔗 Join: ${url}`);else lines.push("📍 At the Little Lingos centre");
   if(s.notes)lines.push(`📝 ${s.notes}`);
   lines.push("",`See you there! – ${myName()}`);
   return lines.join("\n");
@@ -1809,7 +1853,7 @@ const waLink=(text,phone)=>`https://wa.me/${phone||""}?text=${encodeURIComponent
 const mailLink=(to,subject,body,bcc)=>`mailto:${encodeURIComponent(to||"").replace(/%40/g,"@")}?${bcc?`bcc=${encodeURIComponent(bcc).replace(/%40/g,"@").replace(/%2C/g,",")}&`:""}subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 A.shareSession=(id,_,fresh)=>{
   const s=D.sessions[id]?{id,...D.sessions[id]}:null; if(!s)return;
-  const ls=classLearners(s), general=classMessage(s,null), subj=`LittleLingos class: ${s.title||"Live class"} on ${fmtDay(new Date(s.startsAt))}`;
+  const ls=classLearners(s), general=classMessage(s,null), subj=`Little Lingos class: ${s.title||"Live class"} on ${fmtDay(new Date(s.startsAt))}`;
   const emails=[...new Set(ls.map(L=>contactOf(L.id).email).filter(okEmail))];
   const a=(href,cls,icon,label,aria)=>`<a class="btn ${cls} btn-sm" href="${esc(href)}" target="_blank" rel="noopener"${aria?` aria-label="${esc(aria)}"`:""}>${ic(icon)}${label}</a>`;
   const rows=ls.map(L=>{const ct=contactOf(L.id),wa=waNum(ct.phone),msg=classMessage(s,L);
@@ -1827,7 +1871,7 @@ A.shareSession=(id,_,fresh)=>{
 
 /* ---- trainer contact lists (admin keeps them in sync) ---- */
 let ctSig={},ctT=null,ctUids=null;
-function scheduleContactSync(){if(!S.isOwner||!S.db)return;clearTimeout(ctT);ctT=setTimeout(()=>syncContacts().catch(e=>console.warn("LittleLingos: contacts sync",e)),1500);}
+function scheduleContactSync(){if(!S.isOwner||!S.db)return;clearTimeout(ctT);ctT=setTimeout(()=>syncContacts().catch(e=>console.warn("Little Lingos: contacts sync",e)),1500);}
 async function syncContacts(){
   if(!["learners","trainers","priv","courses","batches"].every(k=>S.loaded.has(k)))return scheduleContactSync();
   if(!ctUids){const ix=await S.db.doc("contacts/index").get();ctUids=new Set((ix.exists&&ix.data().uids)||[]);}
@@ -1872,7 +1916,7 @@ A.pickKid=id=>{S.kid=id;render(true);};
 const myPP=()=>Object.entries(D.pp[S.uid]||{}).filter(([,v])=>v).map(([id,v])=>({id,...v}));
 const pf=()=>D.pf||{};
 const pfKid=lid=>(pf().kids||{})[lid]||null;
-const ACAD=()=>({name:"LittleLingos",...(D.config.academy||{})});
+const ACAD=()=>({name:"Little Lingos",...(D.config.academy||{})});
 const langOf=c=>{const k=String(c&&c.langCode||"en").toLowerCase();return ({en:"en-IN",hi:"hi-IN",es:"es-ES",fr:"fr-FR",de:"de-DE",ja:"ja-JP",zh:"zh-CN",ar:"ar-SA",it:"it-IT",pt:"pt-PT",ta:"ta-IN",te:"te-IN",kn:"kn-IN",mr:"mr-IN",bn:"bn-IN",gu:"gu-IN"})[k]||k;};
 const canSpeak=()=>typeof window.speechSynthesis!=="undefined"&&typeof window.SpeechSynthesisUtterance!=="undefined";
 A.say=(_,btn)=>{if(!canSpeak())return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(btn.dataset.w);u.lang=btn.dataset.l||"en-IN";u.rate=.85;speechSynthesis.speak(u);}catch{}};
@@ -1907,7 +1951,7 @@ function kidHistory(L,m){
     const s=D.sessions[v.sid]||{};out.push({sid:v.sid,date:v.date,st,courseId:v.courseId,title:v.title||s.title,topic:s.topic||"",objectives:s.objectives||"",rec:safeUrl(s.recordingUrl),note:v.note||"",mine:(v.notes||{})[L.id]||"",by:v.by});}
   return out.sort((a,b)=>String(b.date).localeCompare(String(a.date)));
 }
-const byWho=uid=>trainerByUid(uid)?.name||(uid===D.config.ownerUid?"LittleLingos team":"Your teacher");
+const byWho=uid=>trainerByUid(uid)?.name||(uid===D.config.ownerUid?"Little Lingos team":"Your teacher");
 
 /* alerts */
 function kidAlerts(L){
@@ -1925,7 +1969,7 @@ function kidAlerts(L){
   const rp=reqUpdates().length; if(rp)out.push(`<section class="alert a-sky"><b>${rp===1?"The team replied to your request":`The team replied to ${rp} of your requests`}</b><span class="spacer"></span><button class="btn btn-ghost btn-sm" data-go="help">See replies</button></section>`);
   return out.join("");
 }
-const kidTeacher=L=>L&&L.trainerId&&D.trainers[L.trainerId]?trainerName(L.trainerId):"LittleLingos team";
+const kidTeacher=L=>L&&L.trainerId&&D.trainers[L.trainerId]?trainerName(L.trainerId):"Little Lingos team";
 const chatUnread=()=>myPP().filter(x=>x.kind==="chat"&&x.from==="staff"&&(x.at||0)>+(D.profiles[S.uid]?.chatSeen||0));
 const reqUpdates=()=>myPP().filter(x=>x.kind==="req"&&x.replyAt&&x.replyAt>+(D.profiles[S.uid]?.helpSeen||0));
 
@@ -1940,14 +1984,14 @@ function digest(L){
 }
 function digestText(L,g){
   const f=firstOf(L.name);
-  return [`${f}'s week at LittleLingos`,"",`🌸 ${g.flowers} new flower${g.flowers===1?"":"s"} (lessons finished)`,`🔤 ${g.words.length} new word${g.words.length===1?"":"s"}${g.words.length?": "+g.words.slice(0,8).join(", "):""}`,`🎒 ${g.attended} of ${g.cls.length} class${g.cls.length===1?"":"es"} attended`,`✏️ ${g.hwDone.length} homework task${g.hwDone.length===1?"":"s"} handed in`,...(g.notes.length?["","Teacher notes:",...g.notes.map(n=>`• ${n.title||"Class"}: ${n.mine||n.note}`)]:[]),"",`Coming up: ${g.next.length} class${g.next.length===1?"":"es"} in the next 7 days.`].join("\n");
+  return [`${f}'s week at Little Lingos`,"",`🌸 ${g.flowers} new flower${g.flowers===1?"":"s"} (lessons finished)`,`🔤 ${g.words.length} new word${g.words.length===1?"":"s"}${g.words.length?": "+g.words.slice(0,8).join(", "):""}`,`🎒 ${g.attended} of ${g.cls.length} class${g.cls.length===1?"":"es"} attended`,`✏️ ${g.hwDone.length} homework task${g.hwDone.length===1?"":"s"} handed in`,...(g.notes.length?["","Teacher notes:",...g.notes.map(n=>`• ${n.title||"Class"}: ${n.mine||n.note}`)]:[]),"",`Coming up: ${g.next.length} class${g.next.length===1?"":"es"} in the next 7 days.`].join("\n");
 }
 
 /* ---------- Overview ---------- */
 function parentHome(){
   const ks=kidsList();
-  if(!ks.length)return `<div class="head"><div><p class="eyebrow">Overview</p><h1>Welcome to LittleLingos</h1><p class="lede">Your child's classes, progress, homework and fees will appear here.</p></div></div>
-    ${emptyBox("Waiting for the academy","The LittleLingos team will connect your account to your child. This page updates on its own once they do.","","drizzle")}`;
+  if(!ks.length)return `<div class="head"><div><p class="eyebrow">Overview</p><h1>Welcome to Little Lingos</h1><p class="lede">Your child's classes, progress, homework and fees will appear here.</p></div></div>
+    ${emptyBox("Waiting for the academy","The Little Lingos team will connect your account to your child. This page updates on its own once they do.","","drizzle")}`;
   const L=curKid(), s=childSummary(L), g=digest(L), next=s.next, words=wordsOf(s.uid);
   const lastNote=kidHistory(L).find(x=>x.note||x.mine);
   const nextHTML=next?(()=>{const d=new Date(next.startsAt),url=safeUrl(next.joinUrl),c=D.courses[next.courseId];const soon=new Date(next.startsAt).getTime()-Date.now()<15*6e4;
@@ -1963,7 +2007,7 @@ function parentHome(){
   ${msgBanner()}
   <div class="cols">
     <div class="stack" style="gap:16px">${nextHTML}
-      <section class="card panel" style="background:var(--leafSoft);border-color:var(--leafSoft)"><div class="ph"><div><p class="eyebrow">Weekly progress digest</p><h2>${esc(firstOf(L.name))}'s week</h2></div><a class="btn btn-ghost btn-sm" href="${esc(mailLink("",`${firstOf(L.name)}'s week at LittleLingos`,digestText(L,g)))}" target="_blank" rel="noopener">${ic("mail")}Email this</a></div>
+      <section class="card panel" style="background:var(--leafSoft);border-color:var(--leafSoft)"><div class="ph"><div><p class="eyebrow">Weekly progress digest</p><h2>${esc(firstOf(L.name))}'s week</h2></div><a class="btn btn-ghost btn-sm" href="${esc(mailLink("",`${firstOf(L.name)}'s week at Little Lingos`,digestText(L,g)))}" target="_blank" rel="noopener">${ic("mail")}Email this</a></div>
         <div class="stats" style="grid-template-columns:repeat(auto-fit,minmax(110px,1fr))"><div class="stat f" style="background:#fff"><b class="num">${g.flowers}</b><span>New flowers</span></div><div class="stat f" style="background:#fff"><b class="num">${g.words.length}</b><span>New words</span></div><div class="stat f" style="background:#fff"><b class="num">${g.cls.length?`${g.attended}/${g.cls.length}`:"–"}</b><span>Classes attended</span></div><div class="stat f" style="background:#fff"><b class="num">${g.hwDone.length}</b><span>Homework handed in</span></div></div>
         ${g.words.length?chips(g.words.slice(0,10)):`<p class="small">${weekLine(L,s)}</p>`}
         <p class="small">${g.next.length} class${g.next.length===1?"":"es"} coming up in the next 7 days.</p></section>
@@ -2040,7 +2084,7 @@ function parentProgress(){
   const speak=canSpeak();
   return `<div class="head"><div><h1>Progress</h1><p class="lede">${esc(firstOf(L.name))}'s level, course completion, skills and every word learned so far.</p></div></div>
   ${kidBar()}
-  ${!uid?`<section class="alert a-sun"><b>${esc(firstOf(L.name))} hasn't signed in yet.</b><span class="small">Lessons and words show up once they start using LittleLingos.</span></section>`:""}
+  ${!uid?`<section class="alert a-sun"><b>${esc(firstOf(L.name))} hasn't signed in yet.</b><span class="small">Lessons and words show up once they start using Little Lingos.</span></section>`:""}
   <div class="stats">
     <div class="stat f" style="background:var(--leafSoft)"><b>${esc(L.stage||"Seeds")}</b><span>Level</span><small>${esc(stageLabel(L.stage))}</small></div>
     <div class="stat f" style="background:var(--sunSoft)"><b class="num">${pctStr(overallPct(L))}</b><span>Course completion</span><small>${flowers(uid)} lesson${flowers(uid)===1?"":"s"} finished</small></div>
@@ -2082,10 +2126,10 @@ function parentMessages(){
   const tabs=`<div class="seg" role="tablist" aria-label="Messages"><button class="tog ${tab==="chat"?"on":""}" role="tab" aria-selected="${tab==="chat"}" data-act="mtab" data-id="chat">Chat with teacher${un?` · ${un} new`:""}</button><button class="tog ${tab==="news"?"on":""}" role="tab" aria-selected="${tab==="news"}" data-act="mtab" data-id="news">Announcements${annUn?` · ${annUn} new`:""}</button></div>`;
   if(tab==="chat"&&un&&!S.viewAs)setTimeout(()=>save(()=>upsert("profiles/"+S.uid,{chatSeen:Date.now()})),400);
   let body;
-  if(tab==="news")body=ann.length?ann.map(n=>noticeCard(n)).join(""):emptyBox("No announcements yet","Holidays, events and news from LittleLingos and your child's teacher show up here.","","drizzle");
-  else if(!L)body=emptyBox("No child connected yet","Once the LittleLingos team connects your child, you can chat with their teacher here.","","drizzle");
+  if(tab==="news")body=ann.length?ann.map(n=>noticeCard(n)).join(""):emptyBox("No announcements yet","Holidays, events and news from Little Lingos and your child's teacher show up here.","","drizzle");
+  else if(!L)body=emptyBox("No child connected yet","Once the Little Lingos team connects your child, you can chat with their teacher here.","","drizzle");
   else{const msgs=myPP().filter(x=>x.kind==="chat"&&x.lid===L.id).sort((a,b)=>(a.at||0)-(b.at||0));
-    body=`<section class="card panel chat"><div class="ph"><div><h2>${esc(kidTeacher(L))}</h2><p class="small muted">About ${esc(L.name)} · Private: only you and the LittleLingos staff can read this</p>${(()=>{const tu=trainerUidOf(L.trainerId);const rh=tu&&replyHoursText(tu);return rh?`<p class="small"><b>Reply hours:</b> ${esc(rh)}${inReplyHours(tu)?"":" · You're messaging outside these hours, so expect a reply in the next one."}</p>`:""})()}</div></div>
+    body=`<section class="card panel chat"><div class="ph"><div><h2>${esc(kidTeacher(L))}</h2><p class="small muted">About ${esc(L.name)} · Private: only you and the Little Lingos staff can read this</p>${(()=>{const tu=trainerUidOf(L.trainerId);const rh=tu&&replyHoursText(tu);return rh?`<p class="small"><b>Reply hours:</b> ${esc(rh)}${inReplyHours(tu)?"":" · You're messaging outside these hours, so expect a reply in the next one."}</p>`:""})()}</div></div>
       <div class="thread" id="thread">${msgs.length?msgs.map(chatBubble).join(""):`<p class="muted" style="text-align:center;padding:20px">Say hello to ${esc(firstOf(kidTeacher(L)))}. Questions about classes, homework or progress are welcome.</p>`}</div>
       ${chatForm("pchat",L.id)}</section>`;}
   return `<div class="head"><div><h1>Messages</h1><p class="lede">Chat privately with ${L?esc(firstOf(L.name))+"'s":"your child's"} teacher, and read academy announcements.</p></div></div>${tab==="chat"?kidBar():""}${tabs}${body}`;
@@ -2112,7 +2156,7 @@ function parentFees(){
   const L=curKid(); if(!L)return parentHome();
   const fk=pfKid(L.id), acad=ACAD();
   const head=`<div class="head"><div><h1>Fees</h1><p class="lede">${esc(firstOf(L.name))}'s plan, what's due, and every invoice and receipt.</p></div></div>${kidBar()}`;
-  if(!fk)return head+emptyBox("Fee details aren't ready yet","The LittleLingos team hasn't set up a fee plan for "+firstOf(L.name)+", or it hasn't synced yet. It appears here once they have.","","drizzle");
+  if(!fk)return head+emptyBox("Fee details aren't ready yet","The Little Lingos team hasn't set up a fee plan for "+firstOf(L.name)+", or it hasn't synced yet. It appears here once they have.","","drizzle");
   const due=fk.nextDue?new Date(fk.nextDue+"T12:00"):null, left=fk.classes?Math.max(0,fk.classes-fk.used):null, late=fk.statusK==="overdue"||(due&&due<new Date(new Date().toDateString())&&fk.remainingM>0);
   return `${head}
   ${fk.remainingM>0?`<section class="alert ${late?"a-bad":"a-sun"}"><b>${late?"Overdue":"Due"}: ${money(fk.remainingM)}</b><span class="small">for ${esc(monthLabel(thisMonth()))}${due?` · due by ${esc(fmtDay(due))}`:""}${fk.balance>fk.remainingM?` · total owed ${money(fk.balance)}`:""}. Pay the academy as usual; it shows here once recorded.</span></section>`:""}
@@ -2126,7 +2170,7 @@ function parentFees(){
     <section class="card panel"><h2>Invoices</h2>${fk.invoices&&fk.invoices.length?`<div class="list">${fk.invoices.map(iv=>`<div class="item"><div class="grow"><div class="t">${esc(monthLabel(iv.month))}</div><div class="s">${money(iv.amount)} · ${iv.paid>=iv.amount?"Paid":iv.paid>0?`${money(iv.paid)} paid`:"Not paid"}</div></div><span class="pill ${iv.paid>=iv.amount?"p-good":iv.paid>0?"p-warn":"p-mute"}">${iv.paid>=iv.amount?"Paid":iv.paid>0?"Part paid":"Due"}</span><button class="btn btn-ghost btn-sm" data-act="invoice" data-id="${esc(L.id)}|${esc(iv.month)}">${ic("doc")}Invoice</button></div>`).join("")}</div>`:`<p class="muted">No invoices yet.</p>`}</section>
     <section class="card panel"><h2>Receipts</h2>${fk.pays&&fk.pays.length?`<div class="list">${fk.pays.map(p=>`<div class="item"><div class="grow"><div class="t">${money(p.amount)} · ${esc(monthLabel(p.month))}</div><div class="s">${esc(p.date?fmtDay(new Date(p.date+"T12:00")):"")} · ${esc(p.method||"")}</div></div><button class="btn btn-ghost btn-sm" data-act="receipt" data-id="${esc(L.id)}|${esc(p.id)}">${ic("doc")}Receipt</button></div>`).join("")}</div>`:`<p class="muted">Receipts appear here when the academy records a payment.</p>`}</section>
   </div>
-  <p class="small muted">Updated ${esc(pf().at?fmtDay(new Date(pf().at))+", "+fmtTime(new Date(pf().at)):"recently")} by the LittleLingos team.${acad.phone||acad.email?` Questions about fees: ${esc([acad.phone,acad.email].filter(Boolean).join(" · "))}.`:""}</p>`;
+  <p class="small muted">Updated ${esc(pf().at?fmtDay(new Date(pf().at))+", "+fmtTime(new Date(pf().at)):"recently")} by the Little Lingos team.${acad.phone||acad.email?` Questions about fees: ${esc([acad.phone,acad.email].filter(Boolean).join(" · "))}.`:""}</p>`;
 }
 function billDoc(kind,L,fk,item){
   const a=ACAD(), today=new Date(), no=kind==="invoice"?`INV-${item.month.replace("-","")}-${L.id.slice(-4).toUpperCase()}`:`RCPT-${String(item.id).slice(-6).toUpperCase()}`;
@@ -2137,7 +2181,7 @@ function billDoc(kind,L,fk,item){
   <table class="pd-table"><thead><tr><th>Description</th><th style="text-align:right">Amount</th></tr></thead><tbody>
   <tr><td>${esc(fk.plan||"Tuition fee")} · ${esc(monthLabel(item.month))}${fk.classes?` (${fk.classes} classes)`:""}${kind==="receipt"&&item.method?`<br><span class="small">Paid by ${esc(item.method)}${item.note?` · ${esc(item.note)}`:""}</span>`:""}</td><td style="text-align:right">${money(amt)}</td></tr></tbody>
   <tfoot>${(()=>{const g=gstSplit(amt);return g?`<tr><td>Taxable value</td><td style="text-align:right">${money(g.base)}</td></tr><tr><td>GST ${g.rate}% (CGST ${g.rate/2}% + SGST ${g.rate/2}%)</td><td style="text-align:right">${money(g.tax)}</td></tr>`:"";})()}<tr><td><b>${kind==="invoice"?"Total due":"Total received"}</b></td><td style="text-align:right"><b>${money(amt)}</b></td></tr>${kind==="invoice"?`<tr><td>Paid so far</td><td style="text-align:right">${money(item.paid)}</td></tr><tr><td><b>Balance</b></td><td style="text-align:right"><b>${money(Math.max(0,item.amount-item.paid))}</b></td></tr>`:""}</tfoot></table>
-  <p class="small">${kind==="invoice"?`Please pay by day ${fk.dueDay} of the month.`:"Thank you! This receipt was generated by LittleLingos Classroom."}</p></div>`;
+  <p class="small">${kind==="invoice"?`Please pay by day ${fk.dueDay} of the month.`:"Thank you! This receipt was generated by Little Lingos Classroom."}</p></div>`;
 }
 const PRINTCSS=`body{font-family:Arial,sans-serif;color:#2E2219;margin:32px}.printdoc{max-width:700px}.pd-head{display:flex;justify-content:space-between;gap:20px;border-bottom:3px solid #2F8F46;padding-bottom:14px}.pd-brand{font-size:22px;color:#22703A}.pd-meta{text-align:right}.pd-to{margin:18px 0}.pd-table{width:100%;border-collapse:collapse;margin:10px 0 16px}.pd-table th,.pd-table td{border-bottom:1px solid #D5E8BE;padding:8px;text-align:left}.small{font-size:12px;color:#5C4F45}`;
 function openBill(kind,lid,key){
@@ -2176,9 +2220,9 @@ function parentHelp(){
     <button class="helpbtn" data-act="reqBatch">${ic("swap")}<b>Change batch</b><span>Move to another group</span></button>
   </div>
   <div class="cols even">
-    <section class="card panel"><h2>Your requests</h2>${mine.length?`<div class="list">${mine.map(x=>`<div class="item" style="align-items:flex-start"><div class="grow"><div class="t">${esc(REQ_LABEL[x.type]||"Request")}${x.lid&&D.learners[x.lid]?` · ${esc(firstOf(learnerName(x.lid)))}`:""}</div><div class="s">${esc(reqSummary(x))} · ${esc(fmtDay(new Date(x.at)))}</div>${x.text?`<div class="small" style="white-space:pre-wrap;margin-top:4px">${esc(x.text)}</div>`:""}${x.reply?`<div class="reply small" style="margin-top:6px"><b>${esc(x.replyName||"LittleLingos")}:</b> ${esc(x.reply)}</div>`:""}</div>${reqPill(x)}</div>`).join("")}</div>`:`<p class="muted">Nothing yet. Replies from the team appear here.</p>`}</section>
+    <section class="card panel"><h2>Your requests</h2>${mine.length?`<div class="list">${mine.map(x=>`<div class="item" style="align-items:flex-start"><div class="grow"><div class="t">${esc(REQ_LABEL[x.type]||"Request")}${x.lid&&D.learners[x.lid]?` · ${esc(firstOf(learnerName(x.lid)))}`:""}</div><div class="s">${esc(reqSummary(x))} · ${esc(fmtDay(new Date(x.at)))}</div>${x.text?`<div class="small" style="white-space:pre-wrap;margin-top:4px">${esc(x.text)}</div>`:""}${x.reply?`<div class="reply small" style="margin-top:6px"><b>${esc(x.replyName||"Little Lingos")}:</b> ${esc(x.reply)}</div>`:""}</div>${reqPill(x)}</div>`).join("")}</div>`:`<p class="muted">Nothing yet. Replies from the team appear here.</p>`}</section>
     <section class="card panel"><h2>Parent–teacher meeting</h2>
-      ${mySlot?`<div class="classbox"><span class="pill p-good" style="align-self:flex-start">Booked</span><h3>${esc(LONGDAY.format(new Date(mySlot.start)))}, ${esc(fmtTime(new Date(mySlot.start)))}</h3><p class="small">With ${esc(mySlot.tid?trainerName(mySlot.tid):"the LittleLingos team")} · ${mySlot.dur||15} minutes${booking.lid?` · about ${esc(firstOf(learnerName(booking.lid)))}`:""}</p>
+      ${mySlot?`<div class="classbox"><span class="pill p-good" style="align-self:flex-start">Booked</span><h3>${esc(LONGDAY.format(new Date(mySlot.start)))}, ${esc(fmtTime(new Date(mySlot.start)))}</h3><p class="small">With ${esc(mySlot.tid?trainerName(mySlot.tid):"the Little Lingos team")} · ${mySlot.dur||15} minutes${booking.lid?` · about ${esc(firstOf(learnerName(booking.lid)))}`:""}</p>
         <div class="row">${safeUrl(mySlot.url)?`<a class="btn ${Math.abs(new Date(mySlot.start)-Date.now())<15*6e4?"btn-primary":"btn-ghost"} btn-sm" href="${esc(safeUrl(mySlot.url))}" target="_blank" rel="noopener">${ic("video")}Join meeting</a>`:`<span class="pill p-mute">At the centre</span>`}<button class="btn btn-ghost btn-sm" data-act="ptmCancel">Cancel booking</button></div></div>`
       :slots.length?`<p class="small muted">Pick a free slot:</p><div class="slots">${slots.slice(0,24).map(p=>{const t=takenBy[p.id];return `<button class="slot" data-act="ptmBook" data-id="${esc(p.id)}" ${t?"disabled":""}><b>${esc(fmtDay(new Date(p.start)))}</b><span>${esc(fmtTime(new Date(p.start)))} · ${esc(p.tid?firstOf(trainerName(p.tid)):"Team")}</span>${t?`<i>Taken</i>`:""}</button>`}).join("")}</div>`
       :`<p class="muted">No meeting slots open right now. The team will add slots before the next PTM, or raise a ticket to ask for one.</p>`}</section>
@@ -2212,7 +2256,7 @@ A.rate=sid=>{const L=curKid();if(!L)return;const s=D.sessions[sid];const h=kidHi
   const starRow=(n,l)=>`<fieldset class="field" style="border:0;padding:0;margin:0"><legend class="lbl" style="margin-bottom:6px">${l}</legend><div class="starpick">${[5,4,3,2,1].map(i=>`<input type="radio" id="${n}${i}" name="${n}" value="${i}" ${i===5?"checked":""}><label for="${n}${i}" aria-label="${i} star${i===1?"":"s"}">★</label>`).join("")}</div></fieldset>`;
   openModal("Rate this class",`<p class="small muted">${esc((s&&s.title)||(h&&h.title)||"Class")} · ${esc(fmtDay(new Date((s&&s.startsAt)||(h&&h.date))))}</p>${starRow("cs","The class")}${starRow("ts","The teacher"+(tid?` (${trainerName(tid)})`:""))}<div class="field"><label for="rt-c">Comment (optional)</label><textarea id="rt-c" name="text" rows="2" maxlength="600"></textarea></div>`,
   {submitLabel:"Send rating",done:"Thank you for the rating!",onSubmit:async f=>{await S.db.collection(`pp/${S.uid}/x`).doc().set({kind:"rating",lid:L.id,sid,tid,title:(s&&s.title)||(h&&h.title)||"",classStars:+f.cs.value,teacherStars:+f.ts.value,text:f.text.value.trim(),by:S.uid,at:Date.now()});await bumpPPI(S.uid,{name:myName()})}});};
-A.ptmBook=id=>{const p=D.ptm[id];if(!p)return;openModal("Book this meeting?",`<p><b>${esc(LONGDAY.format(new Date(p.start)))}, ${esc(fmtTime(new Date(p.start)))}</b> · ${p.dur||15} minutes with ${esc(p.tid?trainerName(p.tid):"the LittleLingos team")}.</p>${kidSelect()}<div class="field"><label for="pb-n">Anything you'd like to discuss? (optional)</label><textarea id="pb-n" name="note" rows="2" maxlength="400"></textarea></div>`,
+A.ptmBook=id=>{const p=D.ptm[id];if(!p)return;openModal("Book this meeting?",`<p><b>${esc(LONGDAY.format(new Date(p.start)))}, ${esc(fmtTime(new Date(p.start)))}</b> · ${p.dur||15} minutes with ${esc(p.tid?trainerName(p.tid):"the Little Lingos team")}.</p>${kidSelect()}<div class="field"><label for="pb-n">Anything you'd like to discuss? (optional)</label><textarea id="pb-n" name="note" rows="2" maxlength="400"></textarea></div>`,
   {submitLabel:"Book meeting",done:"Meeting booked",onSubmit:async f=>{if(Object.entries(D.ptmb).some(([u,b])=>u!==S.uid&&b&&b.slot===id))throw userErr("Someone just booked this slot. Pick another.");await S.db.doc("ptmb/"+S.uid).set({slot:id,lid:f.kid.value,note:f.note.value.trim(),at:Date.now()});}});};
 A.ptmCancel=()=>openModal("Cancel your meeting?","<p>The slot will be free for other families.</p>",{danger:true,submitLabel:"Cancel booking",done:"Booking cancelled",onSubmit:async()=>{await S.db.doc("ptmb/"+S.uid).delete()}});
 
@@ -2230,7 +2274,7 @@ function parentSettings(){
     <p class="formerr" id="pr-err" hidden></p><button class="btn btn-primary" type="submit" style="align-self:flex-start">Save settings</button></form>
   <section class="card panel"><div class="ph"><h2>Children</h2></div>
     ${ks.length?`<div class="list">${ks.map(k=>`<div class="item"><span class="kidchip on" style="pointer-events:none"><span class="av">${esc((firstOf(k.name)[0]||"?").toUpperCase())}</span></span><div class="grow"><div class="t">${esc(k.name)}</div><div class="s">${esc(stageLabel(k.stage))} · ${esc(kidTeacher(k))}</div></div></div>`).join("")}</div>`:`<p class="muted">No children connected yet.</p>`}
-    <p class="small muted">The LittleLingos team manages which children are on your account. To add or remove a child, raise a ticket in Help.</p>
+    <p class="small muted">The Little Lingos team manages which children are on your account. To add or remove a child, raise a ticket in Help.</p>
     <p class="section-title">Sign-in</p><p class="small">You sign in with your email and a one-time code. Both parents can sign in with their own emails; ask the academy to connect each one.</p><button class="btn btn-ghost btn-sm" data-act="signOut">Sign out</button></section>
   </div>`;
 }
@@ -2295,19 +2339,19 @@ A.replyReq=v=>{const [uid,id]=v.split("|");const x=(D.pp[uid]||{})[id];if(!x)ret
   {wide:true,submitLabel:"Send reply",done:"Reply sent",onSubmit:async f=>{await S.db.doc(`pp/${uid}/x/${id}`).update({reply:f.reply.value.trim(),status:f.st.value,replyBy:S.uid,replyName:myName(),replyAt:Date.now()});await bumpPPI(uid,{staffAt:Date.now()});refreshThread(uid);}});};
 A.newPtm=()=>{const admin=role()==="admin",tdef=admin?"":myTid()||"";const d=new Date(Date.now()+864e5);
   openModal("Add meeting slots",`<div class="three"><div class="field"><label for="pt-d">Date</label><input type="date" id="pt-d" name="d" required data-label="Date" value="${esc(ymd(d))}"></div><div class="field"><label for="pt-s">First slot</label><input type="time" id="pt-s" name="s" required data-label="Time" value="17:00"></div><div class="field"><label for="pt-n">Number of slots</label><input type="number" id="pt-n" name="n" min="1" max="20" value="6"></div></div>
-    <div class="two"><div class="field"><label for="pt-l">Minutes each</label><input type="number" id="pt-l" name="len" min="5" max="60" step="5" value="15"></div><div class="field"><label for="pt-t">With</label><select id="pt-t" name="tid">${admin?opt("","LittleLingos team",true):""}${activeTrainers().filter(t=>admin||t.id===tdef).map(t=>opt(t.id,t.name,t.id===tdef)).join("")}</select></div></div>
+    <div class="two"><div class="field"><label for="pt-l">Minutes each</label><input type="number" id="pt-l" name="len" min="5" max="60" step="5" value="15"></div><div class="field"><label for="pt-t">With</label><select id="pt-t" name="tid">${admin?opt("","Little Lingos team",true):""}${activeTrainers().filter(t=>admin||t.id===tdef).map(t=>opt(t.id,t.name,t.id===tdef)).join("")}</select></div></div>
     <div class="field"><label for="pt-u">Meeting link (optional)</label><input type="url" id="pt-u" name="url" placeholder="https://meet.google.com/…"><span class="hint">Leave empty for meetings at the centre.</span></div>`,
   {wide:true,submitLabel:"Add slots",done:"Slots added",onSubmit:async f=>{const u=f.url.value.trim();if(u&&!safeUrl(u))throw userErr("The link must start with https://");const st=new Date(`${f.d.value}T${f.s.value}`);if(isNaN(st))throw userErr("Pick a date and time.");const len=+f.len.value||15,n=Math.min(20,Math.max(1,+f.n.value||1));
     for(let i=0;i<n;i++)await S.db.collection("ptm").doc().set({start:new Date(st.getTime()+i*len*6e4).toISOString(),dur:len,tid:f.tid.value||null,url:safeUrl(u),by:S.uid,at:Date.now()});}});};
 A.delPtm=id=>openModal("Delete this slot?",`<p>If a parent booked it, their booking disappears too. Let them know in Chats.</p>`,{danger:true,submitLabel:"Delete slot",done:"Slot deleted",onSubmit:async()=>{await S.db.doc("ptm/"+id).delete()}});
 
 /* ---------- Academy details (admin) ---------- */
-A.academy=()=>{const a=D.config.academy||{};openModal("Academy details",`<p class="small muted">Shown on invoices, receipts and the parents' Help page.</p><div class="field"><label for="ac-n">Academy name</label><input type="text" id="ac-n" name="name" maxlength="80" value="${esc(a.name||"LittleLingos")}"></div><div class="field"><label for="ac-a">Address</label><textarea id="ac-a" name="addr" rows="2" maxlength="300">${esc(a.address||"")}</textarea></div><div class="three"><div class="field"><label for="ac-p">Phone</label><input type="tel" id="ac-p" name="phone" maxlength="20" value="${esc(a.phone||"")}"></div><div class="field"><label for="ac-e">Email</label><input type="email" id="ac-e" name="email" maxlength="120" value="${esc(a.email||"")}"></div><div class="field"><label for="ac-g">GSTIN (optional)</label><input type="text" id="ac-g" name="gstin" maxlength="20" value="${esc(a.gstin||"")}"></div></div>`,
-  {wide:true,done:"Academy details saved",onSubmit:async f=>{await upsert("config/app",{academy:{name:f.name.value.trim()||"LittleLingos",address:f.addr.value.trim(),phone:f.phone.value.trim(),email:f.email.value.trim(),gstin:f.gstin.value.trim()}})}});};
+A.academy=()=>{const a=D.config.academy||{};openModal("Academy details",`<p class="small muted">Shown on invoices, receipts and the parents' Help page.</p><div class="field"><label for="ac-n">Academy name</label><input type="text" id="ac-n" name="name" maxlength="80" value="${esc(a.name||"Little Lingos")}"></div><div class="field"><label for="ac-a">Address</label><textarea id="ac-a" name="addr" rows="2" maxlength="300">${esc(a.address||"")}</textarea></div><div class="three"><div class="field"><label for="ac-p">Phone</label><input type="tel" id="ac-p" name="phone" maxlength="20" value="${esc(a.phone||"")}"></div><div class="field"><label for="ac-e">Email</label><input type="email" id="ac-e" name="email" maxlength="120" value="${esc(a.email||"")}"></div><div class="field"><label for="ac-g">GSTIN (optional)</label><input type="text" id="ac-g" name="gstin" maxlength="20" value="${esc(a.gstin||"")}"></div></div>`,
+  {wide:true,done:"Academy details saved",onSubmit:async f=>{await upsert("config/app",{academy:{name:f.name.value.trim()||"Little Lingos",address:f.addr.value.trim(),phone:f.phone.value.trim(),email:f.email.value.trim(),gstin:f.gstin.value.trim()}})}});};
 
 /* ---------- admin keeps each parent's fee summary in sync ---------- */
 const pfSig={}; let pfT=null;
-function schedulePF(){if(!S.isOwner||!S.db)return;clearTimeout(pfT);pfT=setTimeout(()=>syncPF().catch(e=>console.warn("LittleLingos: fee sync",e)),2000);}
+function schedulePF(){if(!S.isOwner||!S.db)return;clearTimeout(pfT);pfT=setTimeout(()=>syncPF().catch(e=>console.warn("Little Lingos: fee sync",e)),2000);}
 async function syncPF(){
   if(!["learners","profiles","fees","config"].every(k=>S.loaded.has(k)))return schedulePF();
   const cur=thisMonth(), acad=ACAD();
@@ -2380,7 +2424,7 @@ function kidReminder(){
 }
 function breakHTML(){const L=myLearner();const lim=limitFor(L);const s=upcoming(learnerCourses(L),1)[0];const live=s&&Date.now()>=new Date(s.startsAt).getTime()-15*6e4;const url=s&&safeUrl(s.joinUrl);
   return `<div class="center"><div class="card" style="align-items:center;text-align:center">${art("drizzle",120,"Drizzle the cloud")}<h1>Time for a break!</h1><p class="lede">You've learned for ${lim} minutes today. Your garden will be here tomorrow. Go and play, read a book or help at home!</p>
-  ${live&&url?`<p><b>Your live class is on now.</b> You can still join it.</p><a class="btn btn-primary btn-big" href="${esc(url)}" target="_blank" rel="noopener">${ic("video",22)}Join class</a>`:""}<p class="small muted">A grown-up sets this limit in their LittleLingos settings.</p></div></div>`;}
+  ${live&&url?`<p><b>Your live class is on now.</b> You can still join it.</p><a class="btn btn-primary btn-big" href="${esc(url)}" target="_blank" rel="noopener">${ic("video",22)}Join class</a>`:""}<p class="small muted">A grown-up sets this limit in their Little Lingos settings.</p></div></div>`;}
 
 /* picture password */
 async function picHash(seq){const b=new TextEncoder().encode(S.uid+"|"+seq.join(","));const h=await crypto.subtle.digest("SHA-256",b);return [...new Uint8Array(h)].map(x=>x.toString(16).padStart(2,"0")).join("").slice(0,40);}
@@ -2397,7 +2441,7 @@ A.picForgot=()=>{const a=4+Math.floor(Math.random()*6),b=3+Math.floor(Math.rando
   openModal("Grown-up check",`<p>A grown-up can turn off the picture password. What is ${NUMW[a]} times ${NUMW[b]}?</p><div class="field"><label for="pf-a">Answer</label><input type="text" inputmode="numeric" id="pf-a" name="a" maxlength="3" required data-label="Answer"></div>`,
   {submitLabel:"Turn off picture password",done:"Picture password turned off",onSubmit:async f=>{if(+f.a.value!==a*b)throw userErr("That's not right.");await upsert("profiles/"+S.uid,{pic:null});S.unlocked=true;}});};
 A.setPic=()=>{S.newPic=[];picModal();};
-function picModal(){const sq=S.newPic||[];openModal("Choose your secret pictures",`<p>Tap 3 pictures in order. You'll tap them each time you open LittleLingos on a shared device.</p>
+function picModal(){const sq=S.newPic||[];openModal("Choose your secret pictures",`<p>Tap 3 pictures in order. You'll tap them each time you open Little Lingos on a shared device.</p>
   <div class="picdots">${[0,1,2].map(i=>`<i class="${i<sq.length?"on":""}">${i<sq.length?KIDPICS[sq[i]]:""}</i>`).join("")}</div>
   <div class="picgrid">${KIDPICS.map((e,i)=>`<button type="button" class="picbtn" data-mact="pick" data-id="${i}">${e}</button>`).join("")}</div>
   <button type="button" class="btn btn-ghost btn-sm" data-mact="clear" style="align-self:flex-start">Start again</button>`,{noFocus:true,submitLabel:"Save my pictures",done:"Secret pictures saved!",
@@ -2519,7 +2563,7 @@ A.fcFlip=()=>{S.fcFlip=!S.fcFlip;render(true);};
 A.fcMove=k=>{S.fc=Math.max(0,(S.fc||0)+(+k));S.fcFlip=false;render(true);};
 A.fcKnow=k=>{const cur=!!(progOf(S.uid).known||{})[k];save(()=>earn({known:{[k]:cur?null:Date.now()}}),cur?null:"⭐ Nice!");};
 A.printWords=()=>{const L=myLearner();const ws=wordsWithMeaning(L.uid);
-  const html=`<div class="printdoc"><div class="pd-head"><div><b class="pd-brand">LittleLingos</b><div>${esc(L.name)}'s word sheet</div></div><div class="pd-meta">${esc(fmtDay(new Date()))}</div></div>
+  const html=`<div class="printdoc"><div class="pd-head"><div><b class="pd-brand">Little Lingos</b><div>${esc(L.name)}'s word sheet</div></div><div class="pd-meta">${esc(fmtDay(new Date()))}</div></div>
   <table class="pd-table ws"><thead><tr><th>Word</th><th>Meaning</th><th>Write it 3 times</th></tr></thead><tbody>${ws.map(w=>`<tr><td><b>${esc(w.w)}</b></td><td>${esc(w.m)}</td><td class="lines"></td></tr>`).join("")}</tbody></table><p class="small">Say each word out loud, then draw a picture of your favourite word on the back!</p></div>`;
   printOrDownload("My word sheet",html,`words-${firstOf(L.name).toLowerCase()}.html`);};
 function printOrDownload(title,html,fname){openModal(title,`<div class="billwrap">${html}</div>`,{wide:true,noFocus:true,footerExtra:`<button type="button" class="btn btn-ghost" data-mact="dl">${ic("down")}Download</button><button type="button" class="btn btn-ghost" data-mact="print">${ic("doc")}Print</button>`,
@@ -2588,7 +2632,7 @@ A.openHw=key=>{const h=hwByKey(key);const L=myLearner();if(!h||!L)return;const a
    ${vn?`<div class="field"><span class="lbl">🔊 Voice note from your teacher</span><audio controls src="${esc(vn.audio)}"></audio></div>`:""}
    <div class="field"><label for="hw-ans">Your answer</label><textarea id="hw-ans" name="ans" rows="6" required maxlength="2000" data-label="Your answer" placeholder="Type your answer here. A grown-up can help.">${esc(a?a.text:"")}</textarea><span class="hint">${a?`Handed in ${esc(fmtDay(new Date(a.at)))}. You can change your answer.`:"Doing it on paper? Print it, then type a short note here when you're done."}</span></div>`,
    {wide:true,submitLabel:a?"Update answer":"Hand in",done:a?"Answer updated":"Homework handed in. Well done!",footerExtra:`<button type="button" class="btn btn-ghost" data-mact="print">${ic("doc")}Print</button>`,
-    actions:{print:()=>{closeModal();printOrDownload("Homework",`<div class="printdoc"><div class="pd-head"><div><b class="pd-brand">LittleLingos</b><div>${esc(L.name)}</div></div><div class="pd-meta"><b>${esc(h.title)}</b>${d?`<div>Due ${esc(fmtDay(d))}</div>`:""}</div></div><div style="margin:16px 0;white-space:pre-wrap">${esc(h.instructions||"")}</div><p><b>My answer:</b></p>${"<div style='border-bottom:1px solid #999;height:34px'></div>".repeat(10)}</div>`,`homework-${firstOf(L.name).toLowerCase()}.html`);}},
+    actions:{print:()=>{closeModal();printOrDownload("Homework",`<div class="printdoc"><div class="pd-head"><div><b class="pd-brand">Little Lingos</b><div>${esc(L.name)}</div></div><div class="pd-meta"><b>${esc(h.title)}</b>${d?`<div>Due ${esc(fmtDay(d))}</div>`:""}</div></div><div style="margin:16px 0;white-space:pre-wrap">${esc(h.instructions||"")}</div><p><b>My answer:</b></p>${"<div style='border-bottom:1px solid #999;height:34px'></div>".repeat(10)}</div>`,`homework-${firstOf(L.name).toLowerCase()}.html`);}},
     onSubmit:async f=>{if(L.preview)throw userErr("This is an admin preview. Learners hand in homework from their own account.");await upsert("answers/"+S.uid,{items:{[key]:{text:f.ans.value.trim(),at:Date.now()}}});earn({}).catch(()=>{})}});};
 
 /* ---------- Classes: timetable, replays, emoji rating ---------- */
@@ -2660,7 +2704,7 @@ A.drawPad=()=>{const cols=["#2E2219","#E8492F","#FFC94A","#2F8F46","#4BA3E3","#F
    onSubmit:async f=>{if(!PAD.used)throw userErr("Draw something first!");const cv=document.getElementById("pad");let q=.8,out=cv.toDataURL("image/jpeg",q);while(out.length>230000&&q>.3){q-=.1;out=cv.toDataURL("image/jpeg",q);}PAD.used=false;await savePort("draw",f.t.value.trim(),out);}});};
 const PAD={c:"#2E2219",w:6,used:false};
 A.cert=cid=>{const L=(isParent()?curKid():myLearner())||curKid();if(!L)return;const ct=certsOf(L).find(x=>x.cid===cid);if(!ct)return;
-  const html=`<div class="printdoc certdoc"><div class="cd-in"><span class="cd-t">${esc((CFG().cert||{}).title||"CERTIFICATE OF BLOOMING")}</span><b class="cd-n">${esc(L.name)}</b><span>${ct.level?"has reached":"has finished every lesson in"}</span><b class="cd-c">${esc(ct.c.title)}</b><span>${esc(stageLabel(ct.c.level))} · ${esc(fmtDay(new Date(ct.at)))}</span><span class="cd-f">🌸 🌻 🌷</span>${(CFG().cert||{}).sign?`<span class="cd-sig">${esc(CFG().cert.sign)}${CFG().cert.role?`<i>${esc(CFG().cert.role)}</i>`:""}</span>`:""}<span class="cd-s">${esc((CFG().cert||{}).foot||"LittleLingos · Plant a word. Watch it grow.")}</span></div></div>`;
+  const html=`<div class="printdoc certdoc"><div class="cd-in"><span class="cd-t">${esc((CFG().cert||{}).title||"CERTIFICATE OF BLOOMING")}</span><b class="cd-n">${esc(L.name)}</b><span>${ct.level?"has reached":"has finished every lesson in"}</span><b class="cd-c">${esc(ct.c.title)}</b><span>${esc(stageLabel(ct.c.level))} · ${esc(fmtDay(new Date(ct.at)))}</span><span class="cd-f">🌸 🌻 🌷</span>${(CFG().cert||{}).sign?`<span class="cd-sig">${esc(CFG().cert.sign)}${CFG().cert.role?`<i>${esc(CFG().cert.role)}</i>`:""}</span>`:""}<span class="cd-s">${esc((CFG().cert||{}).foot||"Little Lingos · Plant a word. Watch it grow.")}</span></div></div>`;
   printOrDownload("Certificate",html,`certificate-${firstOf(L.name).toLowerCase()}.html`);};
 
 /* ---------- teacher stickers + learner portfolio for staff ---------- */
@@ -2934,10 +2978,10 @@ const fill=(t,v)=>String(t||"").replace(/\{(\w+)\}/g,(m,k)=>v[k]!=null?String(v[
 const DEF_TPL={
   feeDue:"Hello {parent}, a gentle reminder from {academy}: {child}'s fee of {amount} for {month} is due on {due}. Thank you!",
   feeOverdue:"Hello {parent}, {child}'s fee of {amount} for {month} was due on {due} and is still pending. Please pay when you can, or message us if you need help. – {academy}",
-  classLink:"Hello{parentSp}! {childPos} LittleLingos class is coming up 🌱\n\n📚 {title}\n🗓 {day}\n⏰ {time}\n🔗 {link}\n\nSee you there! – {teacher}",
+  classLink:"Hello{parentSp}! {childPos} Little Lingos class is coming up 🌱\n\n📚 {title}\n🗓 {day}\n⏰ {time}\n🔗 {link}\n\nSee you there! – {teacher}",
   invite:"Welcome to {academy}! To see {child}'s classes, progress and fees: open {link}, sign in, choose \"Parent\" and enter the code {code}.",
   atRisk:"Hello {parent}, this is {academy}. We've noticed {child} has {reason} lately. Is everything okay? We'd love to help {child} keep growing.",
-  reportReady:"Hello {parent}, {child}'s {report} is ready. Open the LittleLingos Classroom → Progress to read it. – {academy}"};
+  reportReady:"Hello {parent}, {child}'s {report} is ready. Open the Little Lingos Classroom → Progress to read it. – {academy}"};
 const tpl=k=>((CFG().templates||{})[k])||DEF_TPL[k];
 const parentOfL=L=>parentsOf(L)[0]||null;
 const guardianName=L=>(D.priv[L.id]||{}).guardian||(parentOfL(L)?accountName(parentOfL(L)):"");
@@ -3131,7 +3175,7 @@ function batchesView(){
      <td class="num">${fut.length}${fut[0]?`<div class="small muted">Next ${esc(fmtDay(new Date(fut[0].startsAt)))}</div>`:""}</td>
      <td><div class="acts"><button class="btn btn-ghost btn-sm" data-act="genBatch" data-id="${esc(b.id)}">Add weeks</button><button class="iconbtn" data-act="editBatch" data-id="${esc(b.id)}" aria-label="Edit batch">${ic("edit")}</button></div></td></tr>`}).join("")}</tbody></table></div>
     <p class="small muted">Changing a batch's trainer moves all its future classes to the new trainer. Holidays from Settings are skipped.</p></section>`
-    :emptyBox("No batches yet","Create a batch: pick the course, trainer, learners and weekly time. LittleLingos creates the classes for you.",`<button class="btn btn-primary" data-act="newBatch">${ic("plus")}New batch</button>`,"bloom")}`;
+    :emptyBox("No batches yet","Create a batch: pick the course, trainer, learners and weekly time. Little Lingos creates the classes for you.",`<button class="btn btn-primary" data-act="newBatch">${ic("plus")}New batch</button>`,"bloom")}`;
 }
 function batchForm(b={}){const tz=b.tz||DEF_TZ();const mine=new Set(b.learners||[]);const start=b.start||ymd(new Date(Date.now()+864e5));
   return `<div class="two"><div class="field"><label for="bt-n">Batch name</label><input type="text" id="bt-n" name="name" required maxlength="60" data-label="Name" value="${esc(b.name||"")}" placeholder="e.g. Sprouts · Mon/Wed 5 pm"></div>
@@ -3325,7 +3369,7 @@ const CONSENT_V=1;
 function adminSettings(){const tab=S.stab||"academy";const tabs=`<div class="seg wrap" role="tablist" aria-label="Settings">${[["academy","Academy"],["billing","Billing"],["rules","Rules"],["templates","Messages"],["privacy","Privacy"],["data","Import / export"]].map(([k,l])=>`<button class="tog ${tab===k?"on":""}" role="tab" aria-selected="${tab===k}" data-act="stab" data-id="${k}">${l}</button>`).join("")}</div>`;
   const c=CFG(),a=c.academy||{},s=AS();let body="";
   if(tab==="academy")body=`<form class="card panel" id="set-academy" novalidate><h2>Academy and branding</h2>
-    <div class="two"><div class="field"><label for="sa-n">Academy name</label><input type="text" id="sa-n" name="name" maxlength="80" value="${esc(a.name||"LittleLingos")}"></div><div class="field"><label for="sa-tg">Tagline</label><input type="text" id="sa-tg" name="tagline" maxlength="80" value="${esc(a.tagline||"Plant a word. Watch it grow.")}"></div></div>
+    <div class="two"><div class="field"><label for="sa-n">Academy name</label><input type="text" id="sa-n" name="name" maxlength="80" value="${esc(a.name||"Little Lingos")}"></div><div class="field"><label for="sa-tg">Tagline</label><input type="text" id="sa-tg" name="tagline" maxlength="80" value="${esc(a.tagline||"Plant a word. Watch it grow.")}"></div></div>
     <div class="three"><div class="field"><label for="sa-p">Phone</label><input type="tel" id="sa-p" name="phone" maxlength="20" value="${esc(a.phone||"")}"></div><div class="field"><label for="sa-e">Email</label><input type="email" id="sa-e" name="email" maxlength="120" value="${esc(a.email||"")}"></div><div class="field"><label for="sa-g">GSTIN</label><input type="text" id="sa-g" name="gstin" maxlength="20" value="${esc(a.gstin||"")}"></div></div>
     <div class="field"><label for="sa-a">Address (on invoices)</label><textarea id="sa-a" name="address" rows="2" maxlength="300">${esc(a.address||"")}</textarea></div>
     <div class="field"><label for="sa-u">Classroom link</label><input type="url" id="sa-u" name="url" value="${esc(c.classroomUrl||"")}" placeholder="https://classroom.your-site.com"><span class="hint">Used in invite messages to parents.</span></div>
@@ -3342,7 +3386,7 @@ function adminSettings(){const tab=S.stab||"academy";const tabs=`<div class="seg
   else if(tab==="rules"){const r=RW(),ct=c.cert||{},rt=c.reportTpl||{},sla=s.sla||{};body=`<form class="card panel" id="set-rules" novalidate><h2>Stars and badges</h2>
     <div class="two"><div class="field"><label for="sr-l">Stars per finished lesson</label><input type="number" id="sr-l" name="lesson" min="0" max="20" value="${esc(r.lesson)}"></div><div class="field"><label for="sr-a">Stars per class attended</label><input type="number" id="sr-a" name="attend" min="0" max="20" value="${esc(r.attend)}"></div></div>
     <div class="three">${[["garden5","Little garden: flowers"],["garden20","Big garden: flowers"],["words10","Word collector: words"],["words50","Word wizard: words"],["streak3","On fire: days in a row"],["streak7","Super week: days in a row"],["hw5","Homework hero: tasks"],["class8","Class star: classes"]].map(([k,l])=>`<div class="field"><label for="sr-${k}">${l}</label><input type="number" id="sr-${k}" name="b_${k}" min="1" max="500" value="${esc(r.badges[k])}"></div>`).join("")}</div>
-    <p class="section-title">Certificates</p><div class="two"><div class="field"><label for="sr-ct">Title</label><input type="text" id="sr-ct" name="ctitle" maxlength="60" value="${esc(ct.title||"CERTIFICATE OF BLOOMING")}"></div><div class="field"><label for="sr-cf">Footer line</label><input type="text" id="sr-cf" name="cfoot" maxlength="100" value="${esc(ct.foot||"LittleLingos · Plant a word. Watch it grow.")}"></div></div>
+    <p class="section-title">Certificates</p><div class="two"><div class="field"><label for="sr-ct">Title</label><input type="text" id="sr-ct" name="ctitle" maxlength="60" value="${esc(ct.title||"CERTIFICATE OF BLOOMING")}"></div><div class="field"><label for="sr-cf">Footer line</label><input type="text" id="sr-cf" name="cfoot" maxlength="100" value="${esc(ct.foot||"Little Lingos · Plant a word. Watch it grow.")}"></div></div>
     <div class="two"><div class="field"><label for="sr-cs">Signed by</label><input type="text" id="sr-cs" name="csign" maxlength="60" value="${esc(ct.sign||"")}" placeholder="e.g. Raman Agarwal"></div><div class="field"><label for="sr-cr">Role</label><input type="text" id="sr-cr" name="crole" maxlength="60" value="${esc(ct.role||"")}" placeholder="Founder"></div></div>
     <p class="section-title">Term and PTM reports</p><label class="row" style="font-weight:700;flex-wrap:nowrap"><input type="checkbox" name="rapp" ${rt.approval?"checked":""} style="width:20px;height:20px;accent-color:var(--leafMid)"> Reports need your approval before parents see them</label>
     <div class="field"><label for="sr-ri">Opening line on every report</label><input type="text" id="sr-ri" name="rintro" maxlength="200" value="${esc(rt.intro||"")}" placeholder="Thank you for growing with us this term!"></div>
@@ -3365,7 +3409,7 @@ A.stab=v=>{S.stab=v;render(true);};
 async function saveCfg(patch){await upsert("config/app",patch);}
 async function saveAS(patch){await upsert("ad/settings",patch);}
 document.addEventListener("submit",async e=>{const id=e.target.id;if(!/^set-/.test(id))return;e.preventDefault();const f=e.target.elements;let ok=false;
-  if(id==="set-academy"){const u=f.url.value.trim();if(u&&!safeUrl(u)){toast("The classroom link must start with https://",true);return}const a={...(CFG().academy||{}),name:f.name.value.trim()||"LittleLingos",tagline:f.tagline.value.trim(),phone:f.phone.value.trim(),email:f.email.value.trim(),gstin:f.gstin.value.trim(),address:f.address.value.trim()};
+  if(id==="set-academy"){const u=f.url.value.trim();if(u&&!safeUrl(u)){toast("The classroom link must start with https://",true);return}const a={...(CFG().academy||{}),name:f.name.value.trim()||"Little Lingos",tagline:f.tagline.value.trim(),phone:f.phone.value.trim(),email:f.email.value.trim(),gstin:f.gstin.value.trim(),address:f.address.value.trim()};
     ok=await save(()=>saveCfg({academy:a,classroomUrl:safeUrl(u),languages:f.langs.value.split(",").map(x=>x.trim()).filter(Boolean),tz:f.tz.value,durations:f.durs.value.split(",").map(x=>+x.trim()).filter(n=>n>0&&n<=240)}),"Saved");}
   else if(id==="set-billing"){ok=await save(async()=>{await saveAS({siblingPct:+f.sib.value||0,referralCredit:+f.ref.value||0,reminders:{before:+f.before.value||0,onDue:f.ondue.checked,after:f.after.value.split(",").map(x=>+x.trim()).filter(n=>n>0)}});await saveCfg({academy:{...(CFG().academy||{}),gstRate:+f.gst.value||0},referral:+f.ref.value||0});},"Saved");}
   else if(id==="set-rules"){const badges={};for(const k of Object.keys(DEF_REWARDS.badges))badges[k]=+f["b_"+k].value||DEF_REWARDS.badges[k];const sla={};for(const k of ["callback","reschedule","ticket","batch","teacher"])sla[k]=+f["s_"+k].value||24;
@@ -3483,8 +3527,8 @@ function teacherIntro(L){
 }
 A.seenTeacher=lid=>save(()=>upsert("profiles/"+S.uid,{teacherSeen:{...(myProf().teacherSeen||{}),[lid]:Date.now()}}));
 function familyForStaff(L){
-  const c=contactOf(L.id), ps=parentsOf(L), hi=`Hello${c.guardian?" "+firstOf(c.guardian):""}, this is ${firstOf(myName())}, ${firstOf(L.name)}'s teacher at LittleLingos.`;
-  const wa=c.phone?waLinkTo(c.phone,hi):"", mail=okEmail(c.email)?mailLink(c.email,`${firstOf(L.name)} at LittleLingos`,hi):"";
+  const c=contactOf(L.id), ps=parentsOf(L), hi=`Hello${c.guardian?" "+firstOf(c.guardian):""}, this is ${firstOf(myName())}, ${firstOf(L.name)}'s teacher at Little Lingos.`;
+  const wa=c.phone?waLinkTo(c.phone,hi):"", mail=okEmail(c.email)?mailLink(c.email,`${firstOf(L.name)} at Little Lingos`,hi):"";
   if(!ps.length&&!wa&&!mail)return `<p class="section-title">Family</p><p class="small muted">No parent contact yet. The admin adds family details.</p>`;
   return `<p class="section-title">Family</p><p>${c.guardian?esc(c.guardian):"Parent"}${c.phone?` · <span style="user-select:all">${esc(c.phone)}</span>`:""}${c.email?` · <span style="user-select:all">${esc(c.email)}</span>`:""}</p>
   <div class="row">${ps.map(u=>`<button type="button" class="btn btn-ghost btn-sm" data-mact="chat" data-id="${esc(u+"|"+L.id)}">${ic("chat")}Chat with ${esc(firstOf(accountName(u)))}</button>`).join("")}${wa?`<a class="btn btn-ghost btn-sm" href="${esc(wa)}" target="_blank" rel="noopener">WhatsApp</a>`:""}${mail?`<a class="btn btn-ghost btn-sm" href="${esc(mail)}" target="_blank" rel="noopener">${ic("mail")}Email</a>`:""}</div>`;
@@ -3507,7 +3551,7 @@ function loadParentAccounts(){
   LL_sb.rpc("ll_accounts",{emails}).then(({data})=>{if(my!==acctReq||!data)return;const o={};for(const r of data)o[r.email]={uid:r.uid,last:r.last_sign_in};S.acct=o;schedule();},()=>{});
 }
 function parentInviteText(x){const kids=x.kids.map(id=>firstOf(learnerName(id)));const link=CFG().classroomUrl||location.origin;
-  return `Hello${x.name?" "+firstOf(x.name):""}! ${kids.join(" and ")}'s classes, homework and progress are now on ${ACAD().name||"LittleLingos"}.\n\nOpen ${link} and sign in with this email: ${x.email}\nYou'll get a 6-digit code by email. No password needed.`;}
+  return `Hello${x.name?" "+firstOf(x.name):""}! ${kids.join(" and ")}'s classes, homework and progress are now on ${ACAD().name||"Little Lingos"}.\n\nOpen ${link} and sign in with this email: ${x.email}\nYou'll get a 6-digit code by email. No password needed.`;}
 function parentsOnFileHTML(){
   loadParentAccounts();const list=parentsOnFile();
   return `<section class="card panel"><div class="ph"><div><h2>Parents added by email</h2><p class="small muted">They sign in at ${esc(CFG().classroomUrl||location.origin)} with this email and see their children straight away.</p></div></div>
@@ -3515,7 +3559,7 @@ function parentsOnFileHTML(){
     return `<tr data-search="${esc((x.name+" "+x.email+" "+x.kids.map(learnerName).join(" ")).toLowerCase())}"><td><b>${esc(x.name||"–")}</b>${x.phone?`<div class="small muted">${esc(x.phone)}</div>`:""}</td><td class="small" style="user-select:all">${esc(x.email)}</td>
       <td>${x.kids.map(id=>`<button class="nm" data-act="learnerInfo" data-id="${esc(id)}">${esc(learnerName(id))}</button>`).join(", ")}</td>
       <td>${a?`<span class="pill p-good">Signed in${a.last?" "+esc(fmtDay(new Date(a.last))):""}</span>`:`<span class="pill p-mute">Not signed in yet</span>`}</td>
-      <td><div class="acts">${wa?`<a class="btn btn-ghost btn-sm" href="${esc(wa)}" target="_blank" rel="noopener">WhatsApp invite</a>`:""}<a class="btn btn-ghost btn-sm" href="${esc(mailLink(x.email,`Your ${ACAD().name||"LittleLingos"} parent login`,parentInviteText(x)))}" target="_blank" rel="noopener">${ic("mail")}Email invite</a><button class="btn btn-ghost btn-sm" data-act="editParentEmail" data-id="${esc(x.email)}">Children</button></div></td></tr>`}).join("")}</tbody></table></div>`
+      <td><div class="acts">${wa?`<a class="btn btn-ghost btn-sm" href="${esc(wa)}" target="_blank" rel="noopener">WhatsApp invite</a>`:""}<a class="btn btn-ghost btn-sm" href="${esc(mailLink(x.email,`Your ${ACAD().name||"Little Lingos"} parent login`,parentInviteText(x)))}" target="_blank" rel="noopener">${ic("mail")}Email invite</a><button class="btn btn-ghost btn-sm" data-act="editParentEmail" data-id="${esc(x.email)}">Children</button></div></td></tr>`}).join("")}</tbody></table></div>`
   :`<p class="muted">No parents added yet. Use <b>Add parent</b>, or fill in the parent's email when you add a learner.</p>`}</section>`;
 }
 function parentForm(x){
@@ -3597,7 +3641,7 @@ async function boot(){
   if(S.isOwner){cols.fees="fees";cols.priv="private";}
   const need=new Set([...Object.keys(cols),"config"]);
   const markLoaded=k=>{S.loaded.add(k);if(S.status!=="ready"&&[...need].every(x=>S.loaded.has(x))){S.status="ready";render(true)}else schedule()};
-  const onErr=k=>e=>{markLoaded(k);if(e&&e.code!=="revoked")console.warn("LittleLingos: "+k+" stopped updating",e);};
+  const onErr=k=>e=>{markLoaded(k);if(e&&e.code!=="revoked")console.warn("Little Lingos: "+k+" stopped updating",e);};
   for(const [k,path] of Object.entries(cols)){
     db.collection(path).onSnapshot(snap=>{const o={};for(const d of snap.docs)o[d.id]=d.data();D[k]=o;if(k==="trainers"||k==="learners"||k==="profiles")syncDynamic();if(k==="priv"||k==="courses")scheduleContactSync();if(["fees","learners","profiles"].includes(k))schedulePF();markLoaded(k)},onErr(k));
   }

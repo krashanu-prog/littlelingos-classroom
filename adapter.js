@@ -1,4 +1,4 @@
-/* LittleLingos Classroom: Supabase connection + email sign-in.
+/* Little Lingos Classroom: Supabase connection + email sign-in.
    Gives the app the same small data API it used on claude.ai
    (db.doc / db.collection / onSnapshot, user.me, assets, downloads),
    backed by the "docs" table described in supabase/schema.sql. */
@@ -222,7 +222,7 @@
     return el;
   }
   function closeGate() { const el = document.getElementById("ll-gate"); if (el) el.remove(); }
-  const brand = `<div class="ll-brand"><span>little</span><b>lingos</b></div>`;
+  const brand = `<div class="ll-brand" role="img" aria-label="Little Lingos"><svg class="lg-pip" viewBox="24 12 152 186" aria-hidden="true"><path d="M100 58 c-4 -26 -30 -40 -54 -30 c8 24 30 34 54 30 z" fill="#A6DB5C"/><path d="M100 58 c4 -30 32 -46 60 -34 c-10 28 -34 38 -60 34 z" fill="#7CC243"/><path d="M100 56 v14" stroke="#22703A" stroke-width="6" stroke-linecap="round"/><ellipse cx="100" cy="128" rx="70" ry="64" fill="#2F8F46"/><ellipse cx="100" cy="150" rx="46" ry="30" fill="#3FA75A"/><circle cx="76" cy="116" r="15" fill="#FFFFFF"/><circle cx="79" cy="119" r="8" fill="#2E2219"/><circle cx="82" cy="115" r="2.6" fill="#FFFFFF"/><circle cx="124" cy="116" r="15" fill="#FFFFFF"/><circle cx="127" cy="119" r="8" fill="#2E2219"/><circle cx="130" cy="115" r="2.6" fill="#FFFFFF"/><ellipse cx="58" cy="140" rx="10" ry="6" fill="#F7A8C4"/><ellipse cx="142" cy="140" rx="10" ry="6" fill="#F7A8C4"/><path d="M84 140 q16 22 32 0 z" fill="#2E2219"/><path d="M92 148 q8 8 16 0 l-4 -2 h-8 z" fill="#E8492F"/></svg><span class="wm"><b>little</b><span>lingos<svg class="lg-leaf" viewBox="0 0 40 40" aria-hidden="true"><path d="M0 40 c2 -22 16 -36 40 -40 c-2 22 -16 36 -40 40 z" fill="#E8492F"/></svg></span></span></div>`;
   function emailStep(prefill, note) {
     const el = gate(`${brand}<h1>Sign in</h1><p class="lede">Enter your email and we'll send you a 6-digit sign-in code. No password needed.</p>
       <form id="ll-email" novalidate><div class="field"><label for="ll-em">Email</label><input type="email" id="ll-em" name="em" required autocomplete="email" inputmode="email" value="${esc(prefill || "")}" placeholder="you@example.com"></div>
@@ -273,7 +273,7 @@
 
   async function init() {
     if (!sb) {
-      gate(`${brand}<h1>Almost ready</h1><p class="lede">This copy of LittleLingos isn't connected to its database yet.</p><p class="small">Open <b>config.js</b> and paste in your Supabase project URL and anon key (see the setup guide).</p>`);
+      gate(`${brand}<h1>Almost ready</h1><p class="lede">This copy of Little Lingos isn't connected to its database yet.</p><p class="small">Open <b>config.js</b> and paste in your Supabase project URL and anon key (see the setup guide).</p>`);
       return;
     }
     const hashErr = new URLSearchParams(location.hash.slice(1)).get("error_description");
