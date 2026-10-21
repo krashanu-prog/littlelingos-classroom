@@ -738,6 +738,17 @@ button.stat{font:inherit;color:inherit;cursor:pointer}.stat.sel{box-shadow:inset
 .dttile:disabled{opacity:.3}
 .dtin{flex:1;min-width:0;min-height:48px;font-size:1.3rem;border:2px solid var(--line);border-radius:14px;padding:6px 12px;font-family:var(--display)}
 .dtmsg{margin:0;font-weight:700;color:var(--leaf)}
+.wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.wpost{margin:0;background:var(--card);border:2px solid var(--line);border-radius:20px;overflow:hidden;display:flex;flex-direction:column}
+.wpost.hid{opacity:.55}
+.wpost img{width:100%;aspect-ratio:4/3;object-fit:contain;background:#fff;display:block}
+.wpost .ptaudio{padding:16px}.wpost figcaption{display:flex;flex-direction:column;gap:6px;padding:12px}
+.wreact{display:flex;gap:6px;flex-wrap:wrap}
+.wr{min-width:48px;min-height:44px;border-radius:999px;border:2px solid var(--line);background:var(--ground);font-size:1.2rem;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:0 10px;cursor:pointer}
+.wr i{font-style:normal;font-size:.85rem;font-weight:700;color:var(--soil)}
+.wr.on{border-color:var(--leafMid);background:var(--leafSoft)}
+.wr:active{transform:scale(.94)}
+.kidtile.t5{background:var(--leafSoft);grid-column:1/-1;flex-direction:row;align-items:center;gap:10px;min-height:72px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -780,6 +791,7 @@ const METHODS=["UPI","Cash","Bank transfer","Card","Cheque"];
 const FLOWERS=["#E8492F","#F7A8C4","#4BA3E3","#FFC94A","#D9789E","#E8492F"];
 const CHIPS=["var(--peach)","var(--leafSoft)","var(--skySoft)","var(--petalSoft)","var(--sunSoft)"];
 const ICON={
+ wall:'<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>',
  leaf:'<path d="M5 19c0-8 5-14 15-14 0 10-6 15-14 15"/><path d="M5 19l7-7"/>',
  sunny:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M5 19l1.5-1.5M17.5 6.5L19 5"/>',
  book:'<path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5z"/><path d="M4 20.5A2.5 2.5 0 0 1 6.5 18H20v3H6.5"/>',
@@ -1144,10 +1156,10 @@ function clockChip(cur){
 function bindTop(){const v=document.getElementById("viewas");if(v)v.addEventListener("change",()=>{S.viewAs=v.value==="admin"?null:v.value;v.blur();go("home");});}
 function navItems(){
   const r=role();
-  if(r==="student")return [["home","My garden","leaf"],["path","Path","map"],["words","Words","cards"],["play","Games","star"],["fun","Fun corner","sunny"],["homework","Homework","pencil"],["schedule","Classes","cal"],["stories","Stories","book"],["me","Me","user"],["notices","Messages","bell"]];
-  if(r==="parent"){const un=unreadCount()+chatUnread().length;return [["home","Overview","heart"],["schedule","Classes","cal"],["progress","Progress","leaf"],["homework","Homework","pencil"],["messages","Messages","bell",un],["fees","Fees","rupee"],["help","Help","help",reqUpdates().length]];}
-  if(r==="teacher")return [["home","Today","sunny"],["learners","My learners","users"],["schedule","Classes","cal"],["attendance","Attendance","clip"],["homework","Homework","pencil"],["review","Review","star",speakingQueue().length],["library","Library","cards"],["reports","Reports","doc"],["inbox","Families","chat",inboxCount()],["notices","Messages","mega"],["courses","Courses","book"],["hours","Hours & pay","clock"],["myspace","My space","heart"]];
-  if(r==="admin")return [["home","Today","sunny"],["-","People"],["learners","Learners","users"],["parents","Parents","heart",waitingParents().length],["trainers","Trainers","trainer",txAll("leave").filter(l=>l.status==="pending").length],["leads","Leads","userplus",adList("leads").filter(x=>x.status==="new").length],["-","Teaching"],["schedule","Classes","cal"],["batches","Batches","swap"],["attendance","Attendance","clip"],["courses","Courses","book"],["library","Library","cards"],["review","Review","star"],["reports","Reports","doc",reportsPending().length],["-","Money"],["fees","Fees","rupee",remindersToday().length],["-","Families"],["inbox","Families","chat",inboxCount()],["notices","Notices","mega"],["events","Events","event"],["-","Insights"],["analytics","Analytics","leaf"],["settings","Settings","gear"]];
+  if(r==="student")return [["home","My garden","leaf"],["path","Path","map"],["words","Words","cards"],["play","Games","star"],["fun","Fun corner","sunny"],["wall","Garden wall","wall"],["homework","Homework","pencil"],["schedule","Classes","cal"],["stories","Stories","book"],["me","Me","user"],["notices","Messages","bell"]];
+  if(r==="parent"){const un=unreadCount()+chatUnread().length;return [["home","Overview","heart"],["schedule","Classes","cal"],["progress","Progress","leaf"],["wall","Garden wall","wall"],["homework","Homework","pencil"],["messages","Messages","bell",un],["fees","Fees","rupee"],["help","Help","help",reqUpdates().length]];}
+  if(r==="teacher")return [["home","Today","sunny"],["learners","My learners","users"],["schedule","Classes","cal"],["attendance","Attendance","clip"],["homework","Homework","pencil"],["review","Review","star",speakingQueue().length],["wall","Garden wall","wall"],["library","Library","cards"],["reports","Reports","doc"],["inbox","Families","chat",inboxCount()],["notices","Messages","mega"],["courses","Courses","book"],["hours","Hours & pay","clock"],["myspace","My space","heart"]];
+  if(r==="admin")return [["home","Today","sunny"],["-","People"],["learners","Learners","users"],["parents","Parents","heart",waitingParents().length],["trainers","Trainers","trainer",txAll("leave").filter(l=>l.status==="pending").length],["leads","Leads","userplus",adList("leads").filter(x=>x.status==="new").length],["-","Teaching"],["schedule","Classes","cal"],["batches","Batches","swap"],["attendance","Attendance","clip"],["courses","Courses","book"],["library","Library","cards"],["review","Review","star"],["wall","Garden wall","wall"],["reports","Reports","doc",reportsPending().length],["-","Money"],["fees","Fees","rupee",remindersToday().length],["-","Families"],["inbox","Families","chat",inboxCount()],["notices","Notices","mega"],["events","Events","event"],["-","Insights"],["analytics","Analytics","leaf"],["settings","Settings","gear"]];
   return [];
 }
 function navHTML(){
@@ -1158,6 +1170,7 @@ function navHTML(){
 
 /* Pip, the seed: a friendly guide on every page of the child's portal (brand voice: short, warm, praise effort) */
 const PIP_LINES={
+  wall:f=>[["Look what your friends made!","Tap an emoji to cheer them on."],[`Your garden friends are blooming, ${f}!`,"Ask your teacher to share your best work too."]],
   path:f=>[[`Hi ${f}! Ready for your next lesson?`,"Tap the glowing seed to start."],["Every lesson plants a new flower!","Let's grow your garden together."],["One step at a time. You've got this!","Pick up where you left off."]],
   words:f=>[["Say it with me!","Tap a card to see what it means."],[`Look at all your words, ${f}!`,"Each one is a seed you planted."],["Hmm, tricky word? Let's try again together.","Tap the speaker to hear it."]],
   play:f=>[["Let's play with your words!","Every game helps your garden grow."],[`Pick a game, ${f}!`,"Trying is what makes words bloom."]],
@@ -1297,6 +1310,7 @@ progress(){return parentProgress();},
 path(){return pathView();},
 library(){return libraryView();},
 fun(){return funView();},
+wall(){return wallView();},
 myspace(){return mySpaceView();},
 review(){return reviewView();},
 reports(){return reportsView();},
@@ -2437,6 +2451,7 @@ function parentSettings(){
     <div class="field"><label for="pr-l">Language for dates and numbers</label><select id="pr-l" name="loc">${LOC_LIST.map(([v,l])=>opt(v,l,(p.locale||"")===v)).join("")}</select><span class="hint">Changes how days, months and times are written. Lesson content stays in its own language.</span></div>
     <div class="field"><label for="pr-z">Time zone</label><select id="pr-z" name="tz">${TZ_LIST.map(([v,l])=>opt(v,l,(p.tz||"")===v)).join("")}</select><span class="hint">Class times are shown in this time zone. Now: ${esc(fmtTime(new Date()))} ${esc(tzName(new Date()))}</span></div>
     ${kidsList().length?`<p class="section-title">Daily learning time</p>${kidsList().map(k=>`<div class="field"><label for="lim-${esc(k.id)}">${esc(k.name)}</label><select id="lim-${esc(k.id)}" name="lim_${esc(k.id)}">${[0,20,30,45,60,90,120].map(n=>opt(String(n),n?`${n} minutes a day`:"No limit",(+((p.limits||{})[k.id])||0)===n)).join("")}</select></div>`).join("")}<span class="hint" style="margin-top:-8px">When the time is up, the learner's app pauses until tomorrow. Live classes can still be joined.</span>`:""}
+    <p class="section-title">Garden wall</p><label class="row consentrow"><input type="checkbox" name="wall" ${((p.consent||{}).wall)===true?"checked":""}> <span>Share my child's work on the Garden wall with families in the same class, after a teacher approves it. <i>Only their first name and level are shown. You can turn this off at any time.</i></span></label>
     <label class="row" style="font-weight:700;flex-wrap:nowrap"><input type="checkbox" name="gate" ${p.gate!==false?"checked":""} style="width:22px;height:22px;accent-color:var(--leafMid);flex:none"> Ask a grown-up question before opening Fees, Messages, Help and Settings</label><span class="small muted" style="margin-top:-6px">Keeps these areas away from children on a shared phone or tablet.</span>
     <p class="formerr" id="pr-err" hidden></p><button class="btn btn-primary" type="submit" style="align-self:flex-start">Save settings</button></form>
   <section class="card panel"><div class="ph"><h2>Children</h2></div>
@@ -2448,7 +2463,7 @@ function parentSettings(){
 document.addEventListener("submit",async e=>{
   if(e.target.id!=="prefs")return;e.preventDefault();const f=e.target.elements;const name=f.name.value.trim();
   if(!name){const er=document.getElementById("pr-err");er.textContent="Add your name.";er.hidden=false;return}
-  const ok=await save(()=>upsert("profiles/"+S.uid,{displayName:name,locale:f.loc.value||null,tz:f.tz.value||null,gate:f.gate.checked,limits:Object.fromEntries(kidsList().map(k=>[k.id,+((f["lim_"+k.id]||{}).value||0)]))}),"Settings saved");
+  const ok=await save(()=>upsert("profiles/"+S.uid,{displayName:name,locale:f.loc.value||null,tz:f.tz.value||null,...(f.wall&&f.wall.checked!==(((D.profiles[S.uid]||{}).consent||{}).wall===true)?{consent:{wall:f.wall.checked,wallAt:Date.now()}}:{}),gate:f.gate.checked,limits:Object.fromEntries(kidsList().map(k=>[k.id,+((f["lim_"+k.id]||{}).value||0)]))}),"Settings saved");
   if(ok){document.activeElement.blur();prefSig="~";render(true);}
 });
 
@@ -2685,7 +2700,7 @@ function studentHome(){
       <section class="daily ${dDone?"done":""}"><span class="dicon" aria-hidden="true">${dDone?"✅":"🎯"}</span><div class="grow"><b>Word quiz</b><span>${dDone?`Done today! You got ${progOf(uid).daily[ymd(new Date())]} of 5. Come back tomorrow.`:"5 quick questions, just for fun."}</span></div>${dDone?"":`<button class="btn btn-sun" data-act="startGame" data-id="daily">Play</button>`}</section>
       <div class="kidtiles">
         <button class="kidtile t1" data-go="path"><span>🗺️</span>Lesson path</button><button class="kidtile t2" data-go="words"><span>🃏</span>My words</button>
-        <button class="kidtile t3" data-go="play"><span>🎲</span>Games</button><button class="kidtile t4" data-go="me"><span>🏅</span>My stars</button>
+        <button class="kidtile t3" data-go="play"><span>🎲</span>Games</button><button class="kidtile t4" data-go="me"><span>🏅</span>My stars</button><button class="kidtile t5" data-go="wall"><span>🖼️</span>Garden wall</button>
       </div>
       ${stk.length?`<section class="card panel"><h2>From your teacher</h2>${stk.map(x=>`<div class="stickerrow"><span class="bigsticker">${esc(x.s)}</span><div><b>${esc(x.text||"Well done!")}</b><div class="small muted">${esc(x.who)} · ${esc(fmtDay(new Date(x.at)))}</div></div></div>`).join("")}</section>`:""}
       ${kidHwCard(L)}
@@ -2853,7 +2868,7 @@ function meView(){
 }
 function portTile(x,own){const media=x.kind==="audio"?`<div class="ptaudio">🎤<audio controls src="${esc(x.data)}"></audio></div>`:`<img src="${esc(x.data)}" alt="${esc(x.title||"Picture")}">`;
   const c=pcFor(x.id);
-  return `<figure class="ptile">${media}${c?`<div class="pcbox">${c.s?`<span class="bigsticker sm">${esc(c.s)}</span>`:""}${c.score?`<b>${c.score}/5</b>`:""} ${esc(c.text||"")}${c.voice?`<audio controls src="${esc(c.voice)}"></audio>`:""}</div>`:""}<figcaption><b>${esc(x.title||(x.kind==="audio"?"Recording":"Picture"))}</b><span>${esc(fmtDay(new Date(x.at)))}</span>${own?`<button class="iconbtn" data-act="delPort" data-id="${esc(x.id)}" aria-label="Delete">${ic("trash")}</button>`:""}</figcaption></figure>`;}
+  return `<figure class="ptile">${media}${c?`<div class="pcbox">${c.s?`<span class="bigsticker sm">${esc(c.s)}</span>`:""}${c.score?`<b>${c.score}/5</b>`:""} ${esc(c.text||"")}${c.voice?`<audio controls src="${esc(c.voice)}"></audio>`:""}</div>`:""}<figcaption><b>${esc(x.title||(x.kind==="audio"?"Recording":"Picture"))}</b><span>${esc(fmtDay(new Date(x.at)))}</span>${own?wallShareBtn(x):""}${own?`<button class="iconbtn" data-act="delPort" data-id="${esc(x.id)}" aria-label="Delete">${ic("trash")}</button>`:""}</figcaption></figure>`;}
 A.setAv=v=>{const [k,val]=v.split("|");const cur=(D.profiles[S.uid]||{}).avatar||{};save(()=>upsert("profiles/"+S.uid,{avatar:{...cur,[k]:val}}));};
 A.delPort=id=>openModal("Delete this?","<p>It will be removed from your portfolio.</p>",{danger:true,submitLabel:"Delete",done:"Deleted",onSubmit:async()=>{await S.db.doc(`kp/${S.uid}/x/${id}`).delete();await loadKp(S.uid,true);}});
 async function savePort(kind,title,data){if(data.length>240000)throw userErr("That's too big to save. Try a smaller picture or a shorter recording.");await S.db.collection(`kp/${S.uid}/x`).doc().set({kind,title:title||"",data,at:Date.now()});await earn({});await loadKp(S.uid,true);}
@@ -3080,10 +3095,11 @@ function reviewView(){
   const items=[];for(const L of ls){if(!L.uid)continue;for(const x of kpItems(L.uid))if(x.kind!=="rate"&&x.kind!=="join")items.push({x,L});}
   const sp=items.filter(i=>i.x.kind==="audio"), pf=items.filter(i=>i.x.kind!=="audio");
   const tile=({x,L})=>{const c=pcFor(x.id);return `<figure class="ptile">${x.kind==="audio"?`<div class="ptaudio">🎤<audio controls src="${esc(x.data)}"></audio></div>`:`<img src="${esc(x.data)}" alt="${esc(x.title||"")}">`}<figcaption><b>${esc(L.name)} · ${esc(x.title||"")}</b><span>${esc(fmtDay(new Date(x.at)))}</span>${c?`<span class="pill p-good">${c.score?`${c.score}/5 · `:""}${esc(c.s||"")} Reviewed</span>`:`<button class="btn btn-primary btn-sm" data-act="reviewItem" data-id="${esc(L.id+"|"+x.id)}">Review</button>`}${c?`<button class="btn btn-ghost btn-sm" data-act="reviewItem" data-id="${esc(L.id+"|"+x.id)}">Edit</button>`:""}</figcaption></figure>`;};
-  const tabs=`<div class="seg" role="tablist" aria-label="Review"><button class="tog ${tab==="speak"?"on":""}" data-act="rvT" data-id="speak">🎤 Speaking (${sp.filter(i=>!pcFor(i.x.id)).length})</button><button class="tog ${tab==="port"?"on":""}" data-act="rvT" data-id="port">🎨 Portfolio (${pf.filter(i=>!pcFor(i.x.id)).length})</button><button class="tog ${tab==="skills"?"on":""}" data-act="rvT" data-id="skills">📈 Skills and levels</button></div>`;
+  const tabs=`<div class="seg" role="tablist" aria-label="Review"><button class="tog ${tab==="speak"?"on":""}" data-act="rvT" data-id="speak">🎤 Speaking (${sp.filter(i=>!pcFor(i.x.id)).length})</button><button class="tog ${tab==="port"?"on":""}" data-act="rvT" data-id="port">🎨 Portfolio (${pf.filter(i=>!pcFor(i.x.id)).length})</button><button class="tog ${tab==="wall"?"on":""}" data-act="rvT" data-id="wall">🖼️ Garden wall (${pipTry(()=>wallAskedCount())||0})</button><button class="tog ${tab==="skills"?"on":""}" data-act="rvT" data-id="skills">📈 Skills and levels</button></div>`;
   let body;
   if(tab==="speak")body=sp.length?`<div class="port">${sp.sort((a,b)=>(!!pcFor(a.x.id))-(!!pcFor(b.x.id))||(b.x.at-a.x.at)).map(tile).join("")}</div>`:emptyBox("No recordings yet","When learners record themselves in Repeat after me and keep it, or add a recording to their portfolio, it shows here.","","pip");
   else if(tab==="port")body=pf.length?`<div class="port">${pf.sort((a,b)=>(!!pcFor(a.x.id))-(!!pcFor(b.x.id))||(b.x.at-a.x.at)).map(tile).join("")}</div>`:emptyBox("No portfolio work yet","Drawings and photos of work learners add appear here.","","bloom");
+  else if(tab==="wall")body=wallReviewHTML(items);
   else body=`<section class="card panel"><div class="tablewrap"><table><thead><tr><th>Learner</th><th>Level</th>${SKILLS.map(([,l])=>`<th>${l}</th>`).join("")}<th>Last assessed</th><th></th></tr></thead><tbody>${ls.map(L=>{const a=assessFor(L)[0];return `<tr><td><b>${esc(L.name)}</b><div class="small muted">${esc(L.stage||"")}</div></td><td>${esc(a&&a.level||"–")}${a&&a.levelUp?` <span class="pill p-sun">Level up!</span>`:""}</td>${SKILLS.map(([k])=>`<td class="num">${a&&a.skills?skillDots(a.skills[k]):"–"}</td>`).join("")}<td>${a?esc(fmtDay(new Date(a.at))):"Never"}</td><td><button class="btn btn-ghost btn-sm" data-act="assess" data-id="${esc(L.id)}">Assess</button></td></tr>`}).join("")}</tbody></table></div></section>`;
   return `<div class="head"><div><h1>Review</h1><p class="lede">Score pronunciation, comment on portfolio work and assess skills. Learners and parents see your feedback.</p></div></div>${tabs}${body}`;
 }
@@ -3581,7 +3597,7 @@ function adminSettings(){const tab=S.stab||"academy";const tabs=`<div class="seg
   else if(tab==="templates")body=`<form class="card panel" id="set-tpl" novalidate><h2>Message templates</h2><p class="small muted">Used for WhatsApp and email buttons across the classroom. Placeholders in {curly brackets} are filled in automatically.</p>
     ${[["feeDue","Fee due","{parent} {child} {amount} {month} {due} {academy}"],["feeOverdue","Fee overdue","{parent} {child} {amount} {month} {due} {academy}"],["invite","Parent invite","{academy} {child} {link} {code}"],["atRisk","At-risk check-in","{parent} {child} {reason} {academy}"],["reportReady","Report ready","{parent} {child} {report} {academy}"]].map(([k,l,ph])=>`<div class="field"><label for="tp-${k}">${l}</label><textarea id="tp-${k}" name="${k}" rows="3" maxlength="800">${esc(tpl(k))}</textarea><span class="hint">${esc(ph)}</span></div>`).join("")}
     <p class="small muted">Sending is done by you or the trainer, from WhatsApp or email. Push, SMS and automatic sending aren't connected.</p><button class="btn btn-primary" type="submit" style="align-self:flex-start">Save templates</button></form>`;
-  else if(tab==="privacy"){const ps=parentAccounts(),au=adList("audit");body=`<section class="card panel"><h2>Consent records</h2><p class="small muted">Parents agree to how their child's data is used the first time they open the classroom (version ${CONSENT_V}).</p>${ps.length?`<div class="tablewrap"><table style="min-width:520px"><thead><tr><th>Parent</th><th>Children</th><th>Data</th><th>Recordings</th><th>Photos and voice</th><th>Date</th></tr></thead><tbody>${ps.map(p=>{const cs=p.consent;return `<tr><td>${esc(p.displayName||accountName(p.uid))}</td><td class="small">${childrenOf(p.uid).map(learnerName).map(esc).join(", ")||"–"}</td><td>${cs?'<span class="pill p-good">Yes</span>':'<span class="pill p-mute">Pending</span>'}</td><td>${cs?(cs.rec?'<span class="pill p-good">Yes</span>':'<span class="pill p-warn">No</span>'):"–"}</td><td>${cs?(cs.photo?'<span class="pill p-good">Yes</span>':'<span class="pill p-warn">No</span>'):"–"}</td><td class="small">${cs?esc(fmtDay(new Date(cs.at))):"–"}</td></tr>`}).join("")}</tbody></table></div>`:`<p class="muted">No parent accounts yet.</p>`}</section>
+  else if(tab==="privacy"){const ps=parentAccounts(),au=adList("audit");body=`<section class="card panel"><h2>Consent records</h2><p class="small muted">Parents agree to how their child's data is used the first time they open the classroom (version ${CONSENT_V}).</p>${ps.length?`<div class="tablewrap"><table style="min-width:520px"><thead><tr><th>Parent</th><th>Children</th><th>Data</th><th>Recordings</th><th>Photos and voice</th><th>Garden wall</th><th>Date</th></tr></thead><tbody>${ps.map(p=>{const cs=p.consent;return `<tr><td>${esc(p.displayName||accountName(p.uid))}</td><td class="small">${childrenOf(p.uid).map(learnerName).map(esc).join(", ")||"–"}</td><td>${cs?'<span class="pill p-good">Yes</span>':'<span class="pill p-mute">Pending</span>'}</td><td>${cs?(cs.rec?'<span class="pill p-good">Yes</span>':'<span class="pill p-warn">No</span>'):"–"}</td><td>${cs?(cs.photo?'<span class="pill p-good">Yes</span>':'<span class="pill p-warn">No</span>'):"–"}</td><td>${cs&&cs.wall===true?'<span class="pill p-good">Shares</span>':cs&&cs.wall===false?'<span class="pill p-warn">No</span>':"–"}</td><td class="small">${cs?esc(fmtDay(new Date(cs.at))):"–"}</td></tr>`}).join("")}</tbody></table></div>`:`<p class="muted">No parent accounts yet.</p>`}</section>
    <section class="card panel"><h2>A family's data</h2><p class="small">Download everything stored about a child (for a parent's access request), or delete it when a family asks. Deleting can't be undone.</p><div class="row"><select class="inline" id="pv-l" aria-label="Learner" style="max-width:260px">${allLearners().map(L=>opt(L.id,L.name)).join("")}</select><button class="btn btn-ghost btn-sm" data-act="exportFamily">${ic("down")}Download data</button><button class="btn btn-danger btn-sm" data-act="deleteFamily">${ic("trash")}Delete data</button></div>
     <p class="small muted">India's DPDP Act needs a parent's consent for under-18s and lets them ask for access or deletion. GDPR and COPPA have similar rules for children abroad. This is not legal advice.</p></section>
    <section class="card panel"><div class="ph"><h2>Audit log</h2><button class="btn btn-ghost btn-sm" data-act="exportAudit">${ic("down")}Export</button></div>${au.length?`<div class="list">${au.slice(0,40).map(x=>`<div class="item" style="min-height:0;padding:8px 0"><div class="grow"><div class="t small">${esc(x.what)}</div><div class="s">${esc(x.detail||"")}</div></div><span class="small muted">${esc(fmtDay(new Date(x.at)))}, ${esc(fmtTime(new Date(x.at)))}</span></div>`).join("")}</div>`:`<p class="muted">Changes to learners, fees, refunds, payouts, exports and deletions are logged here.</p>`}</section>`;}
@@ -4068,6 +4084,7 @@ function pipUpdates(){
   else if(r==="trainer"||r==="admin"){
     const rv=pipTry(()=>toReview().length)||0;if(rv)add(`${rv} homework answer${rv===1?"":"s"} waiting for your reply`,"homework");
     const sp=pipTry(()=>speakingQueue().length)||0;if(sp)add(`${sp} speaking practice to review`,"review");
+    const wa=pipTry(()=>wallAskedCount())||0;if(wa)add(`${wa} learner${wa===1?"":"s"} asked to share work on the Garden wall`,"review");
     const ib=pipTry(()=>inboxCount())||0;if(ib)add(`${ib} family conversation${ib===1?"":"s"} need a reply`,"inbox",true);
     if(r==="admin"){const wp=pipTry(()=>waitingParents().length)||0;if(wp)add(`${wp} account${wp===1?"":"s"} waiting to be connected`,"parents",true);
       const rm=pipTry(()=>remindersToday().length)||0;if(rm)add(`${rm} fee reminder${rm===1?"":"s"} due today`,"fees");
@@ -4411,6 +4428,62 @@ function dtWeek(uid){const dt=progOf(uid).dt||{};const t=Date.now()-7*864e5;retu
 
 document.addEventListener("input",e=>{if(e.target&&e.target.id==="dt-in"&&S.dtPlan)S.dtPlan.typed=e.target.value;});
 document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target&&e.target.id==="dt-in"){e.preventDefault();e.target.blur();A.dtCheck();}});
+/* ================= Phase 4: Garden wall (weekly showcase, teacher-approved) ================= */
+const WALL_E=["❤️","👏","🌟","😊","🌸"];
+let wallSub=false;
+function wallLoad(){if(wallSub||!S.db)return;wallSub=true;D.wall=D.wall||{};try{S.db.collection("wall").onSnapshot(s=>{const o={};for(const d of s.docs)o[d.id]=d.data();D.wall=o;schedule();},()=>{});}catch(e){}}
+const wallId=(uid,iid)=>String(uid+"_"+iid).replace(/[^A-Za-z0-9_-]/g,"").slice(0,80);
+function wallPosts(){wallLoad();return entries(D.wall).filter(x=>x.status==="approved").sort((a,b)=>(b.at||0)-(a.at||0));}
+const wallRc=x=>{if(x.rc)return x.rc;const o={};for(const e of Object.values(x.reacts||{}))o[e]=(o[e]||0)+1;return o;};
+const wallMine=x=>x.mine!==undefined?x.mine:(x.reacts||{})[S.uid];
+function wkStart(t){const d=new Date(t);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d;}
+function wallShares(L){const cs=parentsOf(L).map(u=>((D.profiles[u]||{}).consent||{}).wall);return cs.includes(true)&&!cs.includes(false);}
+function wallCard(x){const staff=isStaff(),rc=wallRc(x),mine=wallMine(x);
+  const media=x.kind==="audio"?`<div class="ptaudio">🎤<audio controls preload="none" src="${esc(x.data)}"></audio></div>`:`<img src="${esc(x.data)}" alt="${esc(x.title||"Picture")} by ${esc(x.name||"a learner")}" loading="lazy">`;
+  return `<figure class="wpost ${x.hidden?"hid":""}">${media}<figcaption><div class="row" style="gap:6px;flex-wrap:nowrap"><b class="grow">${esc(x.title||(x.kind==="audio"?"A recording":"A picture"))}</b>${x.hidden?`<span class="pill p-mute">Hidden</span>`:""}</div>
+    <span class="small muted">${esc(x.name||"")}${x.stage?` · ${esc(x.stage)}`:""} · ${esc(fmtDay(new Date(x.at)))}</span>
+    <div class="wreact" role="group" aria-label="Cheer for this">${WALL_E.map(e=>`<button type="button" class="wr ${mine===e?"on":""}" data-act="wallReact" data-id="${esc(x.id)}|${e}" aria-pressed="${mine===e}" aria-label="${e}${rc[e]?`, ${rc[e]}`:""}">${e}${rc[e]?`<i>${rc[e]}</i>`:""}</button>`).join("")}</div>
+    ${staff?`<div class="row" style="gap:6px">${x.hidden?`<button class="btn btn-ghost btn-sm" data-act="wallHide" data-id="${esc(x.id)}|0">Show again</button>`:`<button class="btn btn-ghost btn-sm" data-act="wallHide" data-id="${esc(x.id)}|1">${ic("x")}Hide</button>`}<span class="small muted">${pipTry(()=>wallShares(learner(x.lid)))?"Class can see":"Only their family sees this"}</span></div>`:""}</figcaption></figure>`;}
+function wallView(){
+  const r=role(), staff=isStaff(), kid=r==="student";let ps=wallPosts();if(!staff)ps=ps.filter(x=>!x.hidden);
+  const groups=[];for(const x of ps){const w=wkStart(x.at).getTime();let g=groups.find(y=>y.w===w);if(!g)groups.push(g={w,xs:[]});g.xs.push(x);}
+  const thisW=wkStart(Date.now()).getTime(), label=w=>w===thisW?"This week":w===thisW-7*864e5?"Last week":`Week of ${fmtDay(new Date(w))}`;
+  const lede=kid?"The best work from your class this week, chosen by your teachers.":r==="parent"?"Work from your child's class, chosen by the teachers. You see your own child's posts, and posts from families who chose to share.":"Post learners' best work for families. Families in the same course see it only when that child's parents agree; otherwise only the child's own family sees it.";
+  let banner="";
+  if(r==="parent"){const c=((D.profiles[S.uid]||{}).consent||{}).wall;const ks=kidsList();
+    if(c===undefined&&ks.length)banner=`<section class="alert a-sky"><b>Share ${esc(ks.map(k=>firstOf(k.name)).join(" and "))}'s work with the class?</b><span class="small">You choose in Settings › Garden wall. It's off until you turn it on.</span><span class="spacer"></span><button class="btn btn-ghost btn-sm" data-go="settings">Choose</button></section>`;}
+  const head=`<div class="head"><div><h1>Garden wall</h1><p class="lede">${lede}</p></div>${staff?`<button class="btn btn-primary" data-act="wallGoPost">${ic("plus")}Post work</button>`:""}</div>`;
+  if(!groups.length)return head+banner+emptyBox(kid?"Nothing on the wall yet":"No posts yet",kid?"When your teacher shares drawings and recordings, they bloom here!":staff?"Open Review › Garden wall to post drawings, photos and recordings from learners' portfolios.":"When teachers share work from your child's class, it appears here each week.","","bloom");
+  return head+banner+groups.map(g=>`<section class="panel"><h2>${esc(label(g.w))} <span class="pill p-mute num">${g.xs.length}</span></h2><div class="wgrid">${g.xs.map(wallCard).join("")}</div></section>`).join("");}
+A.wallReact=v=>{const [id,e]=v.split("|");const x=(D.wall||{})[id];if(!x||!window.LL_sb)return;const cur=wallMine(x),next=cur===e?null:e;
+  if(x.rc||x.mine!==undefined){const rc={...(x.rc||{})};if(cur)rc[cur]=Math.max(0,(rc[cur]||1)-1);if(next)rc[next]=(rc[next]||0)+1;x.rc=rc;x.mine=next;}
+  else{x.reacts={...(x.reacts||{})};if(next)x.reacts[S.uid]=next;else delete x.reacts[S.uid];}
+  render(true);window.LL_sb.rpc("ll_wall_react",{p:"wall/"+id,e:next}).then(r=>{if(r&&r.error)toast("Couldn't save that. Try again.",true);},()=>toast("Couldn't save that. Try again.",true));};
+A.wallHide=v=>{const [id,f]=v.split("|");save(()=>S.db.doc("wall/"+id).update({hidden:f==="1",hiddenBy:S.uid,hiddenAt:Date.now()}),f==="1"?"Hidden from families":"Showing again");};
+/* kid: ask to share a portfolio item */
+function wallShareBtn(x){if(realRole()!=="student"||x.kind==="rate"||x.kind==="join")return "";wallLoad();const p=(D.wall||{})[wallId(S.uid,x.id)];
+  if(p&&p.status==="approved")return `<span class="pill p-good">On the Garden wall 🌟</span>`;
+  if(x.wall==="asked")return `<span class="pill p-sun">Waiting for your teacher</span>`;
+  return `<button class="btn btn-ghost btn-sm" data-act="wallAsk" data-id="${esc(x.id)}">${ic("wall")}Share on the wall</button>`;}
+A.wallAsk=id=>{if(realRole()!=="student")return;save(async()=>{await S.db.doc(`kp/${S.uid}/x/${id}`).update({wall:"asked",wallAt:Date.now()});await loadKp(S.uid,true);},"Your teacher will take a look!");};
+/* teachers: approve / post / decline */
+function wallReviewHTML(items){wallLoad();const W=D.wall||{};const done=i=>W[wallId(i.L.uid,i.x.id)];
+  const asked=items.filter(i=>i.x.wall==="asked"&&!done(i)).sort((a,b)=>(a.x.wallAt||0)-(b.x.wallAt||0));
+  const recent=items.filter(i=>i.x.wall!=="asked"&&!done(i)&&Date.now()-(i.x.at||0)<30*864e5).sort((a,b)=>b.x.at-a.x.at).slice(0,24);
+  const tile=(i,ask)=>`<figure class="ptile">${i.x.kind==="audio"?`<div class="ptaudio">🎤<audio controls preload="none" src="${esc(i.x.data)}"></audio></div>`:`<img src="${esc(i.x.data)}" alt="${esc(i.x.title||"")}">`}<figcaption><b>${esc(i.L.name)} · ${esc(i.x.title||(i.x.kind==="audio"?"Recording":"Picture"))}</b><span>${esc(fmtDay(new Date(i.x.at)))} · ${wallShares(i.L)?"Class can see":"Only their family will see"}</span>
+    <div class="row" style="gap:6px"><button class="btn btn-primary btn-sm" data-act="wallPost" data-id="${esc(i.L.id+"|"+i.x.id)}">${ic("check")}Post</button>${ask?`<button class="btn btn-ghost btn-sm" data-act="wallNo" data-id="${esc(i.L.id+"|"+i.x.id)}">Not this time</button>`:""}</div></figcaption></figure>`;
+  const live=wallPosts().filter(x=>Date.now()-x.at<7*864e5);
+  return `<p class="small muted">Learners can ask to share work from their portfolio. Posting puts it on the Garden wall for this week. Families in the same course see it only when the child's parents agree.</p>
+  <section class="panel"><h2>Asked to share <span class="pill p-sun num">${asked.length}</span></h2>${asked.length?`<div class="port">${asked.map(i=>tile(i,true)).join("")}</div>`:`<p class="muted">No requests right now.</p>`}</section>
+  <section class="panel"><h2>Recent work you could post</h2>${recent.length?`<div class="port">${recent.map(i=>tile(i,false)).join("")}</div>`:`<p class="muted">Nothing new in the last 30 days.</p>`}</section>
+  <div class="row"><button class="btn btn-ghost" data-go="wall">${ic("wall")}Open the Garden wall (${live.length} this week)</button></div>`;}
+A.wallPost=v=>{const [lid,iid]=v.split("|");const L=learner(lid);if(!L||!L.uid)return;const x=kpItems(L.uid).find(y=>y.id===iid);if(!x)return;
+  save(()=>S.db.doc("wall/"+wallId(L.uid,iid)).set({lid,uid:L.uid,item:iid,name:firstOf(L.name),stage:L.stage||"",courses:learnerCourses(L),kind:x.kind,title:x.title||"",data:x.data,made:x.at||null,at:Date.now(),by:S.uid,status:"approved",reacts:{}}),"Posted on the Garden wall 🌸");};
+A.wallNo=v=>{const [lid,iid]=v.split("|");const L=learner(lid);if(!L||!L.uid)return;
+  save(()=>S.db.doc("wall/"+wallId(L.uid,iid)).set({lid,uid:L.uid,item:iid,status:"declined",at:Date.now(),by:S.uid}),"Kept in the portfolio");};
+function wallAskedCount(){let n=0;const W=D.wall||{};const ls=role()==="admin"?activeLearners():teacherLearners(myTid());for(const L of ls){if(!L.uid)continue;for(const x of kpItems(L.uid))if(x.wall==="asked"&&!W[wallId(L.uid,x.id)])n++;}return n;}
+A.wallGoPost=()=>{S.rvT="wall";go("review");};
+
 /* ================= events ================= */
 document.addEventListener("click",e=>{
   if(e.target.closest("#modal-root"))return;
