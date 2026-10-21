@@ -797,6 +797,13 @@ body.boarding{overflow:hidden}
 .saystars{font-size:2.2rem;letter-spacing:4px;line-height:1}.saystars span{color:var(--line)}.saystars span.on{color:#E8A400}
 .sayheard,.saymsg{margin:0}.saymsg{font-weight:700}
 #pipfab{z-index:48}
+#recpill{position:fixed;left:50%;transform:translateX(-50%);top:14px;z-index:90;background:var(--soil);color:#fff;border-radius:999px;padding:10px 18px;font-weight:700;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+#recpill[hidden]{display:none}
+.rdot{width:12px;height:12px;border-radius:50%;background:#E8492F;animation:rpulse 1s infinite}
+@keyframes rpulse{50%{opacity:.35}}
+.smeter{display:flex;flex-direction:column;gap:6px;padding:10px 0;border-bottom:1px solid var(--line)}
+.smeter .bar{height:12px;border-radius:99px;background:var(--soft);overflow:hidden}.smeter .bar i{display:block;height:100%;background:var(--leafMid)}
+.smeter.warn .bar i{background:#E8A400}.smeter.bad .bar i{background:var(--bad)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -2313,7 +2320,7 @@ function parentProgress(){
   const topics=kidHistory(L).filter(h=>h.st!=="absent"&&(h.topic||h.objectives));
   const speak=canSpeak();
   return `<div class="head"><div><h1>Progress</h1><p class="lede">${esc(firstOf(L.name))}'s level, course completion, skills and every word learned so far.</p></div></div>
-  ${kidBar()}
+  ${kidBar()}${memoriesHTML(L)}
   ${!uid?`<section class="alert a-sun"><b>${esc(firstOf(L.name))} hasn't signed in yet.</b><span class="small">Lessons and words show up once they start using Little Lingos.</span></section>`:""}
   <div class="stats">
     <div class="stat f" style="background:var(--leafSoft)"><b>${esc(L.stage||"Seeds")}</b><span>Level</span><small>${esc(stageLabel(L.stage))}</small></div>
@@ -2686,12 +2693,12 @@ A.clearPic=()=>openModal("Turn off secret pictures?","<p>Anyone using this accou
 const REC={mr:null,stream:null,t:null};
 const canRecord=()=>!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia&&window.MediaRecorder);
 async function startRec(maxSec,onDone){
-  try{REC.stream=await navigator.mediaDevices.getUserMedia({audio:true});}catch(e){toast("Pip can't hear you. Allow the microphone for this page, then try again.",true);return false}
+  try{REC.stream=await navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true}});}catch(e){toast("Pip can't hear you. Allow the microphone for this page, then try again.",true);return false}
   let opts={};for(const m of ["audio/webm;codecs=opus","audio/mp4","audio/ogg;codecs=opus"]){if(MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported(m)){opts={mimeType:m,audioBitsPerSecond:24000};break}}
   const chunks=[];const mr=new MediaRecorder(REC.stream,opts);REC.mr=mr;
   mr.ondataavailable=e=>{if(e.data&&e.data.size)chunks.push(e.data)};
-  mr.onstop=()=>{clearTimeout(REC.t);try{REC.stream.getTracks().forEach(t=>t.stop())}catch{}REC.mr=null;const blob=new Blob(chunks,{type:mr.mimeType||"audio/webm"});const fr=new FileReader();fr.onload=()=>onDone(fr.result,blob.size);fr.readAsDataURL(blob);};
-  mr.start();REC.t=setTimeout(()=>{if(mr.state==="recording")mr.stop()},maxSec*1000);return true;
+  mr.onstop=()=>{clearTimeout(REC.t);recPillOff();try{REC.stream.getTracks().forEach(t=>t.stop())}catch{}REC.mr=null;const blob=new Blob(chunks,{type:mr.mimeType||"audio/webm"});const fr=new FileReader();fr.onload=()=>onDone(fr.result,blob.size);fr.readAsDataURL(blob);};
+  mr.start();recPill(maxSec);REC.t=setTimeout(()=>{if(mr.state==="recording")mr.stop()},maxSec*1000);return true;
 }
 const stopRec=()=>{if(REC.mr&&REC.mr.state==="recording")REC.mr.stop();};
 const SR=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -2723,7 +2730,7 @@ function drillModalOld(){const d=S.drill;if(!d)return;const x=d.ws[d.i];
     prev:()=>{saveDrillClip();d.i--;d.clip=null;d.heard=null;d.keep=false;drillModal();},
     next:()=>{saveDrillClip();if(d.i<d.ws.length-1){d.i++;d.clip=null;d.heard=null;d.keep=false;drillModal();}else{S.drill=null;closeModal();toast("Great speaking! 🎤");}}}});}
 function saveDrillClip(){const d=S.drill;if(!d||!d.keep||!d.clip)return;if(d.size>190000){toast("That recording is too long to keep.",true);return}
-  const x=d.ws[d.i];S.db.collection(`kp/${S.uid}/x`).doc().set({kind:"audio",title:`Saying “${x.w}”`,data:d.clip,at:Date.now(),...(d.stars?{pipStars:d.stars}:{})}).then(()=>loadKp(S.uid,true)).catch(handleErr);}
+  const x=d.ws[d.i];S.db.collection(`kp/${S.uid}/x`).doc().set({kind:"audio",title:`Saying “${x.w}”`,data:d.clip,at:Date.now(),act:"drill",...(d.stars?{pipStars:d.stars}:{})}).then(()=>prunePractice(S.uid,"drill")).catch(handleErr);}
 
 /* ---------- Garden (home) ---------- */
 function studentHome(){
@@ -2925,9 +2932,9 @@ A.setAv=v=>{const [k,val]=v.split("|");const cur=(D.profiles[S.uid]||{}).avatar|
 A.delPort=id=>openModal("Delete this?","<p>It will be removed from your portfolio.</p>",{danger:true,submitLabel:"Delete",done:"Deleted",onSubmit:async()=>{await S.db.doc(`kp/${S.uid}/x/${id}`).delete();await loadKp(S.uid,true);}});
 async function savePort(kind,title,data){if(data.length>240000)throw userErr("That's too big to save. Try a smaller picture or a shorter recording.");await S.db.collection(`kp/${S.uid}/x`).doc().set({kind,title:title||"",data,at:Date.now()});await earn({});await loadKp(S.uid,true);}
 function shrinkImage(src,maxW){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>{const sc=Math.min(1,maxW/Math.max(img.width,img.height));const cv=document.createElement("canvas");cv.width=Math.round(img.width*sc);cv.height=Math.round(img.height*sc);const cx=cv.getContext("2d");cx.fillStyle="#fff";cx.fillRect(0,0,cv.width,cv.height);cx.drawImage(img,0,0,cv.width,cv.height);let q=.8,out=cv.toDataURL("image/jpeg",q);while(out.length>230000&&q>.3){q-=.1;out=cv.toDataURL("image/jpeg",q);}res(out);};img.onerror=rej;img.src=src;});}
-A.addPhoto=()=>{const inp=document.createElement("input");inp.type="file";inp.accept="image/*";inp.onchange=()=>{const f=inp.files&&inp.files[0];if(!f)return;const fr=new FileReader();fr.onload=async()=>{try{const data=await shrinkImage(fr.result,1000);openModal("Add to my portfolio",`<img src="${esc(data)}" alt="" style="max-width:100%;border-radius:16px"><div class="field"><label for="pp-t">Name it</label><input type="text" id="pp-t" name="t" maxlength="60" placeholder="My worksheet"></div>`,{submitLabel:"Save",done:"Saved to your portfolio! 🎨",onSubmit:async fm=>{await savePort("photo",fm.t.value.trim(),data)}});}catch{toast("Couldn't open that picture.",true)}};fr.readAsDataURL(f);};inp.click();};
+A.addPhoto=()=>{const inp=document.createElement("input");inp.type="file";inp.accept="image/*";inp.onchange=()=>{const f=inp.files&&inp.files[0];if(!f)return;const fr=new FileReader();fr.onload=async()=>{try{const data=await shrinkTo(fr.result,1280,200000);openModal("Add to my portfolio",`<img src="${esc(data)}" alt="" style="max-width:100%;border-radius:16px"><div class="field"><label for="pp-t">Name it</label><input type="text" id="pp-t" name="t" maxlength="60" placeholder="My worksheet"></div>`,{submitLabel:"Save",done:"Saved to your portfolio! 🎨",onSubmit:async fm=>{await savePort("photo",fm.t.value.trim(),data)}});}catch{toast("Couldn't open that picture.",true)}};fr.readAsDataURL(f);};inp.click();};
 A.addAudio=()=>{let clip=null,rec=false;const draw=()=>openModal("Record for my portfolio",`<p>Say a word, sing a song or tell a little story. Up to 30 seconds.</p><button type="button" class="btn ${rec?"btn-danger":"btn-primary"} btn-big" data-mact="rec">${rec?"■ Stop":"🎤 Start recording"}</button>${clip?`<audio controls src="${esc(clip)}"></audio>`:""}<div class="field"><label for="pa-t">Name it</label><input type="text" id="pa-t" name="t" maxlength="60" placeholder="My song"></div>`,
-  {noFocus:true,submitLabel:"Save",done:"Saved to your portfolio! 🎤",actions:{rec:async()=>{if(rec){stopRec();return}const ok=await startRec(30,(u)=>{rec=false;clip=u;draw();});if(ok){rec=true;draw();}}},onSubmit:async f=>{if(!clip)throw userErr("Record something first.");await savePort("audio",f.t.value.trim(),clip);await earn({recs:(+progOf(S.uid).recs||0)+1});}});draw();};
+  {noFocus:true,submitLabel:"Save",done:"Saved to your portfolio! 🎤",actions:{rec:async()=>{if(rec){stopRec();return}const ok=await startRec(recLimit(),(u)=>{rec=false;clip=u;draw();});if(ok){rec=true;draw();}}},onSubmit:async f=>{if(!clip)throw userErr("Record something first.");await savePort("audio",f.t.value.trim(),clip);await earn({recs:(+progOf(S.uid).recs||0)+1});}});draw();};
 const PAD={c:"#2E2219",w:8,tool:"pen",used:false,hist:[]};
 function padTools(){const cols=["#2E2219","#E8492F","#FFC94A","#2F8F46","#4BA3E3","#F7A8C4","#8A5A2B","#7CC243"];
   return `<div class="padbar"><div class="padgrp" role="group" aria-label="Tool"><button type="button" class="padbtn ${PAD.tool==="pen"?"on":""}" data-mact="tool" data-id="pen" aria-pressed="${PAD.tool==="pen"}">${ic("pencil")}Pen</button><button type="button" class="padbtn ${PAD.tool==="eraser"?"on":""}" data-mact="tool" data-id="eraser" aria-pressed="${PAD.tool==="eraser"}"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 21h10M5.5 14.5l7-7a2 2 0 0 1 2.8 0l3.2 3.2a2 2 0 0 1 0 2.8L13 19H8.5l-3-3a1 1 0 0 1 0-1.5z"/></svg>Eraser</button></div>
@@ -2953,7 +2960,7 @@ A.drawPad=()=>{PAD.used=false;PAD.hist=[];PAD.tool="pen";
      cv.addEventListener("pointerdown",e=>{e.preventDefault();down=true;last=pt(e);cv.setPointerCapture(e.pointerId);PAD.hist.push(cx.getImageData(0,0,cv.width,cv.height));if(PAD.hist.length>25)PAD.hist.shift();PAD.used=true;dot(last);});
      cv.addEventListener("pointermove",e=>{if(!down)return;const p=pt(e);cx.strokeStyle=PAD.tool==="eraser"?"#fff":PAD.c;cx.lineWidth=(PAD.tool==="eraser"?PAD.w*2.5:PAD.w)*(cv.width/cv.getBoundingClientRect().width);cx.beginPath();cx.moveTo(...last);cx.lineTo(...p);cx.stroke();last=p;});
      const up=()=>{down=false};cv.addEventListener("pointerup",up);cv.addEventListener("pointercancel",up);cv.addEventListener("pointerleave",up);},
-   onSubmit:async f=>{if(!PAD.used)throw userErr("Draw something first!");const cv=document.getElementById("pad");const sm=document.createElement("canvas");sm.width=800;sm.height=560;sm.getContext("2d").drawImage(cv,0,0,800,560);let q=.85,out=sm.toDataURL("image/jpeg",q);while(out.length>230000&&q>.3){q-=.1;out=sm.toDataURL("image/jpeg",q);}PAD.used=false;await savePort("draw",f.t.value.trim()||"My drawing",out);}});};
+   onSubmit:async f=>{if(!PAD.used)throw userErr("Draw something first!");const cv=document.getElementById("pad");const sm=document.createElement("canvas");sm.width=800;sm.height=560;sm.getContext("2d").drawImage(cv,0,0,800,560);const out=await shrinkTo(sm.toDataURL("image/png"),1280,150000);PAD.used=false;await savePort("draw",f.t.value.trim()||"My drawing",out);}});};
 A.cert=cid=>{const L=(isParent()?curKid():myLearner())||curKid();if(!L)return;const ct=certsOf(L).find(x=>x.cid===cid);if(!ct)return;
   const html=`<div class="printdoc certdoc"><div class="cd-in"><span class="cd-t">${esc((CFG().cert||{}).title||"CERTIFICATE OF BLOOMING")}</span><b class="cd-n">${esc(L.name)}</b><span>${ct.level?"has reached":"has finished every lesson in"}</span><b class="cd-c">${esc(ct.c.title)}</b><span>${esc(stageLabel(ct.c.level))} · ${esc(fmtDay(new Date(ct.at)))}</span><span class="cd-f">🌸 🌻 🌷</span>${(CFG().cert||{}).sign?`<span class="cd-sig">${esc(CFG().cert.sign)}${CFG().cert.role?`<i>${esc(CFG().cert.role)}</i>`:""}</span>`:""}<span class="cd-s">${esc((CFG().cert||{}).foot||"Little Lingos · Plant a word. Watch it grow.")}</span></div></div>`;
   printOrDownload("Certificate",html,`certificate-${firstOf(L.name).toLowerCase()}.html`);};
@@ -3161,11 +3168,12 @@ A.reviewItem=v=>{const [lid,iid]=v.split("|");const L=learner(lid);const x=L&&(D
   openModal(`${isA?"Speaking":"Portfolio"} · ${firstOf(L.name)}`,`${isA?`<audio controls src="${esc(x.data)}"></audio>`:`<img src="${esc(x.data)}" alt="" style="max-width:100%;border-radius:16px">`}<p class="small muted">${esc(x.title||"")} · ${esc(fmtDay(new Date(x.at)))}</p>
    ${isA?`<fieldset class="field" style="border:0;padding:0;margin:0"><legend class="lbl" style="margin-bottom:8px">Pronunciation score</legend><div class="seg">${[1,2,3,4,5].map(n=>`<label><input type="radio" name="sc" value="${n}" ${(+c.score||4)===n?"checked":""}><span class="present">${n}</span></label>`).join("")}</div><span class="hint">1 = needs lots of practice · 5 = clear and confident</span></fieldset>`:""}
    <div class="stickpick sm"><label><input type="radio" name="s" value="" ${!c.s?"checked":""}><span>–</span></label>${STICKERS.map(sx=>`<label><input type="radio" name="s" value="${sx}" ${c.s===sx?"checked":""}><span>${sx}</span></label>`).join("")}</div>
+   <label class="row consentrow"><input type="checkbox" name="keep" ${c.keep?"checked":""}> <span><b>Keep</b> this one. It's never tidied away and goes first in highlight reels.</span></label>
    <div class="field"><label for="rv-t">Comment</label><textarea id="rv-t" name="t" rows="2" maxlength="600" placeholder="${isA?"Great “th” sound! Try saying it a little slower.":"I love the colours!"}">${esc(c.text||"")}</textarea></div>
    ${canRecord()?`<div class="row"><button type="button" class="btn btn-ghost btn-sm" data-mact="vrec">🎤 Voice note</button><span class="small muted" id="rv-vs">${c.voice?"Voice note sent":"Up to 30 seconds"}</span></div><div id="rv-vp">${c.voice?`<audio controls src="${esc(c.voice)}"></audio>`:""}</div>`:""}`,
   {wide:true,noFocus:true,submitLabel:"Send feedback",done:"Feedback sent",actions:{vrec:async(_,btn)=>{if(REC.mr){stopRec();return}const ok=await startRec(30,(u,size)=>{btn.textContent="🎤 Record again";const st=document.getElementById("rv-vs");if(size>190000){if(st)st.textContent="Too long";return}voice=u;if(st)st.textContent="Ready to send";const pl=document.getElementById("rv-vp");if(pl)pl.innerHTML=`<audio controls src="${esc(u)}"></audio>`;});if(ok)btn.textContent="■ Stop";}},
-   onSubmit:async f=>{const t=f.t.value.trim(),s=f.s.value,sc=f.sc?+f.sc.value:0;if(!t&&!s&&!sc&&!voice)throw userErr("Add a comment, sticker, score or voice note.");
-     await S.db.doc(`tw/${S.uid}/x/pc-${iid}`).set({kind:"pc",lid,item:iid,text:t,s,score:sc||null,voice:voice||c.voice||null,at:Date.now()});}});};
+   onSubmit:async f=>{const t=f.t.value.trim(),s=f.s.value,sc=f.sc?+f.sc.value:0;if(!t&&!s&&!sc&&!voice&&!f.keep.checked&&!c.keep)throw userErr("Add a comment, sticker, score or voice note.");
+     await S.db.doc(`tw/${S.uid}/x/pc-${iid}`).set({kind:"pc",lid,item:iid,text:t,s,score:sc||null,voice:voice||c.voice||null,keep:!!f.keep.checked,at:Date.now()});}});};
 A.assess=lid=>{const L=learner(lid);if(!L)return;const a=assessFor(L)[0]||{};const sk=a.skills||{};const nxt=NEXT_STAGE[L.stage];
   openModal("Skill assessment · "+L.name,`${SKILLS.map(([k,l])=>`<div class="row" style="justify-content:space-between"><b>${l}</b><div class="seg">${[1,2,3,4,5].map(n=>`<label><input type="radio" name="k_${k}" value="${n}" ${(+sk[k]||3)===n?"checked":""}><span class="present">${n}</span></label>`).join("")}</div></div>`).join("")}
    <div class="field"><label for="as-l">Level</label><input type="text" id="as-l" name="level" maxlength="40" value="${esc(a.level||(L.stage||"Seeds")+" · Level 1")}" placeholder="e.g. Seeds · Level 2"></div>
@@ -3618,7 +3626,7 @@ A.atab=v=>{S.atab=v;render(true);};
 const DEF_REWARDS={lesson:3,attend:1,badges:{garden5:5,garden20:20,words10:10,words50:50,streak3:3,streak7:7,hw5:5,class8:8}};
 const RW=()=>{const r=CFG().rewards||{};return {...DEF_REWARDS,...r,badges:{...DEF_REWARDS.badges,...(r.badges||{})}};};
 const CONSENT_V=1;
-function adminSettings(){const tab=S.stab||"academy";const tabs=`<div class="seg wrap" role="tablist" aria-label="Settings">${[["academy","Academy"],["billing","Billing"],["rules","Rules"],["templates","Messages"],["privacy","Privacy"],["data","Import / export"]].map(([k,l])=>`<button class="tog ${tab===k?"on":""}" role="tab" aria-selected="${tab===k}" data-act="stab" data-id="${k}">${l}</button>`).join("")}</div>`;
+function adminSettings(){const tab=S.stab||"academy";const tabs=`<div class="seg wrap" role="tablist" aria-label="Settings">${[["academy","Academy"],["billing","Billing"],["rules","Rules"],["templates","Messages"],["privacy","Privacy"],["storage","Storage"],["data","Import / export"]].map(([k,l])=>`<button class="tog ${tab===k?"on":""}" role="tab" aria-selected="${tab===k}" data-act="stab" data-id="${k}">${l}</button>`).join("")}</div>`;
   const c=CFG(),a=c.academy||{},s=AS();let body="";
   if(tab==="academy")body=`<form class="card panel" id="set-academy" novalidate><h2>Academy and branding</h2>
     <div class="two"><div class="field"><label for="sa-n">Academy name</label><input type="text" id="sa-n" name="name" maxlength="80" value="${esc(a.name||"Little Lingos")}"></div><div class="field"><label for="sa-tg">Tagline</label><input type="text" id="sa-tg" name="tagline" maxlength="80" value="${esc(a.tagline||"Plant a word. Watch it grow.")}"></div></div>
@@ -3649,6 +3657,7 @@ function adminSettings(){const tab=S.stab||"academy";const tabs=`<div class="seg
   else if(tab==="templates")body=`<form class="card panel" id="set-tpl" novalidate><h2>Message templates</h2><p class="small muted">Used for WhatsApp and email buttons across the classroom. Placeholders in {curly brackets} are filled in automatically.</p>
     ${[["feeDue","Fee due","{parent} {child} {amount} {month} {due} {academy}"],["feeOverdue","Fee overdue","{parent} {child} {amount} {month} {due} {academy}"],["invite","Parent invite","{academy} {child} {link} {code}"],["atRisk","At-risk check-in","{parent} {child} {reason} {academy}"],["reportReady","Report ready","{parent} {child} {report} {academy}"]].map(([k,l,ph])=>`<div class="field"><label for="tp-${k}">${l}</label><textarea id="tp-${k}" name="${k}" rows="3" maxlength="800">${esc(tpl(k))}</textarea><span class="hint">${esc(ph)}</span></div>`).join("")}
     <p class="small muted">Sending is done by you or the trainer, from WhatsApp or email. Push, SMS and automatic sending aren't connected.</p><button class="btn btn-primary" type="submit" style="align-self:flex-start">Save templates</button></form>`;
+  else if(tab==="storage")body=storageHTML();
   else if(tab==="privacy"){const ps=parentAccounts(),au=adList("audit");body=`<section class="card panel"><h2>Consent records</h2><p class="small muted">Parents agree to how their child's data is used the first time they open the classroom (version ${CONSENT_V}).</p>${ps.length?`<div class="tablewrap"><table style="min-width:520px"><thead><tr><th>Parent</th><th>Children</th><th>Data</th><th>Recordings</th><th>Photos and voice</th><th>Garden wall</th><th>Date</th></tr></thead><tbody>${ps.map(p=>{const cs=p.consent;return `<tr><td>${esc(p.displayName||accountName(p.uid))}</td><td class="small">${childrenOf(p.uid).map(learnerName).map(esc).join(", ")||"–"}</td><td>${cs?'<span class="pill p-good">Yes</span>':'<span class="pill p-mute">Pending</span>'}</td><td>${cs?(cs.rec?'<span class="pill p-good">Yes</span>':'<span class="pill p-warn">No</span>'):"–"}</td><td>${cs?(cs.photo?'<span class="pill p-good">Yes</span>':'<span class="pill p-warn">No</span>'):"–"}</td><td>${cs&&cs.wall===true?'<span class="pill p-good">Shares</span>':cs&&cs.wall===false?'<span class="pill p-warn">No</span>':"–"}</td><td class="small">${cs?esc(fmtDay(new Date(cs.at))):"–"}</td></tr>`}).join("")}</tbody></table></div>`:`<p class="muted">No parent accounts yet.</p>`}</section>
    <section class="card panel"><h2>A family's data</h2><p class="small">Download everything stored about a child (for a parent's access request), or delete it when a family asks. Deleting can't be undone.</p><div class="row"><select class="inline" id="pv-l" aria-label="Learner" style="max-width:260px">${allLearners().map(L=>opt(L.id,L.name)).join("")}</select><button class="btn btn-ghost btn-sm" data-act="exportFamily">${ic("down")}Download data</button><button class="btn btn-danger btn-sm" data-act="deleteFamily">${ic("trash")}Delete data</button></div>
     <p class="small muted">India's DPDP Act needs a parent's consent for under-18s and lets them ask for access or deletion. GDPR and COPPA have similar rules for children abroad. This is not legal advice.</p></section>
@@ -4142,6 +4151,7 @@ function pipUpdates(){
       const rm=pipTry(()=>remindersToday().length)||0;if(rm)add(`${rm} fee reminder${rm===1?"":"s"} due today`,"fees");
       const rp=pipTry(()=>reportsPending().length)||0;if(rp)add(`${rp} report${rp===1?"":"s"} to approve`,"reports");
       const lv=pipTry(()=>txAll("leave").filter(l=>l.status==="pending").length)||0;if(lv)add(`${lv} leave request${lv===1?"":"s"} to approve`,"trainers");
+      {const md=ymd(new Date()).slice(5);if((md>="05-15"&&md<="06-10")||md>="12-15"||md<="01-02")add("Holidays soon? Free Supabase databases pause after 7 days unused. Open the classroom once a week.","settings");}
       const up=pipTry(()=>upiPending().length)||0;if(up)add(`${up} UPI payment${up===1?"":"s"} to confirm`,"fees",true);
       const ld=pipTry(()=>adList("leads").filter(x=>x.status==="new").length)||0;if(ld)add(`${ld} new lead${ld===1?"":"s"}`,"leads");}
     if(r==="admin"&&PIPST.flagN)add(`${PIPST.flagN} child chat${PIPST.flagN===1?"":"s"} with Pip flagged for safety this week`,"@log",true);
@@ -4491,13 +4501,14 @@ const wallMine=x=>x.mine!==undefined?x.mine:(x.reacts||{})[S.uid];
 function wkStart(t){const d=new Date(t);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d;}
 function wallShares(L){const cs=parentsOf(L).map(u=>((D.profiles[u]||{}).consent||{}).wall);return cs.includes(true)&&!cs.includes(false);}
 function wallCard(x){const staff=isStaff(),rc=wallRc(x),mine=wallMine(x);
-  const media=x.kind==="audio"?`<div class="ptaudio">🎤<audio controls preload="none" src="${esc(x.data)}"></audio></div>`:`<img src="${esc(x.data)}" alt="${esc(x.title||"Picture")} by ${esc(x.name||"a learner")}" loading="lazy">`;
+  const src=x.data||((D.kp[x.uid]||{})[x.item]||{}).data;if(!src&&staff&&x.uid&&!D.kp[x.uid])loadKp(x.uid);
+  const media=!src?`<div class="ptaudio small muted">This item was removed from the portfolio.</div>`:x.kind==="audio"?`<div class="ptaudio">🎤<audio controls preload="none" src="${esc(src)}"></audio></div>`:`<img src="${esc(src)}" alt="${esc(x.title||"Picture")} by ${esc(x.name||"a learner")}" loading="lazy">`;
   return `<figure class="wpost ${x.hidden?"hid":""}">${media}<figcaption><div class="row" style="gap:6px;flex-wrap:nowrap"><b class="grow">${esc(x.title||(x.kind==="audio"?"A recording":"A picture"))}</b>${x.hidden?`<span class="pill p-mute">Hidden</span>`:""}</div>
     <span class="small muted">${esc(x.name||"")}${x.stage?` · ${esc(x.stage)}`:""} · ${esc(fmtDay(new Date(x.at)))}</span>
     <div class="wreact" role="group" aria-label="Cheer for this">${WALL_E.map(e=>`<button type="button" class="wr ${mine===e?"on":""}" data-act="wallReact" data-id="${esc(x.id)}|${e}" aria-pressed="${mine===e}" aria-label="${e}${rc[e]?`, ${rc[e]}`:""}">${e}${rc[e]?`<i>${rc[e]}</i>`:""}</button>`).join("")}</div>
     ${staff?`<div class="row" style="gap:6px">${x.hidden?`<button class="btn btn-ghost btn-sm" data-act="wallHide" data-id="${esc(x.id)}|0">Show again</button>`:`<button class="btn btn-ghost btn-sm" data-act="wallHide" data-id="${esc(x.id)}|1">${ic("x")}Hide</button>`}<span class="small muted">${pipTry(()=>wallShares(learner(x.lid)))?"Class can see":"Only their family sees this"}</span></div>`:""}</figcaption></figure>`;}
 function wallView(){
-  const r=role(), staff=isStaff(), kid=r==="student";let ps=wallPosts();if(!staff)ps=ps.filter(x=>!x.hidden);
+  const r=role(), staff=isStaff(), kid=r==="student";let ps=wallPosts();if(!staff)ps=ps.filter(x=>!x.hidden&&x.data);
   const groups=[];for(const x of ps){const w=wkStart(x.at).getTime();let g=groups.find(y=>y.w===w);if(!g)groups.push(g={w,xs:[]});g.xs.push(x);}
   const thisW=wkStart(Date.now()).getTime(), label=w=>w===thisW?"This week":w===thisW-7*864e5?"Last week":`Week of ${fmtDay(new Date(w))}`;
   const lede=kid?"The best work from your class this week, chosen by your teachers.":r==="parent"?"Work from your child's class, chosen by the teachers. You see your own child's posts, and posts from families who chose to share.":"Post learners' best work for families. Families in the same course see it only when that child's parents agree; otherwise only the child's own family sees it.";
@@ -4530,7 +4541,7 @@ function wallReviewHTML(items){wallLoad();const W=D.wall||{};const done=i=>W[wal
   <section class="panel"><h2>Recent work you could post</h2>${recent.length?`<div class="port">${recent.map(i=>tile(i,false)).join("")}</div>`:`<p class="muted">Nothing new in the last 30 days.</p>`}</section>
   <div class="row"><button class="btn btn-ghost" data-go="wall">${ic("wall")}Open the Garden wall (${live.length} this week)</button></div>`;}
 A.wallPost=v=>{const [lid,iid]=v.split("|");const L=learner(lid);if(!L||!L.uid)return;const x=kpItems(L.uid).find(y=>y.id===iid);if(!x)return;
-  save(()=>S.db.doc("wall/"+wallId(L.uid,iid)).set({lid,uid:L.uid,item:iid,name:firstOf(L.name),stage:L.stage||"",courses:learnerCourses(L),kind:x.kind,title:x.title||"",data:x.data,made:x.at||null,at:Date.now(),by:S.uid,status:"approved",reacts:{}}),"Posted on the Garden wall 🌸");};
+  save(()=>S.db.doc("wall/"+wallId(L.uid,iid)).set({lid,uid:L.uid,item:iid,name:firstOf(L.name),stage:L.stage||"",courses:learnerCourses(L),kind:x.kind,title:x.title||"",made:x.at||null,at:Date.now(),by:S.uid,status:"approved",reacts:{}}),"Posted on the Garden wall 🌸");};
 A.wallNo=v=>{const [lid,iid]=v.split("|");const L=learner(lid);if(!L||!L.uid)return;
   save(()=>S.db.doc("wall/"+wallId(L.uid,iid)).set({lid,uid:L.uid,item:iid,status:"declined",at:Date.now(),by:S.uid}),"Kept in the portfolio");};
 function wallAskedCount(){let n=0;const W=D.wall||{};const ls=role()==="admin"?activeLearners():teacherLearners(myTid());for(const L of ls){if(!L.uid)continue;for(const x of kpItems(L.uid))if(x.wall==="asked"&&!W[wallId(L.uid,x.id)])n++;}return n;}
@@ -4765,6 +4776,74 @@ function drillModal(){const d=S.drill;if(!d)return;const x=d.ws[d.i];const rec=c
     keep:()=>{d.keep=!d.keep;drillModal();},
     prev:()=>{saveDrillClip();d.i--;Object.assign(d,{clip:null,heard:null,stars:0,keep:false,said:false});drillModal();},
     next:()=>{saveDrillClip();if(d.i<d.ws.length-1){d.i++;Object.assign(d,{clip:null,heard:null,stars:0,keep:false,said:false});drillModal();}else{S.drill=null;closeModal();toast("Great speaking! 🎤");}}}});}
+
+/* ================= Storage rules: small files, limits, cleanup, storage meter ================= */
+const STORE={dbMax:500*1048576,filesMax:1024*1048576,keepN:5,days:90,warnDays:14};
+const REC_LIMIT={Seeds:30,Sprouts:45,Blooms:60};
+const recLimit=L=>REC_LIMIT[(L||pipTry(()=>myLearner())||{}).stage]||30;
+/* friendly countdown while recording, then auto-stop */
+function recPill(sec){let el=document.getElementById("recpill");if(!el){el=document.createElement("div");el.id="recpill";el.setAttribute("role","status");el.setAttribute("aria-live","polite");document.body.appendChild(el);}
+  let left=sec;const draw=()=>{el.innerHTML=`<span class="rdot" aria-hidden="true"></span>${left>5?`Recording · ${left}s left`:left>0?`Almost done! ${left}s`:"Saving…"}`;};draw();el.hidden=false;
+  clearInterval(REC.pt);REC.pt=setInterval(()=>{left--;draw();if(left<=0)clearInterval(REC.pt);},1000);}
+function recPillOff(){clearInterval(REC.pt);const el=document.getElementById("recpill");if(el)el.hidden=true;}
+/* images: longest side 1280px, WebP (or JPEG) around 70%, under the size cap */
+function shrinkTo(src,maxSide,maxBytes){return new Promise((res,rej)=>{const img=new Image();img.onload=()=>{const sc=Math.min(1,maxSide/Math.max(img.width,img.height));const cv=document.createElement("canvas");cv.width=Math.max(1,Math.round(img.width*sc));cv.height=Math.max(1,Math.round(img.height*sc));const cx=cv.getContext("2d");cx.fillStyle="#fff";cx.fillRect(0,0,cv.width,cv.height);cx.drawImage(img,0,0,cv.width,cv.height);
+  const webp=cv.toDataURL("image/webp",.7).startsWith("data:image/webp");const type=webp?"image/webp":"image/jpeg";const lim=Math.round(maxBytes*1.37);let q=.7,out=cv.toDataURL(type,q);
+  while(out.length>lim&&q>.25){q-=.1;out=cv.toDataURL(type,q);}
+  let f=.8;while(out.length>lim&&f>.15){const c2=document.createElement("canvas");c2.width=Math.max(1,Math.round(cv.width*f));c2.height=Math.max(1,Math.round(cv.height*f));const x2=c2.getContext("2d");x2.fillStyle="#fff";x2.fillRect(0,0,c2.width,c2.height);x2.drawImage(cv,0,0,c2.width,c2.height);out=c2.toDataURL(type,.55);f-=.15;}
+  res(out);};img.onerror=rej;img.src=src;});}
+/* which saved items are "practice" (cleaned up after 90 days, 5 per activity) */
+const PRACTICE_ACTS=new Set(["drill","teachpip","sounds","mission"]);
+const isKeep=x=>!!(x&&(x.capsule||x.keep||pipTry(()=>(pcFor(x.id)||{}).keep)));
+const isPractice=x=>!!(x&&x.act&&PRACTICE_ACTS.has(x.act)&&!isKeep(x));
+const expiresAt=x=>(x.at||0)+STORE.days*864e5;
+async function prunePractice(uid,act){if(!uid||!act)return;try{await loadKp(uid,true);const xs=kpItems(uid).filter(x=>x.act===act&&isPractice(x)).sort((a,b)=>(b.at||0)-(a.at||0));
+  for(const x of xs.slice(STORE.keepN))await S.db.doc(`kp/${uid}/x/${x.id}`).delete().catch(()=>{});if(xs.length>STORE.keepN)loadKp(uid,true);}catch(e){}}
+/* the child's own app tidies old practice items and old daily logs once a day */
+let tidied="";
+async function selfTidy(){try{if(realRole()!=="student"||S.viewAs||!S.uid)return;const day=ymd(new Date());if(tidied===day)return;tidied=day;
+  await loadKp(S.uid,true);const now=Date.now();for(const x of kpItems(S.uid))if(isPractice(x)&&expiresAt(x)<now)await S.db.doc(`kp/${S.uid}/x/${x.id}`).delete().catch(()=>{});
+  const p=progOf(S.uid),cut=ymd(new Date(now-STORE.days*864e5)),upd={};let mins=0,changed=false;
+  for(const [k,v] of Object.entries(p.screen||{}))if(k<cut){mins+=+v||0;(upd.screen=upd.screen||{})[k]=null;changed=true;}
+  if(mins)upd.screenOld=(+p.screenOld||0)+mins;
+  for(const k of Object.keys(p.moods||{}))if(k<cut){(upd.moods=upd.moods||{})[k]=null;changed=true;}
+  for(const [k,o] of Object.entries(p.wk||{}))if(o&&now-(o.t||0)>STORE.days*864e5&&!(+o.m)){(upd.wk=upd.wk||{})[k]=null;changed=true;}
+  if(changed)await upsert("progress/"+S.uid,upd);}catch(e){}}
+setInterval(()=>{if(S.status==="ready")selfTidy();},60000);setTimeout(()=>{if(S.status==="ready")selfTidy();},7000);
+/* parents: download memories before practice items are tidied away */
+function memoriesSoon(L){if(!L||!L.uid)return [];const now=Date.now();return kpItems(L.uid).filter(x=>isPractice(x)&&expiresAt(x)-now<STORE.warnDays*864e5);}
+function memoriesHTML(L){if(!L||!L.uid)return "";if(!D.kp[L.uid])loadKp(L.uid);const xs=memoriesSoon(L);if(!xs.length)return "";
+  const first=Math.min(...xs.map(expiresAt));
+  return `<section class="alert a-sun"><b>Save ${esc(firstOf(L.name))}'s garden memories</b><span class="small">${xs.length} practice recording${xs.length===1?"":"s"} and photo${xs.length===1?"":"s"} will be tidied away ${first<=Date.now()+864e5?"very soon":`from ${esc(fmtDay(new Date(first)))}`} to save space. Download a copy to keep.</span><span class="spacer"></span><button class="btn btn-sun btn-sm" data-act="memDl" data-id="${esc(L.id)}">Download memories</button></section>`;}
+A.memDl=async lid=>{const L=learner(lid);if(!L||!L.uid)return;await loadKp(L.uid,true);const xs=kpItems(L.uid).filter(x=>x.kind!=="rate"&&x.kind!=="join"&&x.data);
+  const body=xs.map(x=>`<figure><figcaption><b>${esc(x.title||(x.kind==="audio"?"Recording":"Picture"))}</b> · ${esc(fmtDay(new Date(x.at)))}</figcaption>${x.kind==="audio"?`<audio controls src="${x.data}"></audio>`:`<img src="${x.data}" alt="">`}</figure>`).join("");
+  const html=`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(firstOf(L.name))}'s garden memories</title><style>body{font-family:system-ui,sans-serif;background:#F5FAEE;color:#2E2219;max-width:720px;margin:0 auto;padding:24px}h1{color:#22703A}figure{background:#fff;border:2px solid #D5E8BE;border-radius:18px;padding:12px;margin:0 0 14px}img{max-width:100%;border-radius:12px}audio{width:100%}</style></head><body><h1>${esc(firstOf(L.name))}'s garden memories</h1><p>Saved from Little Lingos on ${esc(fmtDay(new Date()))}. Where words grow.</p>${body}</body></html>`;
+  saveFile(`${firstOf(L.name).toLowerCase()}-garden-memories-${ymd(new Date())}.html`,html);};
+/* admin: storage meter + clean up */
+const MB=n=>(n/1048576).toFixed(n<10*1048576?1:0)+" MB";
+function meter(label,used,max,note){const pct=max?Math.min(100,used/max*100):0,cls=pct>=90?"bad":pct>=70?"warn":"ok";
+  return `<div class="smeter ${cls}"><div class="row" style="justify-content:space-between"><b>${label}</b><span class="num">${used==null?"–":`${MB(used)} of ${MB(max)}`}</span></div><div class="bar"><i style="width:${pct.toFixed(1)}%"></i></div>${pct>=90?`<p class="small" style="color:var(--bad);margin:0"><b>Almost full.</b> Clean up now, or upgrade before it fills.</p>`:pct>=70?`<p class="small" style="margin:0"><b>Over 70% used.</b> A clean-up soon is a good idea.</p>`:""}${note?`<p class="small muted" style="margin:0">${note}</p>`:""}</div>`;}
+let storeInfo=null,storeAt=0;
+function storageHTML(){if(!storeInfo&&Date.now()-storeAt>15000){storeAt=Date.now();window.LL_sb.rpc("ll_storage").then(r=>{storeInfo=r.error?{err:r.error.message}:r.data;schedule();},()=>{storeInfo={err:"offline"};schedule();});}
+  const s=storeInfo||{};const ref=((window.LL_CONFIG||{}).supabaseUrl||"").match(/https:\/\/([a-z0-9]+)\./);const usage=ref?`https://supabase.com/dashboard/project/${ref[1]}/settings/billing/usage`:"https://supabase.com/dashboard";
+  return `<section class="card panel"><h2>Storage</h2>${s.err?`<p class="small muted">Couldn't read storage use. Run the storage setup in Supabase first.</p>`:""}
+    ${meter("Database",s.db,STORE.dbMax,s.media!=null?`Recordings, photos and drawings inside it: ${MB(s.media)} (${s.items||0} items).`:"")}
+    ${meter("Files",s.files||0,STORE.filesMax,"Little Lingos keeps compressed media inside the database, so file storage stays nearly empty.")}
+    <div class="smeter"><div class="row" style="justify-content:space-between"><b>Downloads this month</b><span>5 GB a month</span></div><p class="small muted" style="margin:0">Supabase doesn't let apps read this number. <a href="${esc(usage)}" target="_blank" rel="noopener">Check it in Supabase › Usage</a>. Reels are built on the device and never stored, which keeps this low.</p></div>
+    <div class="row"><button class="btn btn-primary" data-act="cleanScan">${ic("trash")}Clean up now</button><button class="btn btn-ghost btn-sm" data-act="storeRefresh">Refresh</button></div>
+    <p class="small"><b>Before a long break:</b> free Supabase projects pause after 7 days with no use. Over holidays, open the classroom at least once a week (any account), or the first visit after the break will take a minute while it wakes up.</p>
+    <p class="small muted">Automatic rules: practice recordings and mission photos are tidied after ${STORE.days} days (parents get a download button ${STORE.warnDays} days before). Only the latest ${STORE.keepN} practice recordings per activity are kept. Time-capsule recordings and items a trainer marks “Keep” are never removed.</p></section>`;}
+A.storeRefresh=()=>{storeInfo=null;storeAt=0;render(true);};
+A.cleanScan=async()=>{const ls=allLearners().filter(L=>L.uid);toast("Checking…");for(const L of ls)await loadKp(L.uid,true);const now=Date.now(),del=[];
+  for(const L of ls){const xs=kpItems(L.uid);for(const x of xs)if(isPractice(x)&&expiresAt(x)<now)del.push({uid:L.uid,x,why:"older than 90 days"});
+    const byAct={};for(const x of xs)if(isPractice(x)&&expiresAt(x)>=now)(byAct[x.act]=byAct[x.act]||[]).push(x);
+    for(const arr of Object.values(byAct))for(const x of arr.sort((a,b)=>(b.at||0)-(a.at||0)).slice(STORE.keepN))del.push({uid:L.uid,x,why:"more than 5 of the same practice"});}
+  const wallOld=entries(D.wall||{}).filter(w=>w.status==="declined"&&now-(w.at||0)>30*864e5);
+  const bytes=del.reduce((n,d)=>n+String(d.x.data||"").length,0);
+  if(!del.length&&!wallOld.length){openModal("Clean up now","<p>Nothing to clean up. Everything is within the storage rules. 🌱</p>");return}
+  openModal("Clean up now",`<p>This frees about <b>${MB(bytes)}</b> by removing:</p><ul><li>${del.filter(d=>d.why[0]==="o").length} practice recordings or mission photos older than ${STORE.days} days</li><li>${del.filter(d=>d.why[0]==="m").length} extra practice recordings (only the latest ${STORE.keepN} per activity are kept)</li>${wallOld.length?`<li>${wallOld.length} old “not this time” wall records</li>`:""}</ul><p class="small muted">Time-capsule recordings and anything marked “Keep” are never removed.</p>`,
+   {danger:true,submitLabel:"Clean up",done:"Cleaned up",onSubmit:async()=>{for(const d of del)await S.db.doc(`kp/${d.uid}/x/${d.x.id}`).delete().catch(()=>{});for(const w of wallOld)await S.db.doc("wall/"+w.id).delete().catch(()=>{});
+     await audit("Storage clean-up",`${del.length} items, about ${MB(bytes)}`);storeInfo=null;storeAt=0;}});};
 
 /* ================= events ================= */
 document.addEventListener("click",e=>{
