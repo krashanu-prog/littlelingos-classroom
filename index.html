@@ -804,6 +804,12 @@ body.boarding{overflow:hidden}
 .smeter{display:flex;flex-direction:column;gap:6px;padding:10px 0;border-bottom:1px solid var(--line)}
 .smeter .bar{height:12px;border-radius:99px;background:var(--soft);overflow:hidden}.smeter .bar i{display:block;height:100%;background:var(--leafMid)}
 .smeter.warn .bar i{background:#E8A400}.smeter.bad .bar i{background:var(--bad)}
+.adapt.cap{background:var(--leafSoft)}
+.capthen{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.capcard{margin:0;background:var(--ground);border:2px solid var(--line);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:6px}
+.capcard audio{width:100%}.capcard.empty{border-style:dashed}
+.captree{align-items:center;text-align:center}
+.capmini{display:flex;flex-direction:row!important;align-items:center;gap:14px}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -1255,7 +1261,7 @@ function mainHTML(){
   const r=realRole();
   if(!r)return onboardHTML();
   if(r==="pending")return pendingHTML();
-  const allowed=new Set(navItems().map(x=>x[0]).concat(["course","lesson","child"],role()==="parent"?["settings"]:[]));
+  const allowed=new Set(navItems().map(x=>x[0]).concat(["course","lesson","child","capsule"],role()==="parent"?["settings"]:[]));
   const key=allowed.has(S.view)&&VIEWS[S.view]?S.view:"home";
   if(needsConsent())return consentHTML();
   if(gateNeeded(key))return gateHTML();
@@ -1368,6 +1374,7 @@ path(){return pathView();},
 library(){return libraryView();},
 fun(){return funView();},
 wall(){return wallView();},
+capsule(){return capsuleView();},
 myspace(){return mySpaceView();},
 review(){return reviewView();},
 reports(){return reportsView();},
@@ -1815,8 +1822,8 @@ A.learnerInfo=id=>{
     ${admin?`<p class="section-title">Fees</p>${fi?`<p>${money(fi.monthly)} a month · ${fi.balance?`<b style="color:var(--bad)">${money(fi.balance)} owed</b>`:"All paid up"}</p>${fi.pays.length?`<div class="list">${fi.pays.slice(0,5).map(p=>`<div class="item" style="min-height:0;padding:8px 0"><div class="grow"><div class="t small">${money(p.amount)} for ${esc(monthLabel(p.month))}</div><div class="s">${esc(p.date?fmtDay(new Date(p.date+"T12:00")):"")} · ${esc(p.method||"")}</div></div><button type="button" class="iconbtn" data-mact="delPay" data-id="${esc(p.id)}" aria-label="Delete payment">${ic("trash")}</button></div>`).join("")}</div>`:`<p class="small muted">No payments yet.</p>`}`:`<p class="small muted">No fee set.</p>`}`:""}`;
   if(L.uid&&!D.kp[L.uid])loadKp(L.uid).then(()=>{if(modalOpen&&document.getElementById("li-port"))A.learnerInfo(id)});
   const port=L.uid?kpItems(L.uid).filter(x=>x.kind!=="rate"&&x.kind!=="join").slice(0,6):[];const rec=assessFor(L).find(a=>a.recommend&&a.recommend!==L.stage&&NEXT_STAGE[L.stage]===a.recommend);
-  openModal(L.name,(rec?`<section class="alert a-sun"><b>${esc(byWho(rec.uid))} recommends moving to ${esc(rec.recommend)}</b>${admin?`<span class="spacer"></span><button type="button" class="btn btn-sun btn-sm" data-mact="promote">Move to ${esc(rec.recommend)}</button>`:""}</section>`:"")+body+adaptStaffHTML(L)+`<p class="section-title">Stars and portfolio</p><p>⭐ ${starsOf(L)} stars · 🏅 ${badgesOf(L).filter(b=>b.ok).length} badges · 🏆 ${certsOf(L).length} certificates</p><div id="li-port">${port.length?`<div class="port">${port.map(x=>portTile(x,false)).join("")}</div>`:`<p class="small muted">Nothing in ${esc(firstOf(L.name))}'s portfolio yet.</p>`}</div>`,{wide:true,noFocus:true,footerExtra:`<button type="button" class="btn btn-ghost" data-mact="award">⭐ Award</button><button type="button" class="btn btn-ghost" data-mact="assess">📈 Assess</button><button type="button" class="btn btn-ghost" data-mact="stk">🌟 Sticker</button>`+(admin?`<button type="button" class="btn btn-ghost" data-mact="edit">${ic("edit")}Edit</button>${fi?`<button type="button" class="btn btn-ghost" data-mact="pay">${ic("rupee")}Record payment</button>`:""}`:""),
-    actions:{adapt:()=>{closeModal();A.adaptEdit(id)},chat:k=>{closeModal();S.itab="chats";S.thread=k;go("inbox");},asg:async v=>{if(await A.assignTrainer(id,v)){closeModal();A.learnerInfo(id);}},invite:()=>{A.copyInvite(id)},promote:()=>{closeModal();A.promote(id)},award:()=>{closeModal();A.award(id)},assess:()=>{closeModal();A.assess(id)},stk:()=>{closeModal();A.sendSticker(id)},edit:()=>{closeModal();A.editLearner(id)},pay:()=>{closeModal();A.pay(id)},delPay:async pid=>{if(await save(()=>S.db.doc("fees/"+id).update({payments:{[pid]:null}}),"Payment deleted")){closeModal();A.learnerInfo(id);}}}});
+  openModal(L.name,(rec?`<section class="alert a-sun"><b>${esc(byWho(rec.uid))} recommends moving to ${esc(rec.recommend)}</b>${admin?`<span class="spacer"></span><button type="button" class="btn btn-sun btn-sm" data-mact="promote">Move to ${esc(rec.recommend)}</button>`:""}</section>`:"")+body+adaptStaffHTML(L)+capStaffHTML(L)+`<p class="section-title">Stars and portfolio</p><p>⭐ ${starsOf(L)} stars · 🏅 ${badgesOf(L).filter(b=>b.ok).length} badges · 🏆 ${certsOf(L).length} certificates</p><div id="li-port">${port.length?`<div class="port">${port.map(x=>portTile(x,false)).join("")}</div>`:`<p class="small muted">Nothing in ${esc(firstOf(L.name))}'s portfolio yet.</p>`}</div>`,{wide:true,noFocus:true,footerExtra:`<button type="button" class="btn btn-ghost" data-mact="award">⭐ Award</button><button type="button" class="btn btn-ghost" data-mact="assess">📈 Assess</button><button type="button" class="btn btn-ghost" data-mact="stk">🌟 Sticker</button>`+(admin?`<button type="button" class="btn btn-ghost" data-mact="edit">${ic("edit")}Edit</button>${fi?`<button type="button" class="btn btn-ghost" data-mact="pay">${ic("rupee")}Record payment</button>`:""}`:""),
+    actions:{adapt:()=>{closeModal();A.adaptEdit(id)},capnote:v=>{closeModal();A.capNote(id,v)},chat:k=>{closeModal();S.itab="chats";S.thread=k;go("inbox");},asg:async v=>{if(await A.assignTrainer(id,v)){closeModal();A.learnerInfo(id);}},invite:()=>{A.copyInvite(id)},promote:()=>{closeModal();A.promote(id)},award:()=>{closeModal();A.award(id)},assess:()=>{closeModal();A.assess(id)},stk:()=>{closeModal();A.sendSticker(id)},edit:()=>{closeModal();A.editLearner(id)},pay:()=>{closeModal();A.pay(id)},delPay:async pid=>{if(await save(()=>S.db.doc("fees/"+id).update({payments:{[pid]:null}}),"Payment deleted")){closeModal();A.learnerInfo(id);}}}});
 };
 
 /* ---- trainers (admin) ---- */
@@ -2320,7 +2327,7 @@ function parentProgress(){
   const topics=kidHistory(L).filter(h=>h.st!=="absent"&&(h.topic||h.objectives));
   const speak=canSpeak();
   return `<div class="head"><div><h1>Progress</h1><p class="lede">${esc(firstOf(L.name))}'s level, course completion, skills and every word learned so far.</p></div></div>
-  ${kidBar()}${memoriesHTML(L)}
+  ${kidBar()}${memoriesHTML(L)}${capParentHTML(L)}
   ${!uid?`<section class="alert a-sun"><b>${esc(firstOf(L.name))} hasn't signed in yet.</b><span class="small">Lessons and words show up once they start using Little Lingos.</span></section>`:""}
   <div class="stats">
     <div class="stat f" style="background:var(--leafSoft)"><b>${esc(L.stage||"Seeds")}</b><span>Level</span><small>${esc(stageLabel(L.stage))}</small></div>
@@ -2754,6 +2761,7 @@ function studentHome(){
       ${dtHTML(L)}
     </div>
     <div class="stack" style="gap:16px">
+      ${capsuleDueHTML(L)}
       ${adaptKidHTML(L)}
       <section class="daily ${dDone?"done":""}"><span class="dicon" aria-hidden="true">${dDone?"✅":"🎯"}</span><div class="grow"><b>Word quiz</b><span>${dDone?`Done today! You got ${progOf(uid).daily[ymd(new Date())]} of 5. Come back tomorrow.`:"5 quick questions, just for fun."}</span></div>${dDone?"":`<button class="btn btn-sun" data-act="startGame" data-id="daily">Play</button>`}</section>
       <div class="kidtiles">
@@ -2914,6 +2922,7 @@ function meView(){
   const got=bs.filter(b=>b.ok).length;
   return `<div class="head"><div class="row" style="flex-wrap:nowrap;gap:14px">${avatarHTML(uid,80)}<div><h1>${esc(L.name)}</h1><p class="lede">${esc(stageLabel(L.stage))}</p></div></div>${S.viewAs?"":`<div class="row"><button class="btn btn-ghost btn-sm" data-act="setPassword">My password</button><button class="btn btn-ghost btn-sm" data-act="signOut">Sign out</button></div>`}</div>
   <div class="stats"><div class="stat f" style="background:var(--sunSoft)"><b class="num">⭐ ${stars}</b><span>Stars</span></div><div class="stat f" style="background:var(--leafSoft)"><b class="num">🏅 ${got}/${bs.length}</b><span>Badges</span></div><div class="stat f" style="background:var(--petalSoft)"><b class="num">🔥 ${streak(uid)}</b><span>Day streak</span><small>Best: ${longestStreak(uid)} days</small></div><div class="stat f" style="background:var(--skySoft)"><b class="num">🏆 ${certs.length}</b><span>Certificates</span></div></div>
+  ${capMeHTML(L)}
   <section class="card panel"><h2>My badges</h2><div class="badges">${bs.map(b=>`<div class="badge ${b.ok?"on":""}"><span>${b.ok?b.e:"🔒"}</span><b>${esc(b.t)}</b><i>${esc(b.d)}</i></div>`).join("")}</div></section>
   <section class="card panel"><h2>Rewards: dress up your buddy</h2><p class="small muted">Collect stars to unlock new buddies and colours.</p>
     <div class="avpick">${AV_MASCOTS.map(m=>`<button class="avopt ${av.m===m.m?"on":""}" data-act="setAv" data-id="m|${m.m}" ${stars<m.need?"disabled":""} aria-label="${esc(m.name)}${stars<m.need?`, needs ${m.need} stars`:""}">${art(m.m,56)}<span>${stars<m.need?`🔒 ${m.need}⭐`:esc(m.name)}</span></button>`).join("")}</div>
@@ -2927,7 +2936,7 @@ function meView(){
 }
 function portTile(x,own){const media=x.kind==="audio"?`<div class="ptaudio">🎤<audio controls src="${esc(x.data)}"></audio></div>`:`<img src="${esc(x.data)}" alt="${esc(x.title||"Picture")}">`;
   const c=pcFor(x.id);
-  return `<figure class="ptile">${media}${c?`<div class="pcbox">${c.s?`<span class="bigsticker sm">${esc(c.s)}</span>`:""}${c.score?`<b>${c.score}/5</b>`:""} ${esc(c.text||"")}${c.voice?`<audio controls src="${esc(c.voice)}"></audio>`:""}</div>`:""}<figcaption><b>${esc(x.title||(x.kind==="audio"?"Recording":"Picture"))}</b><span>${esc(fmtDay(new Date(x.at)))}</span>${own?wallShareBtn(x):""}${own?`<button class="iconbtn" data-act="delPort" data-id="${esc(x.id)}" aria-label="Delete">${ic("trash")}</button>`:""}</figcaption></figure>`;}
+  return `<figure class="ptile">${media}${c?`<div class="pcbox">${c.s?`<span class="bigsticker sm">${esc(c.s)}</span>`:""}${c.score?`<b>${c.score}/5</b>`:""} ${esc(c.text||"")}${c.voice?`<audio controls src="${esc(c.voice)}"></audio>`:""}</div>`:""}<figcaption><b>${esc(x.title||(x.kind==="audio"?"Recording":"Picture"))}</b><span>${esc(fmtDay(new Date(x.at)))}</span>${own?wallShareBtn(x):""}${own&&!x.capsule?`<button class="iconbtn" data-act="delPort" data-id="${esc(x.id)}" aria-label="Delete">${ic("trash")}</button>`:""}</figcaption></figure>`;}
 A.setAv=v=>{const [k,val]=v.split("|");const cur=(D.profiles[S.uid]||{}).avatar||{};save(()=>upsert("profiles/"+S.uid,{avatar:{...cur,[k]:val}}));};
 A.delPort=id=>openModal("Delete this?","<p>It will be removed from your portfolio.</p>",{danger:true,submitLabel:"Delete",done:"Deleted",onSubmit:async()=>{await S.db.doc(`kp/${S.uid}/x/${id}`).delete();await loadKp(S.uid,true);}});
 async function savePort(kind,title,data){if(data.length>240000)throw userErr("That's too big to save. Try a smaller picture or a shorter recording.");await S.db.collection(`kp/${S.uid}/x`).doc().set({kind,title:title||"",data,at:Date.now()});await earn({});await loadKp(S.uid,true);}
@@ -4145,6 +4154,7 @@ function pipUpdates(){
   else if(r==="trainer"||r==="admin"){
     const rv=pipTry(()=>toReview().length)||0;if(rv)add(`${rv} homework answer${rv===1?"":"s"} waiting for your reply`,"homework");
     const sp=pipTry(()=>speakingQueue().length)||0;if(sp)add(`${sp} speaking practice to review`,"review");
+    const cd=pipTry(()=>capDueList().length)||0;if(cd)add(`${cd} learner${cd===1?"":"s"} due a time-capsule recording this term`,"learners");
     const wa=pipTry(()=>wallAskedCount())||0;if(wa)add(`${wa} learner${wa===1?"":"s"} asked to share work on the Garden wall`,"review");
     const ib=pipTry(()=>inboxCount())||0;if(ib)add(`${ib} family conversation${ib===1?" needs":"s need"} a reply`,"inbox",true);
     if(r==="admin"){const wp=pipTry(()=>waitingParents().length)||0;if(wp)add(`${wp} account${wp===1?"":"s"} waiting to be connected`,"parents",true);
@@ -4844,6 +4854,49 @@ A.cleanScan=async()=>{const ls=allLearners().filter(L=>L.uid);toast("Checking…
   openModal("Clean up now",`<p>This frees about <b>${MB(bytes)}</b> by removing:</p><ul><li>${del.filter(d=>d.why[0]==="o").length} practice recordings or mission photos older than ${STORE.days} days</li><li>${del.filter(d=>d.why[0]==="m").length} extra practice recordings (only the latest ${STORE.keepN} per activity are kept)</li>${wallOld.length?`<li>${wallOld.length} old “not this time” wall records</li>`:""}</ul><p class="small muted">Time-capsule recordings and anything marked “Keep” are never removed.</p>`,
    {danger:true,submitLabel:"Clean up",done:"Cleaned up",onSubmit:async()=>{for(const d of del)await S.db.doc(`kp/${d.uid}/x/${d.x.id}`).delete().catch(()=>{});for(const w of wallOld)await S.db.doc("wall/"+w.id).delete().catch(()=>{});
      await audit("Storage clean-up",`${del.length} items, about ${MB(bytes)}`);storeInfo=null;storeAt=0;}});};
+
+/* ================= Feature 1: Voice time capsule ================= */
+const CAP_PROMPT={Seeds:"Say hello and tell Pip your name and favourite thing.",Sprouts:"Tell me about yourself and your family.",Blooms:"Introduce yourself and talk about something you care about."};
+/* academic terms: Apr–Jul (1), Aug–Nov (2), Dec–Mar (3) */
+function termOf(t){const d=new Date(t||Date.now()),m=d.getMonth(),y=d.getFullYear();const sy=m>=3?y:y-1;const n=m>=3&&m<=6?1:m>=7&&m<=10?2:3;return {key:`${sy}-T${n}`,label:`Term ${n}, ${sy}–${String(sy+1).slice(2)}`};}
+const capItems=L=>L&&L.uid?kpItems(L.uid).filter(x=>x.capsule&&x.data).sort((a,b)=>(a.at||0)-(b.at||0)):[];
+const capDue=L=>!!(L&&L.uid&&!capItems(L).some(x=>x.term===termOf().key));
+function capTree(n,size){const P=[[100,58],[70,70],[130,70],[52,95],[148,95],[85,88],[115,88],[64,118],[136,118],[100,80],[40,120],[160,120],[80,110],[120,110],[100,100]];
+  const leaves=P.slice(0,Math.min(n,P.length)).map(([x,y],i)=>`<g transform="translate(${x} ${y}) rotate(${(i*47)%60-30})"><path d="M0 0 c-10 -14 -2 -26 0 -26 c2 0 10 12 0 26z" fill="${i===n-1?"#7CC243":"#2F8F46"}"/></g>`).join("");
+  return `<svg viewBox="0 0 200 200" width="${size||180}" height="${size||180}" role="img" aria-label="A tree with ${n} ${n===1?"leaf":"leaves"}, one for each recording"><rect x="0" y="168" width="200" height="32" rx="16" fill="#7CC243"/><path d="M96 170 C96 140 92 120 100 96 C108 120 104 140 104 170Z" fill="#8B5A2B"/><path d="M100 120 C86 112 74 104 62 92 M100 110 C114 102 126 96 140 88 M100 100 C96 90 98 78 100 66" stroke="#8B5A2B" stroke-width="5" fill="none" stroke-linecap="round"/>${n?leaves:`<path d="M100 166 c-4 -10 -14 -12 -18 -10 c4 8 12 12 18 10z M100 166 c4 -12 16 -14 20 -12 c-4 10 -14 14 -20 12z" fill="#7CC243"/>`}</svg>`;}
+function capThenNow(L){const xs=capItems(L);if(!xs.length)return "";const a=xs[0],b=xs[xs.length-1];const card=(x,t)=>{const n=pipTry(()=>pcFor(x.id));return `<figure class="capcard"><span class="eyebrow">${t}</span><b>${esc(x.termLabel||termOf(x.at).label)}</b><audio controls preload="none" src="${esc(x.data)}"></audio>${n&&n.text?`<p class="small"><b>${esc(byWho(n.uid))}:</b> “${esc(n.text)}”</p>`:""}</figure>`;};
+  return `<div class="capthen">${card(a,"Then")}${xs.length>1?card(b,"Now"):`<figure class="capcard empty"><span class="eyebrow">Now</span><p class="small muted">Next term's recording will appear here so you can hear how ${esc(firstOf(L.name))} has grown.</p></figure>`}</div>`;}
+function capsuleDueHTML(L){if(!L||!L.uid||!capDue(L))return "";
+  return `<section class="adapt cap">${art("bloom",64,"Bloom the flower")}<div class="grow"><b>Time capsule time!</b><span>${capItems(L).length?"A new term means a new leaf. Record your voice for this term!":"Record your voice so you can hear how you grow!"}</span><div class="row adbtns"><button class="btn btn-sun btn-sm" data-act="capRec">🎤 Record</button><button class="btn btn-ghost btn-sm" data-go="capsule">See my tree</button></div></div></section>`;}
+function capsuleView(){const r=role();const L=r==="parent"?curKid():myLearner();if(!L)return pendingHTML();if(L.uid&&!D.kp[L.uid])loadKp(L.uid);
+  const xs=capItems(L),kid=r==="student",due=capDue(L),first=firstOf(L.name);
+  return `${r==="parent"?back("progress","Progress"):""}<div class="head"><div><h1>${kid?"My voice time capsule":`${esc(first)}'s voice time capsule`}</h1><p class="lede">${kid?"Every term you record the same thing. Listen to how your voice grows!":`Once a term, ${esc(first)} records the same prompt. Play “Then” and “Now” side by side to hear the growth.`}</p></div></div>
+  ${r==="parent"?kidBar():""}
+  <div class="cols"><section class="card panel captree">${capTree(xs.length,220)}<p class="small muted" style="text-align:center">${xs.length} ${xs.length===1?"leaf":"leaves"} · one for each recording</p>
+    ${kid&&due?`<button class="btn btn-primary btn-big" data-act="capRec">🎤 Record this term's leaf</button>`:due?`<p class="small" style="text-align:center">This term's recording isn't done yet. ${esc(first)} can record it from their garden.</p>`:`<p class="small" style="text-align:center">This term's leaf is done. 🌱</p>`}
+    <p class="small"><b>The prompt:</b> “${esc(CAP_PROMPT[L.stage]||CAP_PROMPT.Seeds)}”</p></section>
+  <div class="stack" style="gap:16px">${xs.length?`<section class="card panel"><h2>Then and now</h2>${capThenNow(L)}</section>
+    <section class="card panel"><h2>Every leaf</h2><div class="list">${xs.slice().reverse().map(x=>{const n=pipTry(()=>pcFor(x.id));return `<div class="item" style="flex-wrap:wrap"><div class="grow"><div class="t">${esc(x.termLabel||termOf(x.at).label)}</div><div class="s">${esc(fmtDay(new Date(x.at)))}${n&&n.text?` · ${esc(byWho(n.uid))}: “${esc(n.text)}”`:""}</div></div><audio controls preload="none" src="${esc(x.data)}"></audio></div>`}).join("")}</div></section>`
+    :emptyBox(kid?"Your tree is a little seed":"No recordings yet",kid?"Record your first leaf and watch your tree grow every term!":`When ${esc(first)} records the first time-capsule message, it appears here.`,"","pip")}</div></div>`;}
+A.capRec=()=>{const L=myLearner();if(!L||realRole()!=="student"||S.viewAs){toast("Only the learner can record their time capsule.",true);return}if(timeUp()){render();return}
+  const lim=recLimit(L),t=termOf();let clip=null,rec=false;
+  const draw=()=>openModal("My voice time capsule",`<div class="drill">${art("bloom",72,"Bloom")}<p class="lede" style="margin:0">${esc(CAP_PROMPT[L.stage]||CAP_PROMPT.Seeds)}</p><p class="small muted">${esc(t.label)} · up to ${lim} seconds</p>
+      <button type="button" class="btn ${rec?"btn-danger":"btn-primary"} btn-big" data-mact="rec">${rec?"■ Stop":clip?"🎤 Record again":"🎤 Start recording"}</button>${clip?`<audio controls src="${esc(clip)}"></audio>`:""}</div>`,
+    {noFocus:true,submitLabel:"Save to my time capsule",done:"A new leaf grew on your tree! 🌱",actions:{rec:async()=>{if(rec){stopRec();return}const ok=await startRec(lim,u=>{rec=false;clip=u;draw();});if(ok){rec=true;draw();}}},
+     onSubmit:async()=>{if(!clip)throw userErr("Record your message first.");if(clip.length>700000)throw userErr("That recording is too long. Try a shorter one.");
+       await S.db.collection(`kp/${S.uid}/x`).doc().set({kind:"audio",title:`Time capsule · ${t.label}`,data:clip,at:Date.now(),capsule:true,term:t.key,termLabel:t.label});await earn({});await loadKp(S.uid,true);}});
+  draw();};
+/* trainers and admin: notes + who is due */
+function capStaffHTML(L){if(!L.uid)return "";if(!D.kp[L.uid])loadKp(L.uid);const xs=capItems(L);
+  return `<p class="section-title">Voice time capsule</p><div class="adstaff">${capDue(L)?`<span class="pill p-sun" style="align-self:flex-start">${esc(termOf().label)} recording due</span>`:`<span class="pill p-good" style="align-self:flex-start">This term's recording is done</span>`}
+    ${xs.length?xs.slice().reverse().map(x=>{const n=pipTry(()=>pcFor(x.id));return `<div class="row" style="gap:8px;flex-wrap:wrap"><b class="small">${esc(x.termLabel||termOf(x.at).label)}</b><audio controls preload="none" src="${esc(x.data)}" style="flex:1;min-width:200px"></audio><button type="button" class="btn btn-ghost btn-sm" data-mact="capnote" data-id="${esc(x.id)}">${n&&n.text?"Edit note":"Add note"}</button></div>${n&&n.text?`<p class="small" style="margin:0">“${esc(n.text)}”</p>`:""}`}).join(""):`<p class="small muted" style="margin:0">No recordings yet.</p>`}</div>`;}
+A.capNote=(lid,iid)=>{const L=learner(lid);if(!L)return;const c=pcFor(iid)||{};
+  openModal(`Note for ${firstOf(L.name)}'s time capsule`,`<div class="field"><label for="cn-t">Short note (families see it)</label><input type="text" id="cn-t" name="t" maxlength="200" value="${esc(c.text||"")}" placeholder="Speaks in full sentences now, with lovely expression!"></div>`,
+   {submitLabel:"Save note",done:"Note saved",onSubmit:async f=>{await S.db.doc(`tw/${S.uid}/x/pc-${iid}`).set({kind:"pc",lid,item:iid,text:f.t.value.trim(),s:c.s||"",score:c.score||null,voice:c.voice||null,keep:true,at:Date.now()});}});};
+function capDueList(){const ls=role()==="admin"?activeLearners():pipTry(()=>teacherLearners(myTid()))||[];for(const L of ls)if(L.uid)loadKp(L.uid);return ls.filter(L=>L.uid&&D.kp[L.uid]&&capDue(L));}
+function capParentHTML(L){if(!L||!L.uid)return "";if(!D.kp[L.uid])loadKp(L.uid);const xs=capItems(L);
+  return `<section class="card panel"><div class="ph"><h2>Voice time capsule</h2><button class="btn btn-ghost btn-sm" data-go="capsule">Open</button></div>${xs.length?capThenNow(L):`<p class="small muted">Once a term, ${esc(firstOf(L.name))} records the same short message. You'll be able to play “Then” and “Now” side by side.</p>`}${capDue(L)?`<p class="small"><b>This term's recording is due.</b> ${esc(firstOf(L.name))} can record it from their garden.</p>`:""}</section>`;}
+function capMeHTML(L){if(!L||!L.uid)return "";const n=capItems(L).length;return `<section class="card panel capmini">${capTree(n,96)}<div class="grow"><h2>My voice time capsule</h2><p class="small muted">${n} ${n===1?"leaf":"leaves"} so far. ${capDue(L)?"This term's leaf is waiting for you!":"See you next term!"}</p><button class="btn btn-ghost btn-sm" data-go="capsule">Open my tree</button></div></section>`;}
 
 /* ================= events ================= */
 document.addEventListener("click",e=>{
