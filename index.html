@@ -625,7 +625,7 @@ button.stat{font:inherit;color:inherit;cursor:pointer}.stat.sel{box-shadow:inset
 .chsq.tgt::after{content:"";width:26%;height:26%;border-radius:50%;background:rgba(46,34,25,.28)}
 .chsq.cap{box-shadow:inset 0 0 0 4px rgba(232,73,47,.75)}
 .chsq:focus-visible{outline:3px solid var(--skyDeep);outline-offset:-3px}
-.pc.w{color:#fff;text-shadow:0 0 1px #2E2219,0 0 1px #2E2219,1px 1px 0 #2E2219,-1px -1px 0 #2E2219,1px -1px 0 #2E2219,-1px 1px 0 #2E2219}.pc.b{color:#2E2219}
+.pc{width:84%;height:84%;stroke-linejoin:round;stroke-linecap:round;pointer-events:none}.pc.w{fill:#FFFDF5;stroke:#2E2219;stroke-width:2}.pc.b{fill:#2E2219;stroke:#2E2219;stroke-width:2;filter:drop-shadow(0 0 1px rgba(255,255,255,.9))}.pc .ln{fill:none;stroke-width:2}.pc.w .ln{stroke:#2E2219}.pc.b .ln{stroke:#FFFDF5}.pc.b circle.ln{fill:#FFFDF5;stroke:none}.pc.w circle.ln{fill:#2E2219;stroke:none}.pc .cross{stroke-width:3}.pc.b .cross{stroke:#2E2219}
 .chsq i{position:absolute;font-style:normal;font-size:10px;font-weight:700;color:rgba(46,34,25,.55)}.chsq .rk{left:3px;top:2px}.chsq .fl{right:4px;bottom:1px}
 .gkq{font-size:1.4rem;margin:6px 0 12px}.gkopts{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .gkopt{all:unset;box-sizing:border-box;cursor:pointer;background:#fff;border:2px solid var(--line);border-radius:16px;padding:14px 16px;font-weight:700;font-size:1.05rem;min-height:56px}
@@ -3753,7 +3753,16 @@ function needChess(){
   return chessLoading;
 }
 const CH={g:null,sel:null,mode:"easy",me:"w",last:null,busy:false,err:false};
-const PIECE={k:"♚",q:"♛",r:"♜",b:"♝",n:"♞",p:"♟"}, PNAME={k:"king",q:"queen",r:"rook",b:"bishop",n:"knight",p:"pawn"};
+const PIECE_SVG={
+  p:'<path d="M22.5 9a5 5 0 0 0-3.2 8.8C16.6 19.4 15 22 15 25c0 1.6.5 3 1.3 4.2C13.3 31 11 34 11 38h23c0-4-2.3-7-5.3-8.8.8-1.2 1.3-2.6 1.3-4.2 0-3-1.6-5.6-4.3-7.2A5 5 0 0 0 22.5 9z"/>',
+  r:'<path d="M9 39h27v-4H9zM14 34l1-14h15l1 14zM11 9h5v3h4V9h5v3h4V9h5v8l-3 3H14l-3-3z"/><path class="ln" d="M15 20h15"/>',
+  b:'<circle cx="22.5" cy="8" r="2.6"/><path d="M22.5 11c-5.5 4-8.5 9-8.5 13 0 4 3.3 6 8.5 6s8.5-2 8.5-6c0-4-3-9-8.5-13zM16 30h13l2 5H14zM10 39h25v-4H10z"/><path class="ln" d="M22.5 16v8M18.5 20h8"/>',
+  n:'<path d="M12 39h23c0-9-2-15-5-19 1.5-3 .5-7.5-2.5-10.5L26 6l-2 3.5c-5.5 1.2-9.5 5-12.3 10.6-1 2.2.3 4.2 2.5 4 2-.2 4.2-2.3 6.3-2.4-1.5 4.5-6.8 8.3-8.5 17.3z"/><circle class="ln" cx="20.5" cy="14.5" r="1.3"/>',
+  q:'<path d="M10 39h25l-2-6H12zM12 33l-2.5-17 6.5 9 2-13 4.5 12 4.5-12 2 13 6.5-9L33 33z"/><circle cx="9.5" cy="14" r="2.3"/><circle cx="16" cy="10.5" r="2.3"/><circle cx="22.5" cy="9" r="2.3"/><circle cx="29" cy="10.5" r="2.3"/><circle cx="35.5" cy="14" r="2.3"/>',
+  k:'<path d="M10 39h25l-2-6H12zM13 33c-2.5-6-1.5-12.5 4-14.5 3-1 4.5 1 5.5 3.5 1-2.5 2.5-4.5 5.5-3.5 5.5 2 6.5 8.5 4 14.5z"/><path class="ln cross" d="M22.5 4v12M18 8.5h9"/>'
+};
+const pieceSvg=(t,c)=>`<svg class="pc ${c}" viewBox="0 0 45 45" aria-hidden="true">${PIECE_SVG[t]}</svg>`;
+const PNAME={k:"king",q:"queen",r:"rook",b:"bishop",n:"knight",p:"pawn"};
 const PVAL={p:100,n:320,b:330,r:500,q:900,k:0};
 function chEval(g){ // from white's view
   if(g.in_checkmate())return g.turn()==="w"?-99999:99999;
@@ -3801,7 +3810,7 @@ function chessHTML(){
   let sq="";
   for(let i=0;i<8;i++)for(let j=0;j<8;j++){const r=flip?7-i:i,c=flip?7-j:j,name="abcdefgh"[c]+(8-r),p=b[r][c],dark=(r+c)%2===1;
     const cls=["chsq",dark?"dk":"lt",CH.sel===name?"sel":"",targets.has(name)?(p?"cap":"tgt"):"",CH.last&&CH.last.includes(name)?"lastmv":"",kingSq===name?"chk":""].filter(Boolean).join(" ");
-    sq+=`<button type="button" class="${cls}" data-act="chTap" data-id="${name}" aria-label="${name}${p?` ${p.color==="w"?"white":"black"} ${PNAME[p.type]}`:""}">${p?`<span class="pc ${p.color}">${PIECE[p.type]}</span>`:""}${j===0?`<i class="rk">${8-r}</i>`:""}${i===7?`<i class="fl">${"abcdefgh"[c]}</i>`:""}</button>`;}
+    sq+=`<button type="button" class="${cls}" data-act="chTap" data-id="${name}" aria-label="${name}${p?` ${p.color==="w"?"white":"black"} ${PNAME[p.type]}`:""}">${p?pieceSvg(p.type,p.color):""}${j===0?`<i class="rk">${8-r}</i>`:""}${i===7?`<i class="fl">${"abcdefgh"[c]}</i>`:""}</button>`;}
   const over=g.game_over();
   return `<section class="card panel chesswrap"><div class="ph"><h2>Chess</h2><div class="row">
     <select data-change="chMode" aria-label="Opponent">${[["easy","Computer: easy"],["medium","Computer: medium"],["two","Two players"]].map(([v,t])=>`<option value="${v}" ${CH.mode===v?"selected":""}>${t}</option>`).join("")}</select>
