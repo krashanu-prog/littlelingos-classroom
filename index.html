@@ -792,6 +792,11 @@ body.boarding{overflow:hidden}
 .nfoot{padding:12px 16px;display:flex;flex-direction:column;gap:8px;align-items:flex-start;border-top:2px solid var(--line);background:var(--ground)}
 .nfoot:empty{display:none}
 @media (max-width:760px){#npanel{top:64px;right:8px;left:8px;width:auto}}
+.sayres{display:flex;flex-direction:column;align-items:center;gap:4px;border-radius:18px;padding:10px 16px;background:var(--sunSoft);width:100%;max-width:380px}
+.sayres.s3{background:var(--leafSoft)}.sayres.s0{background:var(--soft)}
+.saystars{font-size:2.2rem;letter-spacing:4px;line-height:1}.saystars span{color:var(--line)}.saystars span.on{color:#E8A400}
+.sayheard,.saymsg{margin:0}.saymsg{font-weight:700}
+#pipfab{z-index:48}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -2699,7 +2704,7 @@ A.drill=src=>{const L=myLearner();if(!L)return;let ws;
   else ws=wordsWithMeaning(L.uid).length?wordsWithMeaning(L.uid):courseVocab(L);
   if(!ws.length){toast("No words to practise yet.",true);return}
   S.drill={ws,i:0,clip:null,heard:null,keep:false,recording:false};drillModal();};
-function drillModal(){const d=S.drill;if(!d)return;const x=d.ws[d.i];
+function drillModalOld(){const d=S.drill;if(!d)return;const x=d.ws[d.i];
   openModal("Repeat after me",`<div class="drill"><span class="pill p-mute">Word ${d.i+1} of ${d.ws.length}</span><b class="dword">${esc(x.w)}</b><span class="dmean">${esc(x.m||"")}</span>
     <div class="drow"><button type="button" class="btn btn-ghost btn-big" data-mact="listen">${ic("sound",22)}Listen</button>
     ${canRecord()?`<button type="button" class="btn ${d.recording?"btn-danger":"btn-primary"} btn-big" data-mact="rec">${d.recording?"■ Stop":"🎤 Say it"}</button>`:""}</div>
@@ -2718,7 +2723,7 @@ function drillModal(){const d=S.drill;if(!d)return;const x=d.ws[d.i];
     prev:()=>{saveDrillClip();d.i--;d.clip=null;d.heard=null;d.keep=false;drillModal();},
     next:()=>{saveDrillClip();if(d.i<d.ws.length-1){d.i++;d.clip=null;d.heard=null;d.keep=false;drillModal();}else{S.drill=null;closeModal();toast("Great speaking! 🎤");}}}});}
 function saveDrillClip(){const d=S.drill;if(!d||!d.keep||!d.clip)return;if(d.size>190000){toast("That recording is too long to keep.",true);return}
-  const x=d.ws[d.i];S.db.collection(`kp/${S.uid}/x`).doc().set({kind:"audio",title:`Saying “${x.w}”`,data:d.clip,at:Date.now()}).then(()=>loadKp(S.uid,true)).catch(handleErr);}
+  const x=d.ws[d.i];S.db.collection(`kp/${S.uid}/x`).doc().set({kind:"audio",title:`Saying “${x.w}”`,data:d.clip,at:Date.now(),...(d.stars?{pipStars:d.stars}:{})}).then(()=>loadKp(S.uid,true)).catch(handleErr);}
 
 /* ---------- Garden (home) ---------- */
 function studentHome(){
@@ -3141,7 +3146,7 @@ function reviewView(){
   const tab=S.rvT||"speak", ls=(role()==="admin"?activeLearners():teacherLearners(myTid()));for(const L of ls)if(L.uid)loadKp(L.uid);
   const items=[];for(const L of ls){if(!L.uid)continue;for(const x of kpItems(L.uid))if(x.kind!=="rate"&&x.kind!=="join")items.push({x,L});}
   const sp=items.filter(i=>i.x.kind==="audio"), pf=items.filter(i=>i.x.kind!=="audio");
-  const tile=({x,L})=>{const c=pcFor(x.id);return `<figure class="ptile">${x.kind==="audio"?`<div class="ptaudio">🎤<audio controls src="${esc(x.data)}"></audio></div>`:`<img src="${esc(x.data)}" alt="${esc(x.title||"")}">`}<figcaption><b>${esc(L.name)} · ${esc(x.title||"")}</b><span>${esc(fmtDay(new Date(x.at)))}</span>${c?`<span class="pill p-good">${c.score?`${c.score}/5 · `:""}${esc(c.s||"")} Reviewed</span>`:`<button class="btn btn-primary btn-sm" data-act="reviewItem" data-id="${esc(L.id+"|"+x.id)}">Review</button>`}${c?`<button class="btn btn-ghost btn-sm" data-act="reviewItem" data-id="${esc(L.id+"|"+x.id)}">Edit</button>`:""}</figcaption></figure>`;};
+  const tile=({x,L})=>{const c=pcFor(x.id);return `<figure class="ptile">${x.kind==="audio"?`<div class="ptaudio">🎤<audio controls src="${esc(x.data)}"></audio></div>`:`<img src="${esc(x.data)}" alt="${esc(x.title||"")}">`}<figcaption><b>${esc(L.name)} · ${esc(x.title||"")}</b><span>${esc(fmtDay(new Date(x.at)))}${x.pipStars?` · Pip practice ${"★".repeat(+x.pipStars)}${"☆".repeat(3-x.pipStars)}`:""}</span>${c?`<span class="pill p-good">${c.score?`${c.score}/5 · `:""}${esc(c.s||"")} Reviewed</span>`:`<button class="btn btn-primary btn-sm" data-act="reviewItem" data-id="${esc(L.id+"|"+x.id)}">Review</button>`}${c?`<button class="btn btn-ghost btn-sm" data-act="reviewItem" data-id="${esc(L.id+"|"+x.id)}">Edit</button>`:""}</figcaption></figure>`;};
   const tabs=`<div class="seg" role="tablist" aria-label="Review"><button class="tog ${tab==="speak"?"on":""}" data-act="rvT" data-id="speak">🎤 Speaking (${sp.filter(i=>!pcFor(i.x.id)).length})</button><button class="tog ${tab==="port"?"on":""}" data-act="rvT" data-id="port">🎨 Portfolio (${pf.filter(i=>!pcFor(i.x.id)).length})</button><button class="tog ${tab==="wall"?"on":""}" data-act="rvT" data-id="wall">🖼️ Garden wall (${pipTry(()=>wallAskedCount())||0})</button><button class="tog ${tab==="skills"?"on":""}" data-act="rvT" data-id="skills">📈 Skills and levels</button></div>`;
   let body;
   if(tab==="speak")body=sp.length?`<div class="port">${sp.sort((a,b)=>(!!pcFor(a.x.id))-(!!pcFor(b.x.id))||(b.x.at-a.x.at)).map(tile).join("")}</div>`:emptyBox("No recordings yet","When learners record themselves in Repeat after me and keep it, or add a recording to their portfolio, it shows here.","","pip");
@@ -4132,7 +4137,7 @@ function pipUpdates(){
     const rv=pipTry(()=>toReview().length)||0;if(rv)add(`${rv} homework answer${rv===1?"":"s"} waiting for your reply`,"homework");
     const sp=pipTry(()=>speakingQueue().length)||0;if(sp)add(`${sp} speaking practice to review`,"review");
     const wa=pipTry(()=>wallAskedCount())||0;if(wa)add(`${wa} learner${wa===1?"":"s"} asked to share work on the Garden wall`,"review");
-    const ib=pipTry(()=>inboxCount())||0;if(ib)add(`${ib} family conversation${ib===1?"":"s"} need a reply`,"inbox",true);
+    const ib=pipTry(()=>inboxCount())||0;if(ib)add(`${ib} family conversation${ib===1?" needs":"s need"} a reply`,"inbox",true);
     if(r==="admin"){const wp=pipTry(()=>waitingParents().length)||0;if(wp)add(`${wp} account${wp===1?"":"s"} waiting to be connected`,"parents",true);
       const rm=pipTry(()=>remindersToday().length)||0;if(rm)add(`${rm} fee reminder${rm===1?"":"s"} due today`,"fees");
       const rp=pipTry(()=>reportsPending().length)||0;if(rp)add(`${rp} report${rp===1?"":"s"} to approve`,"reports");
@@ -4452,7 +4457,7 @@ function dtGuard(){if(timeUp()){render();return true}return false;}
 A.dtListen=()=>{const p=S.dtPlan;if(p&&p.x)say(p.x.w,p.x.lang);};
 A.dtSaid=()=>{if(dtGuard())return;dtFinish(true,true);};
 A.dtRec=()=>{if(dtGuard())return;const p=S.dtPlan;if(!p||!SR||p.rec)return;try{const r=new SR();r.lang=p.x.lang||"en-IN";r.maxAlternatives=3;p.rec=true;render();
-  r.onresult=e=>{const alts=[...e.results[0]].map(a=>a.transcript);const hit=alts.find(a=>norm(a).split(" ").includes(norm(p.x.w))||norm(a)===norm(p.x.w));p.heard=hit||alts[0]||"";p.rec=false;
+  r.onresult=e=>{const alts=[...e.results[0]].map(a=>a.transcript);const sc=sayScore(p.x.w,alts);const hit=sc.stars>=2;p.heard=sc.heard||alts[0]||"";p.rec=false;
     if(hit){dtFinish(true);}else{p.tries++;p.msg=p.tries>=2?"Lovely trying! Let's count that.":"Nearly! Listen once more and try again.";render();if(p.tries>=2)setTimeout(()=>dtFinish(false),1200);}};
   r.onerror=()=>{p.rec=false;p.msg="Pip couldn't hear. You can tap “I said it!” instead.";p.heard=p.heard??"";render();};r.onend=()=>{if(p.rec){p.rec=false;render();}};r.start();setTimeout(()=>{try{r.stop()}catch{}},6000);}catch(e){p.rec=false;render();}};
 A.dtPick=i=>{if(dtGuard())return;const p=S.dtPlan;if(!p||p.fin)return;i=+i;if(p.opts[i]===p.ans){p.msg="";dtFinish(true);return;}
@@ -4722,6 +4727,44 @@ function notifAlert(){try{if(S.status!=="ready"||S.viewAs||typeof Notification==
   for(const x of fresh)al.add(x.k);lsSet("ll_alerted_"+S.uid,[...al].slice(-400));}catch(e){}}
 setInterval(()=>{if(S.status!=="ready")return;notifAlert();offlineSave();if(NC.open)notifDraw();const n=pipTry(()=>notifUnseen().length);if(n!==NC.last){NC.last=n;lastTop="";render();}},30000);
 setTimeout(()=>{notifAlert();offlineSave();},6000);
+
+/* ================= Phase 7: "Say it" upgrade (what Pip heard, 1-3 practice stars, listen again) ================= */
+function lev(a,b){if(a===b)return 0;const m=a.length,n=b.length;if(!m)return n;if(!n)return m;let p=Array.from({length:n+1},(_,i)=>i);
+  for(let i=1;i<=m;i++){const c=[i];for(let j=1;j<=n;j++)c[j]=Math.min(p[j]+1,c[j-1]+1,p[j-1]+(a[i-1]===b[j-1]?0:1));p=c;}return p[n];}
+/* 3 = Pip heard the word, 2 = very close, 1 = Pip heard something (a good try), 0 = nothing heard */
+function sayScore(target,alts){const t=norm(target);if(!t)return {stars:0,heard:""};let best={stars:0,heard:(alts||[])[0]||""};
+  for(const a of alts||[]){const h=norm(a);if(!h)continue;const words=h.split(" ");let s=1;
+    if(h===t||words.includes(t)||(t.includes(" ")&&h.includes(t)))s=3;
+    else{const cands=[h,...words];const sim=Math.max(...cands.map(w=>1-lev(w,t)/Math.max(w.length,t.length)));if(sim>=.6)s=2;}
+    if(s>best.stars)best={stars:s,heard:a};}
+  if(!best.heard&&alts&&alts.length)best.heard=alts[0];return best;}
+const SAYMSG=["Pip couldn't hear you. Try a little louder, close to the phone.","Good try! Listen to Pip and have another go.","So close! Listen again and try once more.","Perfect! You said it beautifully!"];
+function sayStarsHTML(n){return `<span class="saystars" aria-label="${n} of 3 stars">${[1,2,3].map(i=>`<span class="${i<=n?"on":""}">★</span>`).join("")}</span>`;}
+function drillModal(){const d=S.drill;if(!d)return;const x=d.ws[d.i];const rec=canRecord(),sr=!!SR;
+  const res=d.said?`<div class="sayres s3" aria-live="polite"><p class="saymsg">Well done for saying it out loud! 🌱</p></div>`:d.heard!=null?`<div class="sayres s${d.stars||0}" aria-live="polite">${sayStarsHTML(d.stars||0)}<p class="sayheard">${d.heard?`Pip heard: <b>“${esc(d.heard)}”</b>`:"Pip didn't hear anything."}</p><p class="saymsg">${SAYMSG[d.stars||0]}</p></div>`:"";
+  openModal("Repeat after me",`<div class="drill"><span class="pill p-mute">Word ${d.i+1} of ${d.ws.length}</span><b class="dword">${esc(x.w)}</b><span class="dmean">${esc(x.m||"")}</span>
+    <div class="drow"><button type="button" class="btn ${d.heard!=null&&d.stars<3?"btn-sun":"btn-ghost"} btn-big" data-mact="listen">${ic("sound",22)}${d.heard!=null?"Listen again":"Listen"}</button>
+    ${rec||sr?`<button type="button" class="btn ${d.recording?"btn-danger":"btn-primary"} btn-big" data-mact="rec">${d.recording?(rec?"■ Stop":"Listening…"):(d.heard!=null?"🎤 Try again":"🎤 Say it")}</button>`:""}</div>
+    ${res}
+    ${d.clip?`<audio controls src="${esc(d.clip)}"></audio>`:""}
+    ${d.clip?`<label class="row" style="font-weight:700"><input type="checkbox" data-mact="keep" ${d.keep?"checked":""} style="width:22px;height:22px;accent-color:var(--leafMid)"> Keep this in my portfolio</label>`:""}
+    ${!sr?`<p class="small muted">${rec?"Pip can't listen for words on this browser, but you can record yourself and play it back.":"This device can't record here, so just say the word out loud after Pip."}</p>${!rec?`<button type="button" class="btn btn-ghost" data-mact="said">I said it!</button>`:""}`:""}
+    <p class="small muted">Pip's stars are for practice. Your teacher gives your real speaking score.</p></div>`,
+  {noFocus:true,footerExtra:`${d.i>0?`<button type="button" class="btn btn-ghost" data-mact="prev">${ic("back")}Back</button>`:""}<button type="button" class="btn btn-leaf" data-mact="next">${d.i<d.ws.length-1?"Next word":"Finish"} ${ic("fwd")}</button>`,
+  actions:{listen:()=>{if(canSpeak()){try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(x.w);u.lang=x.lang||"en-IN";u.rate=d.heard!=null?.65:.8;speechSynthesis.speak(u);}catch(e){}}},
+    said:()=>{d.said=true;drillModal();},
+    rec:async()=>{if(d.recording){if(rec)stopRec();return}
+      d.clip=null;d.heard=null;d.stars=0;
+      const listen=()=>{if(!SR)return;try{const r=new SR();r.lang=x.lang||"en-IN";r.maxAlternatives=5;let got=false;
+        r.onresult=e=>{got=true;const alts=[...e.results[0]].map(a=>a.transcript);const sc=sayScore(x.w,alts);d.heard=sc.heard;d.stars=sc.stars;wkLog(x.w,sc.stars>=2);d.best=Math.max(d.best||0,sc.stars);if(!rec)d.recording=false;if(!d.recording)drillModal();};
+        r.onerror=()=>{if(!rec){d.recording=false;d.heard=d.heard??"";drillModal();}};r.onend=()=>{if(!rec&&d.recording){d.recording=false;if(!got)d.heard="";drillModal();}};
+        r.start();setTimeout(()=>{try{r.stop()}catch{}},6000);}catch(e){}};
+      if(rec){const ok=await startRec(6,async(url,size)=>{d.recording=false;d.clip=url;d.size=size;if(d.heard==null&&SR)d.heard="";drillModal();earn({recs:(+progOf(S.uid).recs||0)+1}).catch(()=>{});});
+        if(!ok)return;d.recording=true;drillModal();listen();}
+      else{d.recording=true;drillModal();listen();}},
+    keep:()=>{d.keep=!d.keep;drillModal();},
+    prev:()=>{saveDrillClip();d.i--;Object.assign(d,{clip:null,heard:null,stars:0,keep:false,said:false});drillModal();},
+    next:()=>{saveDrillClip();if(d.i<d.ws.length-1){d.i++;Object.assign(d,{clip:null,heard:null,stars:0,keep:false,said:false});drillModal();}else{S.drill=null;closeModal();toast("Great speaking! 🎤");}}}});}
 
 /* ================= events ================= */
 document.addEventListener("click",e=>{
