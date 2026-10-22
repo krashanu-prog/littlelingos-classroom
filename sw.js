@@ -1,6 +1,6 @@
 /* Little Lingos Classroom service worker: app shell offline + notification taps.
    Family data from the database is never cached here; only the app's own files. */
-const CACHE = "ll-shell-v1";
+const CACHE = "ll-shell-v2";
 const SHELL = ["./", "index.html", "adapter.js", "config.js", "supabase.js", "bank.js", "gk.js",
   "manifest.webmanifest", "icon-192.png", "icon-512.png", "icon.svg"];
 self.addEventListener("install", e => {
@@ -15,6 +15,8 @@ self.addEventListener("fetch", e => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin === self.location.origin) {
+    /* shared family pages are never cached and never replace the app shell */
+    if (/\/share\.html$/.test(url.pathname)) return;
     /* network first, so updates show straight away; the saved copy is used offline */
     e.respondWith(fetch(req).then(res => {
       if (res && res.ok && res.type === "basic") { const cp = res.clone(); caches.open(CACHE).then(c => c.put(req.mode === "navigate" ? "index.html" : req, cp)); }

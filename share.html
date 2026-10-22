@@ -1,0 +1,136 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="robots" content="noindex,nofollow,noarchive,nosnippet,noimageindex">
+<meta name="referrer" content="no-referrer">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data:; media-src 'self' data: blob:; connect-src 'self' https://*.supabase.co; frame-ancestors 'none'; base-uri 'none'; form-action 'none'">
+<meta name="theme-color" content="#BFE3FA">
+<title>Shared with love · little lingos</title>
+<link rel="icon" href="icon.svg" type="image/svg+xml">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@600;700;800&family=Atkinson+Hyperlegible:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--sky:#BFE3FA;--grass:#7CC243;--leaf:#2F8F46;--deep:#22703A;--sun:#FFC94A;--tomato:#E8492F;--petal:#F7A8C4;--soil:#2E2219;--muted:#5C4F45;--card:#FFFFFF;--paper:#F5FAEE;--line:#DDEFC4;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--sky:#1B2A36;--grass:#2F6B2A;--card:#2A221C;--paper:#1E1813;--soil:#F5EFE8;--muted:#D2C6BA;--line:#3A3029;--deep:#A6DB5C}}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%}
+body{background:var(--sky);color:var(--soil);font-family:"Atkinson Hyperlegible",system-ui,sans-serif;font-size:17px;line-height:1.5;display:flex;flex-direction:column;min-height:100vh;min-height:100dvh}
+main{flex:1;width:100%;max-width:560px;margin:0 auto;padding:24px 16px 120px;display:flex;flex-direction:column;align-items:center;gap:16px;position:relative;z-index:1}
+h1{font-family:"Baloo 2",system-ui,sans-serif;font-weight:800;font-size:2rem;line-height:1.05;margin:0;text-align:center}
+.pip{width:96px;height:auto}
+.sun{position:fixed;top:-30px;right:-30px;width:140px;height:140px;border-radius:50%;background:var(--sun);opacity:.85;z-index:0}
+.hill{position:fixed;left:-10%;right:-10%;bottom:-60px;height:160px;background:var(--grass);border-radius:50% 50% 0 0;z-index:0}
+.card{background:var(--card);border-radius:28px;padding:20px;width:100%;display:flex;flex-direction:column;gap:12px;box-shadow:0 2px 0 rgba(46,34,25,.08)}
+.card img{width:100%;max-height:60vh;object-fit:contain;border-radius:16px;background:var(--paper)}
+.card audio{width:100%}
+.ttl{font-family:"Baloo 2",system-ui,sans-serif;font-weight:700;font-size:1.25rem;margin:0}
+.muted{color:var(--muted)}.small{font-size:.9rem}
+.cert{border:4px solid var(--tomato);border-radius:20px;padding:22px 16px;text-align:center;display:flex;flex-direction:column;gap:4px;background:#FFFDF7;color:#2E2219}
+.cert .t{letter-spacing:.14em;font-weight:700;color:#22703A;font-size:.8rem}.cert .n{font-family:"Baloo 2",system-ui,sans-serif;font-weight:800;font-size:2.2rem;line-height:1}.cert .c{font-family:"Baloo 2",system-ui,sans-serif;font-weight:700;font-size:1.3rem}
+.acts{display:flex;gap:10px;flex-wrap:wrap}
+button,.btn{font:inherit;font-family:"Baloo 2",system-ui,sans-serif;font-weight:700;font-size:1.05rem;min-height:48px;border-radius:999px;border:2px solid transparent;padding:8px 20px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px;text-decoration:none}
+button:focus-visible,.btn:focus-visible,input:focus-visible{outline:3px solid #4BA3E3;outline-offset:2px}
+.heart{background:var(--card);color:var(--soil);border-color:var(--petal)}.heart.on{background:var(--petal);color:#2E2219}
+.rec{background:var(--leaf);color:#fff}.rec.stop{background:var(--soil);color:var(--card)}
+.ghost{background:transparent;color:var(--soil);border-color:var(--line)}
+.trial{background:var(--tomato);color:#fff}
+input[type=text]{font:inherit;width:100%;min-height:48px;border-radius:14px;border:2px solid var(--line);padding:8px 12px;background:var(--card);color:var(--soil)}
+label{font-weight:700;font-size:.95rem}
+.ok{background:#DDEFC4;color:#22703A;border-radius:16px;padding:10px 14px;font-weight:700}
+.err{background:#FFE3D9;color:#8A2A18;border-radius:16px;padding:10px 14px}
+footer{position:relative;z-index:1;background:var(--paper);border-top:1px solid var(--line);padding:18px 16px calc(18px + env(safe-area-inset-bottom));display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+.brand{display:flex;align-items:center;gap:8px}.brand svg{width:40px;height:48px}
+.wm{display:flex;align-items:baseline;gap:5px;font-family:"Baloo 2",system-ui,sans-serif;line-height:1;position:relative}
+.wm .l1{font-weight:700;font-size:15px;color:var(--soil)}.wm .l2{font-weight:800;font-size:33px;color:var(--deep)}
+.wm .lf{position:absolute;right:-8px;top:-6px;width:12px;height:12px}
+.tag{margin:0;color:var(--muted)}
+.hidden{display:none!important}
+@media (prefers-reduced-motion:no-preference){.pop{animation:pop .35s ease}@keyframes pop{0%{transform:scale(1)}50%{transform:scale(1.15)}100%{transform:scale(1)}}}
+</style>
+<script src="config.js"></script>
+<script src="supabase.js"></script>
+</head>
+<body>
+<div class="sun" aria-hidden="true"></div><div class="hill" aria-hidden="true"></div>
+<main id="app" aria-live="polite">
+  <svg class="pip" viewBox="24 12 152 186" role="img" aria-label="Pip the seed"><path d="M100 58 c-4 -26 -30 -40 -54 -30 c8 24 30 34 54 30 z" fill="#A6DB5C"/><path d="M100 58 c4 -30 32 -46 60 -34 c-10 28 -34 38 -60 34 z" fill="#7CC243"/><path d="M100 56 v14" stroke="#22703A" stroke-width="6" stroke-linecap="round"/><ellipse cx="100" cy="128" rx="70" ry="64" fill="#2F8F46"/><ellipse cx="100" cy="150" rx="46" ry="30" fill="#3FA75A"/><circle cx="76" cy="116" r="15" fill="#FFFFFF"/><circle cx="79" cy="119" r="8" fill="#2E2219"/><circle cx="82" cy="115" r="2.6" fill="#FFFFFF"/><circle cx="124" cy="116" r="15" fill="#FFFFFF"/><circle cx="127" cy="119" r="8" fill="#2E2219"/><circle cx="130" cy="115" r="2.6" fill="#FFFFFF"/><ellipse cx="58" cy="140" rx="10" ry="6" fill="#F7A8C4"/><ellipse cx="142" cy="140" rx="10" ry="6" fill="#F7A8C4"/><path d="M84 140 q16 22 32 0 z" fill="#2E2219"/><path d="M92 148 q8 8 16 0 l-4 -2 h-8 z" fill="#E8492F"/></svg>
+  <p class="muted" id="loading">Opening…</p>
+</main>
+<footer>
+  <div class="brand" aria-label="little lingos"><svg viewBox="24 12 152 186" aria-hidden="true"><path d="M100 58 c-4 -26 -30 -40 -54 -30 c8 24 30 34 54 30 z" fill="#A6DB5C"/><path d="M100 58 c4 -30 32 -46 60 -34 c-10 28 -34 38 -60 34 z" fill="#7CC243"/><path d="M100 56 v14" stroke="#22703A" stroke-width="6" stroke-linecap="round"/><ellipse cx="100" cy="128" rx="70" ry="64" fill="#2F8F46"/><ellipse cx="100" cy="150" rx="46" ry="30" fill="#3FA75A"/><circle cx="76" cy="116" r="15" fill="#FFFFFF"/><circle cx="79" cy="119" r="8" fill="#2E2219"/><circle cx="124" cy="116" r="15" fill="#FFFFFF"/><circle cx="127" cy="119" r="8" fill="#2E2219"/><ellipse cx="58" cy="140" rx="10" ry="6" fill="#F7A8C4"/><ellipse cx="142" cy="140" rx="10" ry="6" fill="#F7A8C4"/><path d="M84 140 q16 22 32 0 z" fill="#2E2219"/></svg>
+    <span class="wm"><span class="l1">little</span><span class="l2">lingos</span><svg class="lf" viewBox="0 0 40 40" aria-hidden="true"><path d="M0 40 c2 -22 16 -36 40 -40 c-2 22 -16 36 -40 40 z" fill="#E8492F"/></svg></span></div>
+  <p class="tag">Where words grow.</p>
+  <a class="btn trial" id="trial" href="https://littlelingos.in" target="_blank" rel="noopener noreferrer">Book a trial class</a>
+</footer>
+<script>
+(function(){
+  "use strict";
+  var app=document.getElementById("app");
+  var tok=(location.hash.match(/t=([0-9a-f]{64})/)||[])[1]||"";
+  /* keep the token out of the address shown to screenshots and history */
+  var cfg=window.LL_CONFIG||{};var sb=null;
+  try{sb=window.supabase.createClient(cfg.supabaseUrl,cfg.supabaseAnonKey,{auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}});}catch(e){}
+  function el(tag,attrs,kids){var n=document.createElement(tag);for(var k in (attrs||{})){if(k==="text")n.textContent=attrs[k];else if(k==="cls")n.className=attrs[k];else n.setAttribute(k,attrs[k]);}(kids||[]).forEach(function(c){if(c)n.appendChild(c);});return n;}
+  function clear(){while(app.children.length>1)app.removeChild(app.lastChild);}
+  function day(ms){try{return new Date(ms).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"});}catch(e){return "";}}
+  function store(k,v){try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v);}catch(e){return null;}}
+  function ended(){clear();app.appendChild(el("h1",{text:"This link has ended"}));
+    app.appendChild(el("p",{cls:"muted",text:"Shared links last 7 or 30 days, and families can switch them off at any time. Ask the family to send a new one."}));}
+  function show(d){clear();
+    if(d.trial&&/^https:\/\//i.test(d.trial))document.getElementById("trial").href=d.trial;
+    var f=d.first||"Your little one";
+    app.appendChild(el("h1",{text:d.kind==="audio"?"Listen to "+f+"!":d.kind==="cert"?f+" earned a certificate!":"Look what "+f+" made!"}));
+    var card=el("section",{cls:"card"});
+    if(d.kind==="cert"){card.appendChild(el("div",{cls:"cert"},[el("span",{cls:"t",text:"CERTIFICATE OF BLOOMING"}),el("span",{cls:"n",text:f}),el("span",{text:d.sub||"has finished every lesson in"}),el("span",{cls:"c",text:d.title||""}),el("span",{cls:"small",text:d.at?day(d.at):""})]));}
+    else{if(d.title)card.appendChild(el("p",{cls:"ttl",text:d.title}));
+      var src=String(d.data||"");
+      if(d.kind==="audio"&&/^data:audio\//.test(src))card.appendChild(el("audio",{controls:"",src:src,preload:"metadata"}));
+      else if(/^data:image\//.test(src))card.appendChild(el("img",{src:src,alt:d.title||"Shared work"}));
+      if(d.at)card.appendChild(el("span",{cls:"small muted",text:day(d.at)}));}
+    app.appendChild(card);
+    /* heart */
+    var hk="llh-"+tok.slice(0,16),n=+d.hearts||0,on=!!store(hk);
+    var hb=el("button",{type:"button",cls:"heart"+(on?" on":""),"aria-pressed":on?"true":"false"});
+    function hl(){hb.textContent=(on?"❤️ ":"🤍 ")+(on?"Sent with love":"Send a heart")+(n?" · "+n:"");}hl();
+    hb.addEventListener("click",function(){if(on)return;on=true;store(hk,"1");n++;hl();hb.classList.add("on","pop");hb.setAttribute("aria-pressed","true");
+      sb&&sb.rpc("ll_share_react",{p_token:tok,p_kind:"heart",p_data:null,p_from:null}).then(function(r){if(r&&r.data&&r.data.hearts){n=r.data.hearts;hl();}},function(){});});
+    var vc=el("section",{cls:"card"});
+    vc.appendChild(el("p",{cls:"ttl",text:"Say “Well done!” to "+f}));
+    vc.appendChild(el("p",{cls:"small muted",text:"Record a voice message, up to 30 seconds. "+f+" will hear it in their garden."}));
+    var acts=el("div",{cls:"acts"},[hb]);app.insertBefore(acts,card.nextSibling);
+    var canRec=!!(navigator.mediaDevices&&navigator.mediaDevices.getUserMedia&&window.MediaRecorder);
+    if(!canRec){vc.appendChild(el("p",{cls:"small",text:"This browser can't record. You can still send a heart!"}));app.appendChild(vc);return;}
+    var nameL=el("label",{for:"from",text:"Your name (optional)"}),nameI=el("input",{type:"text",id:"from",maxlength:"30",placeholder:"e.g. Nani, Dadu, Aunty Meera",autocomplete:"off"});
+    var rb=el("button",{type:"button",cls:"rec"});rb.textContent="🎤 Record a message";
+    var status=el("p",{cls:"small muted",role:"status"});var prev=el("div",{});var send=el("button",{type:"button",cls:"rec hidden"});send.textContent="Send my message";
+    var again=el("button",{type:"button",cls:"ghost hidden"});again.textContent="Record again";
+    vc.appendChild(nameL);vc.appendChild(nameI);vc.appendChild(el("div",{cls:"acts"},[rb,send,again]));vc.appendChild(status);vc.appendChild(prev);app.appendChild(vc);
+    var mr=null,chunks=[],timer=null,left=30,clip=null,stream=null;
+    function stopAll(){try{if(mr&&mr.state!=="inactive")mr.stop();}catch(e){}}
+    rb.addEventListener("click",function(){
+      if(mr&&mr.state==="recording"){stopAll();return;}
+      navigator.mediaDevices.getUserMedia({audio:{channelCount:1,echoCancellation:true,noiseSuppression:true}}).then(function(s){stream=s;chunks=[];clip=null;prev.textContent="";
+        var opts={audioBitsPerSecond:32000};try{if(MediaRecorder.isTypeSupported&&MediaRecorder.isTypeSupported("audio/webm;codecs=opus"))opts.mimeType="audio/webm;codecs=opus";}catch(e){}
+        try{mr=new MediaRecorder(s,opts);}catch(e){mr=new MediaRecorder(s);}
+        mr.ondataavailable=function(e){if(e.data&&e.data.size)chunks.push(e.data);};
+        mr.onstop=function(){clearInterval(timer);stream.getTracks().forEach(function(t){t.stop();});rb.textContent="🎤 Record a message";rb.classList.remove("stop");
+          var b=new Blob(chunks,{type:(mr.mimeType||"audio/webm").split(";")[0]});var r=new FileReader();r.onload=function(){clip=r.result;prev.textContent="";prev.appendChild(el("audio",{controls:"",src:clip}));
+            if(clip.length>400000){status.textContent="That message is a little long. Please record a shorter one.";clip=null;return;}
+            status.textContent="Listen back, then send it.";send.classList.remove("hidden");again.classList.remove("hidden");rb.classList.add("hidden");};r.readAsDataURL(b);};
+        mr.start();left=30;rb.textContent="■ Stop · 0:30";rb.classList.add("stop");status.textContent="Recording…";
+        timer=setInterval(function(){left--;rb.textContent="■ Stop · 0:"+String(Math.max(0,left)).padStart(2,"0");if(left<=0)stopAll();},1000);
+      },function(){status.textContent="Please allow the microphone to record a message.";});});
+    again.addEventListener("click",function(){clip=null;prev.textContent="";send.classList.add("hidden");again.classList.add("hidden");rb.classList.remove("hidden");status.textContent="";});
+    send.addEventListener("click",function(){if(!clip||!sb)return;send.disabled=true;status.textContent="Sending…";
+      sb.rpc("ll_share_react",{p_token:tok,p_kind:"voice",p_data:clip,p_from:nameI.value.trim()}).then(function(r){send.disabled=false;
+        if(r.error){status.textContent="";prev.textContent="";prev.appendChild(el("p",{cls:"err",text:r.error.message||"That didn't send. Please try again."}));return;}
+        vc.textContent="";vc.appendChild(el("p",{cls:"ok",text:"Thank you! "+f+" will hear your message. 🌱"}));},function(){send.disabled=false;status.textContent="That didn't send. Check your internet and try again.";});});
+  }
+  if(!tok||!sb){ended();return;}
+  sb.rpc("ll_share_view",{p_token:tok}).then(function(r){if(r.error||!r.data||!r.data.ok){ended();return;}show(r.data);},ended);
+})();
+</script>
+</body>
+</html>

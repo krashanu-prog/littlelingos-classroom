@@ -878,6 +878,13 @@ body.boarding{overflow:hidden}
 @media print{body.pp-printing>*:not(#pp-print){display:none!important}body.pp-printing #pp-print{display:block!important}body.pp-printing #pp-print,body.pp-printing #pp-print *{visibility:visible!important}body.pp-printing{background:#fff!important}
   #pp-print .ppdoc{border:0;border-radius:0;max-width:none;margin:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}#pp-print .ppsec{break-inside:avoid}}
 @media (max-width:480px){.pphead{padding:18px}.pphead h2{font-size:1.6rem}.ppsec,.ppintro{padding-left:16px;padding-right:16px}.ppfoot{padding:12px 16px}}
+.sharepv{display:flex;flex-direction:column;gap:2px;background:var(--skySoft);border-radius:16px;padding:10px 14px}
+.sharebtns{gap:6px;flex-wrap:wrap;margin-top:6px}.shareitem .t{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.certs .iconbtn{align-self:center}
+.famcard{background:var(--petalSoft);border-radius:24px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.famh{display:flex;gap:12px;align-items:center}.famh .grow{display:flex;flex-direction:column}.famheart{font-size:2rem;line-height:1}
+.famrep{display:flex;flex-direction:column;gap:4px}.famrep audio{width:100%;max-width:420px}
+#sh-msg{width:100%;font:inherit;border-radius:14px;border:2px solid var(--line);padding:10px;background:var(--card);color:var(--soil)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
@@ -1331,7 +1338,7 @@ function mainHTML(){
   const r=realRole();
   if(!r)return onboardHTML();
   if(r==="pending")return pendingHTML();
-  const allowed=new Set(navItems().map(x=>x[0]).concat(["course","lesson","child","capsule","sounds","passport"],role()==="parent"?["settings"]:[]));
+  const allowed=new Set(navItems().map(x=>x[0]).concat(["course","lesson","child","capsule","sounds","passport","shares"],role()==="parent"?["settings"]:[]));
   const key=allowed.has(S.view)&&VIEWS[S.view]?S.view:"home";
   if(needsConsent())return consentHTML();
   if(gateNeeded(key))return gateHTML();
@@ -1448,6 +1455,7 @@ capsule(){return capsuleView();},
 india(){return indiaView();},
 sounds(){return soundsView();},
 passport(){return passportView();},
+shares(){return sharesView();},
 myspace(){return mySpaceView();},
 review(){return reviewView();},
 reports(){return reportsView();},
@@ -1765,6 +1773,7 @@ function childView(lid){
       ${confParentHTML(L)}
       ${spParentHTML(L)}
       ${ppParentHTML(L)}
+      ${sharesCardHTML(L)}
       <section class="card panel"><h2>Attendance</h2>${hist.length?`<div class="list">${hist.slice(0,8).map(x=>`<div class="item"><div class="grow"><div class="t">${esc(x.title||D.courses[x.courseId]?.title||"Class")}</div><div class="s">${esc(fmtDay(new Date(x.date)))}</div></div>${attPill(x.st)}</div>`).join("")}</div>`:`<p class="muted">No classes marked yet.</p>`}</section>
       ${(()=>{const hs=hwFor(L);return `<section class="card panel"><h2>Homework</h2>${hs.length?`<div class="list">${hs.slice(0,6).map(h=>{const st=hwState(L,h);const rp=replyOf(L,h);return `<div class="item"><div class="grow"><div class="t">${esc(h.title)}</div><div class="s">${rp?`${esc(hwAuthor(h))}: “${esc(rp.text)}”`:`${esc(hwAuthor(h))}${h.due?` · due ${esc(fmtDay(hwDue(h)))}`:""}`}</div></div><span class="pill ${st.cls}">${esc(st.label)}</span></div>`}).join("")}</div>`:`<p class="muted">No homework set yet.</p>`}</section>`})()}
       ${pr.length?`<section class="card panel"><h2>What ${esc(first)} is practising</h2>${pr.map(p=>`<div class="h${p.h}"><div class="small" style="font-weight:700">${esc(p.label)}</div><div class="barrow"><div class="bar"><i style="width:${pctStr(p.v)}"></i></div><b class="num">${pctStr(p.v)}</b></div></div>`).join("")}</section>`:""}
@@ -2419,7 +2428,7 @@ function parentProgress(){
   </div>
   <section class="card panel"><div class="ph"><h2>Words learned <span class="pill p-mute num">${ws.length}</span></h2>${speak&&ws.length?`<span class="small muted">Tap 🔊 to hear a word</span>`:""}</div>
     ${ws.length?`<div class="words">${ws.map(x=>`<div class="word"><div><b>${esc(x.w)}</b><span>${esc(x.m)}</span></div>${speak?`<button class="iconbtn" data-act="say" data-w="${esc(x.w)}" data-l="${esc(x.lang)}" aria-label="Hear ${esc(x.w)}">${ic("sound")}</button>`:""}</div>`).join("")}</div>`:`<p class="muted">Words from finished lessons collect here.</p>`}</section>
-  ${kidReports(L)}${confParentHTML(L)}${spParentHTML(L)}${ppParentHTML(L)}${kidExtras(L)}
+  ${kidReports(L)}${confParentHTML(L)}${spParentHTML(L)}${ppParentHTML(L)}${sharesCardHTML(L)}${kidExtras(L)}
   <section class="card panel"><h2>Topics covered</h2>${topics.length?`<div class="list">${topics.map(h=>`<div class="item" style="align-items:flex-start"><div class="when"><span>${esc(WD.format(new Date(h.date)))}</span><b class="num">${esc(DNUM.format(new Date(h.date)))}</b></div><div class="grow"><div class="t">${esc(h.topic||h.title||"Class")}</div>${h.objectives?`<ul class="obj small">${String(h.objectives).split("\n").map(x=>x.trim()).filter(Boolean).map(x=>`<li>${esc(x.replace(/^[-•*]\s*/,""))}</li>`).join("")}</ul>`:""}<div class="s">${esc(h.title||"")}</div></div></div>`).join("")}</div>`:`<p class="muted">When teachers add a topic and learning objectives to a class, they're listed here after ${esc(firstOf(L.name))} attends.</p>`}</section>`;
 }
 const SKILL={"Stories":"Reading (stories)","Speaking":"Speaking","Songs & videos":"Listening (songs & videos)","Games":"Word games"};
@@ -2838,6 +2847,7 @@ function studentHome(){
       ${dtHTML(L)}
     </div>
     <div class="stack" style="gap:16px">
+      ${familyKidHTML(L)}
       ${confKidHTML(L)}
       ${capsuleDueHTML(L)}
       ${adaptKidHTML(L)}
@@ -3015,7 +3025,7 @@ function meView(){
 }
 function portTile(x,own){const media=x.kind==="audio"?`<div class="ptaudio">🎤<audio controls src="${esc(x.data)}"></audio></div>`:`<img src="${esc(x.data)}" alt="${esc(x.title||"Picture")}">`;
   const c=pcFor(x.id);
-  return `<figure class="ptile">${media}${c?`<div class="pcbox">${c.s?`<span class="bigsticker sm">${esc(c.s)}</span>`:""}${c.score?`<b>${c.score}/5</b>`:""} ${esc(c.text||"")}${c.voice?`<audio controls src="${esc(c.voice)}"></audio>`:""}</div>`:""}<figcaption><b>${esc(x.title||(x.kind==="audio"?"Recording":"Picture"))}</b><span>${esc(fmtDay(new Date(x.at)))}</span>${own?wallShareBtn(x):""}${own&&!x.capsule?`<button class="iconbtn" data-act="delPort" data-id="${esc(x.id)}" aria-label="Delete">${ic("trash")}</button>`:""}</figcaption></figure>`;}
+  return `<figure class="ptile">${media}${c?`<div class="pcbox">${c.s?`<span class="bigsticker sm">${esc(c.s)}</span>`:""}${c.score?`<b>${c.score}/5</b>`:""} ${esc(c.text||"")}${c.voice?`<audio controls src="${esc(c.voice)}"></audio>`:""}</div>`:""}<figcaption><b>${esc(x.title||(x.kind==="audio"?"Recording":"Picture"))}</b><span>${esc(fmtDay(new Date(x.at)))}</span>${own?wallShareBtn(x):""}${!own?shareBtn(x.id,x.kind):""}${own&&!x.capsule?`<button class="iconbtn" data-act="delPort" data-id="${esc(x.id)}" aria-label="Delete">${ic("trash")}</button>`:""}</figcaption></figure>`;}
 A.setAv=v=>{const [k,val]=v.split("|");const cur=(D.profiles[S.uid]||{}).avatar||{};save(()=>upsert("profiles/"+S.uid,{avatar:{...cur,[k]:val}}));};
 A.delPort=id=>openModal("Delete this?","<p>It will be removed from your portfolio.</p>",{danger:true,submitLabel:"Delete",done:"Deleted",onSubmit:async()=>{await S.db.doc(`kp/${S.uid}/x/${id}`).delete();await loadKp(S.uid,true);}});
 async function savePort(kind,title,data){if(data.length>240000)throw userErr("That's too big to save. Try a smaller picture or a shorter recording.");await S.db.collection(`kp/${S.uid}/x`).doc().set({kind,title:title||"",data,at:Date.now()});await earn({});await loadKp(S.uid,true);}
@@ -3064,7 +3074,7 @@ function kidReports(L){const rs=reportsFor(L),as=assessFor(L)[0];if(!rs.length&&
 function kidExtras(L){if(!L.uid)return kidReports(L);loadKp(L.uid);const bs=badgesOf(L),certs=certsOf(L),port=kpItems(L.uid).filter(x=>x.kind!=="rate"&&x.kind!=="join").slice(0,8),lim=limitFor(L);
   return `<section class="card panel"><div class="ph"><h2>Stars, badges and certificates</h2><span class="pill p-sun">⭐ ${starsOf(L)} stars</span></div>
     <div class="badges">${bs.filter(b=>b.ok).map(b=>`<div class="badge on"><span>${b.e}</span><b>${esc(b.t)}</b></div>`).join("")||`<p class="muted">Badges appear as ${esc(firstOf(L.name))} learns.</p>`}</div>
-    ${certs.length?`<div class="certs">${certs.map(x=>`<button class="certmini" data-act="cert" data-id="${esc(x.cid)}"><span>🏆</span><b>${esc(x.c.title)}</b><i>${esc(fmtDay(new Date(x.at)))}</i></button>`).join("")}</div>`:""}
+    ${certs.length?`<div class="certs">${certs.map(x=>`<button class="certmini" data-act="cert" data-id="${esc(x.cid)}"><span>🏆</span><b>${esc(x.c.title)}</b><i>${esc(fmtDay(new Date(x.at)))}</i></button>${shareBtn(x.cid,"cert")}`).join("")}</div>`:""}
     <p class="small muted">Learning time today: ${usedToday(L.uid)} minute${usedToday(L.uid)===1?"":"s"}${lim?` of ${lim}`:""}. ${lim?"":"Set a daily limit in Settings."}</p></section>
   <section class="card panel"><h2>${esc(firstOf(L.name))}'s portfolio</h2>${port.length?`<div class="port">${port.map(x=>portTile(x,false)).join("")}</div>`:`<p class="muted">Drawings, photos of work and recordings ${esc(firstOf(L.name))} saves appear here.</p>`}</section>`;}
 
@@ -3722,6 +3732,7 @@ function adminSettings(){const tab=S.stab||"academy";const tabs=`<div class="seg
     <div class="field"><label for="sa-a">Address (on invoices)</label><textarea id="sa-a" name="address" rows="2" maxlength="300">${esc(a.address||"")}</textarea></div>
     <div class="two"><div class="field"><label for="sa-upi">UPI ID for fee payments</label><input type="text" id="sa-upi" name="upi" maxlength="100" autocomplete="off" value="${esc(a.upi||"")}" placeholder="e.g. littlelingos@okhdfcbank"><span class="hint">Parents see a Pay with UPI button and QR code on their Fees page.</span></div><div class="field"><label for="sa-upn">Payee name shown in UPI apps</label><input type="text" id="sa-upn" name="upiName" maxlength="50" value="${esc(a.upiName||"")}" placeholder="e.g. Little Lingos"></div></div>
     <div class="field"><label for="sa-u">Classroom link</label><input type="url" id="sa-u" name="url" value="${esc(c.classroomUrl||"")}" placeholder="https://classroom.your-site.com"><span class="hint">Used in invite messages to parents.</span></div>
+    <div class="field"><label for="sa-tr">Trial booking link</label><input type="url" id="sa-tr" name="trialUrl" value="${esc(a.trialUrl||"")}" placeholder="https://littlelingos.in/book"><span class="hint">The “Book a trial class” button on pages parents share with family.</span></div>
     <div class="two"><div class="field"><label for="sa-l">Languages offered</label><input type="text" id="sa-l" name="langs" maxlength="200" value="${esc(OFFERED().join(", "))}" placeholder="English, Hindi, Spanish"></div><div class="field"><label for="sa-z">Main time zone</label><select id="sa-z" name="tz">${TZ_OPTS().map(([v,l])=>opt(v,l,v===DEF_TZ())).join("")}</select></div></div>
     <div class="field"><label for="sa-d">Class lengths (minutes)</label><input type="text" id="sa-d" name="durs" maxlength="60" value="${esc(DURATIONS().join(", "))}"><span class="hint">Shown when you set up batches.</span></div>
     <button class="btn btn-primary" type="submit" style="align-self:flex-start">Save</button></form>
@@ -3759,7 +3770,7 @@ A.stab=v=>{S.stab=v;render(true);};
 async function saveCfg(patch){await upsert("config/app",patch);}
 async function saveAS(patch){await upsert("ad/settings",patch);}
 document.addEventListener("submit",async e=>{const id=e.target.id;if(!/^set-/.test(id))return;e.preventDefault();const f=e.target.elements;let ok=false;
-  if(id==="set-academy"){const u=f.url.value.trim();if(u&&!safeUrl(u)){toast("The classroom link must start with https://",true);return}const a={...(CFG().academy||{}),name:f.name.value.trim()||"Little Lingos",tagline:f.tagline.value.trim(),phone:f.phone.value.trim(),email:f.email.value.trim(),gstin:f.gstin.value.trim(),address:f.address.value.trim(),upi:(f.upi?f.upi.value.trim():a0upi()),upiName:(f.upiName?f.upiName.value.trim():(CFG().academy||{}).upiName||"")};if(a.upi&&!/^[\w.\-]{2,256}@[a-zA-Z][\w.\-]{1,64}$/.test(a.upi))throw userErr("Check the UPI ID. It looks like name@bank.");
+  if(id==="set-academy"){const u=f.url.value.trim();if(u&&!safeUrl(u)){toast("The classroom link must start with https://",true);return}const a={...(CFG().academy||{}),name:f.name.value.trim()||"Little Lingos",tagline:f.tagline.value.trim(),phone:f.phone.value.trim(),email:f.email.value.trim(),gstin:f.gstin.value.trim(),address:f.address.value.trim(),upi:(f.upi?f.upi.value.trim():a0upi()),upiName:(f.upiName?f.upiName.value.trim():(CFG().academy||{}).upiName||""),trialUrl:(f.trialUrl&&safeUrl(f.trialUrl.value.trim()))||""};if(f.trialUrl&&f.trialUrl.value.trim()&&!safeUrl(f.trialUrl.value.trim())){toast("The trial booking link must start with https://",true);return}if(a.upi&&!/^[\w.\-]{2,256}@[a-zA-Z][\w.\-]{1,64}$/.test(a.upi))throw userErr("Check the UPI ID. It looks like name@bank.");
     ok=await save(()=>saveCfg({academy:a,classroomUrl:safeUrl(u),languages:f.langs.value.split(",").map(x=>x.trim()).filter(Boolean),tz:f.tz.value,durations:f.durs.value.split(",").map(x=>+x.trim()).filter(n=>n>0&&n<=240)}),"Saved");}
   else if(id==="set-billing"){ok=await save(async()=>{await saveAS({siblingPct:+f.sib.value||0,referralCredit:+f.ref.value||0,reminders:{before:+f.before.value||0,onDue:f.ondue.checked,after:f.after.value.split(",").map(x=>+x.trim()).filter(n=>n>0)}});await saveCfg({academy:{...(CFG().academy||{}),gstRate:+f.gst.value||0},referral:+f.ref.value||0});},"Saved");}
   else if(id==="set-rules"){const badges={};for(const k of Object.keys(DEF_REWARDS.badges))badges[k]=+f["b_"+k].value||DEF_REWARDS.badges[k];const sla={};for(const k of ["callback","reschedule","ticket","batch","teacher"])sla[k]=+f["s_"+k].value||24;
@@ -5302,6 +5313,66 @@ A.ppPrint=lid=>{const L=learner(lid);if(!L||!ppApproved(L)){toast("A parent need
   let el=document.getElementById("pp-print");if(!el){el=document.createElement("div");el.id="pp-print";document.body.appendChild(el);}
   el.innerHTML=ppDocHTML(L,true);document.body.classList.add("pp-printing");const done=()=>{document.body.classList.remove("pp-printing");window.removeEventListener("afterprint",done);};
   window.addEventListener("afterprint",done);const old=document.title;document.title=`${L.name} - Speaking passport`;setTimeout(()=>{try{window.print()}catch(e){}document.title=old;setTimeout(done,1500);},150);};
+
+/* ================= Feature 8: share with family (parent-only private links) ================= */
+const SHARE_KINDS=new Set(["audio","photo","draw","note"]);
+const shareBase=()=>{const u=(CFG().classroomUrl||"").replace(/\/+$/,"");return (u||location.origin+location.pathname.replace(/[^/]*$/,"").replace(/\/+$/,""))+"/share.html";};
+const shareLink=t=>shareBase()+"#t="+t;
+const shareRpc=async(fn,args)=>{const r=await window.LL_sb.rpc(fn,args||{});if(r.error)throw userErr(r.error.message||"Something went wrong");return r.data;};
+function shareMsg(first,kind,days){const what=kind==="audio"?`Hear ${first} speaking English! 🌱`:kind==="cert"?`${first} earned a certificate in English class! 🌱`:`See ${first}'s work from English class! 🌱`;
+  return `${what}\nTap to see it (link works for ${days} days):`;}
+const shareBtn=(id,kind)=>role()==="parent"&&(SHARE_KINDS.has(kind)||kind==="cert")?`<button type="button" class="iconbtn" data-act="${kind==="cert"?"shareCert":"shareItem"}" data-id="${esc(id)}" aria-label="Share with family" title="Share with family">${ic("share")}</button>`:"";
+function shareModal(L,o){/* o: {kind, ref, title, sub, at} */
+  if(realRole()!=="parent"){toast("Only parents can share.",true);return}const f=firstOf(L.name);let days=7;
+  const draw=()=>openModal("Share with family",`<p>Make a private link to <b>this one ${o.kind==="audio"?"recording":o.kind==="cert"?"certificate":"piece of work"}</b> for grandparents and family. They don't need to sign in.</p>
+    <div class="sharepv"><b>${esc(o.title||"")}</b><span class="small muted">Shows only ${esc(f)}'s first name and this item. No surname, school, location or other work.</span></div>
+    <fieldset class="field" style="border:0;padding:0;margin:0"><legend class="lbl">Link works for</legend><div class="seg" role="radiogroup"><label><input type="radio" name="days" value="7" ${days===7?"checked":""} data-mchange="days">7 days</label><label><input type="radio" name="days" value="30" ${days===30?"checked":""} data-mchange="days">30 days</label></div></fieldset>
+    <p class="small muted">You can switch the link off any time from “Shared with family”. Family can send a heart or a 30-second voice message, and you can hide any message.</p>`,
+   {submitLabel:"Create private link",noFocus:true,actions:{days:v=>{days=+v===30?30:7;}},
+    onSubmit:async()=>{const tok=await shareRpc("ll_share_create",{p_lid:L.id,p_kind:o.kind,p_ref:o.ref||null,p_title:o.title||"",p_sub:o.sub||"",p_at:o.at||null,p_days:days});
+      setTimeout(()=>shareReady(f,o.kind,days,tok),250);}});
+  draw();}
+function shareReady(first,kind,days,tok){const link=shareLink(tok),msg=shareMsg(first,kind,days)+"\n"+link;
+  openModal("Your private link is ready",`<p class="small muted">Send it to family on WhatsApp, or copy it.</p><textarea id="sh-msg" rows="4" maxlength="400" aria-label="Message">${esc(msg)}</textarea>`,
+   {noFocus:true,submitLabel:"Done",footerExtra:`<button type="button" class="btn btn-ghost" data-mact="copy">${ic("copy")}Copy</button><button type="button" class="btn btn-leaf" data-mact="wa">${ic("wa")}Send on WhatsApp</button>`,
+    actions:{copy:async()=>{const t=document.getElementById("sh-msg").value;try{await navigator.clipboard.writeText(t);toast("Copied");}catch(e){toast("Copy didn't work. Press and hold the message to copy it.",true);}},
+      wa:()=>{const t=document.getElementById("sh-msg").value;window.open("https://wa.me/?text="+encodeURIComponent(t),"_blank","noopener");}}});}
+A.shareItem=id=>{const L=curKid();if(!L||!L.uid)return;const x=(D.kp[L.uid]||{})[id];if(!x||!SHARE_KINDS.has(x.kind)){toast("This item can't be shared.",true);return}
+  shareModal(L,{kind:x.kind,ref:`kp/${L.uid}/x/${id}`,title:x.title||(x.kind==="audio"?"A recording":"A piece of work"),at:x.at});};
+A.shareCert=cid=>{const L=curKid();if(!L)return;const ct=(pipTry(()=>certsOf(L))||[]).find(x=>x.cid===cid);if(!ct)return;
+  shareModal(L,{kind:"cert",title:ct.c.title,sub:ct.level?"has reached":"has finished every lesson in",at:ct.at});};
+/* parent: everything they've shared */
+let SHARES=null,sharesAt=0;
+function sharesLoad(force){if(!window.LL_sb||realRole()!=="parent")return;if(!force&&Date.now()-sharesAt<20000)return;sharesAt=Date.now();
+  shareRpc("ll_share_list").then(d=>{SHARES=d||[];schedule();},()=>{SHARES=SHARES||[];});}
+const shareState=s=>!s.active?["Switched off","p-mute"]:new Date(s.expires)<=new Date()?["Ended","p-mute"]:["Live until "+fmtDay(new Date(s.expires)),"p-good"];
+function sharesCardHTML(L){if(role()!=="parent")return "";sharesLoad();const xs=(SHARES||[]).filter(s=>!L||s.lid===L.id);const live=xs.filter(s=>s.active&&new Date(s.expires)>new Date()).length;
+  return `<section class="card panel"><div class="ph"><h2>Shared with family</h2><button class="btn btn-ghost btn-sm" data-go="shares">Manage</button></div><p class="small muted">${xs.length?`${live} live link${live===1?"":"s"} · ❤️ ${xs.reduce((n,s)=>n+(+s.hearts||0),0)} · 🎤 ${xs.reduce((n,s)=>n+(+s.replies||0),0)} messages`:`Tap the share button on a recording, picture or certificate to send a private link to grandparents.`}</p></section>`;}
+function sharesView(){if(role()!=="parent")return `<div class="head"><div><h1>Shared with family</h1><p class="lede">Only parents can share items.</p></div></div>`;sharesLoad();const xs=SHARES;
+  return `<div class="head"><div><h1>Shared with family</h1><p class="lede">Every private link you've made. Links show only your child's first name and that one item.</p></div></div>
+    ${xs==null?`<p class="muted">Loading…</p>`:xs.length?`<div class="list">${xs.map(s=>{const [st,cls]=shareState(s);const live=st.startsWith("Live");
+      return `<div class="item shareitem"><div class="grow"><div class="t">${esc(s.title||"Shared item")} <span class="pill ${cls}">${esc(st)}</span></div><div class="s">${esc(s.first)} · shared ${esc(fmtDay(new Date(s.created)))} · ❤️ ${+s.hearts||0} · 🎤 ${+s.replies||0}${+s.hidden?` (${+s.hidden} hidden)`:""}</div>
+        <div class="row sharebtns">${live?`<button class="btn btn-ghost btn-sm" data-act="shareResend" data-id="${esc(s.token)}">${ic("wa")}Send again</button>`:""}
+        ${+s.replies?`<button class="btn btn-ghost btn-sm" data-act="shareReplies" data-id="${esc(s.token)}">Messages</button>`:""}
+        ${s.active?`<button class="btn btn-ghost btn-sm" data-act="shareOff" data-id="${esc(s.token)}">Switch off</button>`:""}
+        <button class="btn btn-ghost btn-sm" data-act="shareExtend" data-id="${esc(s.token)}">${live?"Extend to 30 days":"Turn on for 7 days"}</button>
+        <button class="iconbtn" data-act="shareDel" data-id="${esc(s.token)}" aria-label="Delete link">${ic("trash")}</button></div></div></div>`;}).join("")}</div>`
+      :`<section class="card panel"><p class="muted">Nothing shared yet. On the Progress page, tap the share button on a recording, picture or certificate.</p></section>`}`;}
+const shareFind=t=>(SHARES||[]).find(s=>s.token===t);
+A.shareResend=t=>{const s=shareFind(t);if(!s)return;const days=Math.max(1,Math.round((new Date(s.expires)-Date.now())/864e5));shareReady(s.first,s.kind,days,t);};
+A.shareOff=async t=>{await shareRpc("ll_share_update",{p_token:t,p_active:false,p_days:null});toast("Link switched off");sharesLoad(true);};
+A.shareExtend=async t=>{const s=shareFind(t);const live=s&&s.active&&new Date(s.expires)>new Date();await shareRpc("ll_share_update",{p_token:t,p_active:true,p_days:live?30:7});toast(live?"Link now works for 30 days":"Link switched on for 7 days");sharesLoad(true);};
+A.shareDel=t=>{openModal("Delete this link?",`<p>The link stops working and its family messages are removed.</p>`,{danger:true,submitLabel:"Delete",done:"Deleted",onSubmit:async()=>{await shareRpc("ll_share_delete",{p_token:t});sharesLoad(true);}});};
+A.shareReplies=async t=>{let rs=[];try{rs=await shareRpc("ll_share_replies",{p_token:t})||[];}catch(e){toast(e.message,true);return}
+  const draw=()=>openModal("Messages from family",rs.length?`<div class="list">${rs.map(r=>`<div class="item"><div class="grow"><div class="t">${esc(r.from||"Family")} ${r.hidden?`<span class="pill p-mute">Hidden from your child</span>`:""}</div><div class="s">${esc(fmtDay(new Date(r.at)))}</div><audio controls preload="none" src="${esc(r.data)}"></audio></div><button type="button" class="btn btn-ghost btn-sm" data-mact="tog" data-id="${r.id}">${r.hidden?"Show":"Hide"}</button></div>`).join("")}</div>`:`<p class="muted">No voice messages yet.</p>`,
+   {wide:true,noFocus:true,actions:{tog:async id=>{const r=rs.find(x=>String(x.id)===String(id));if(!r)return;await shareRpc("ll_share_hide",{p_id:+id,p_hidden:!r.hidden});r.hidden=!r.hidden;sharesLoad(true);draw();}}});
+  draw();};
+/* child: hearts and voice messages from family, in their garden */
+let SHKID=null,shkAt=0;
+function familyKidHTML(L){if(role()!=="student"||!window.LL_sb)return "";if(Date.now()-shkAt>60000){shkAt=Date.now();window.LL_sb.rpc("ll_share_kid").then(r=>{if(!r.error){SHKID=r.data;schedule();}},()=>{});}
+  const d=SHKID;if(!d||(!(+d.hearts)&&!(d.replies||[]).length))return "";const rs=(d.replies||[]).slice(0,3);
+  return `<section class="famcard"><div class="famh"><span class="famheart" aria-hidden="true">❤️</span><div class="grow"><b>Your family cheered for you!</b><span>${+d.hearts?`${+d.hearts} heart${+d.hearts===1?"":"s"}`:""}${+d.hearts&&rs.length?" · ":""}${(d.replies||[]).length?`${d.replies.length} voice message${d.replies.length===1?"":"s"}`:""}</span></div></div>
+    ${rs.map(r=>`<div class="famrep"><span class="small"><b>${esc(r.from||"Family")}</b> · ${esc(r.title||"")}</span><audio controls preload="none" src="${esc(r.data)}"></audio></div>`).join("")}</section>`;}
 
 /* ================= events ================= */
 document.addEventListener("click",e=>{
