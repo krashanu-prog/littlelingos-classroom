@@ -291,7 +291,7 @@ select.inline{min-width:130px;border:2px solid var(--line);background:var(--card
 .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 .three{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
 @media (max-width:560px){.two,.three{grid-template-columns:1fr}}
-input[type=text],input[type=url],input[type=number],input[type=date],input[type=time],input[type=month],input[type=tel],input[type=search],input[type=datetime-local],select,textarea{
+input[type=text],input[type=email],input[type=password],input[type=url],input[type=number],input[type=date],input[type=time],input[type=month],input[type=tel],input[type=search],input[type=datetime-local],select,textarea{
   width:100%;border:2px solid var(--line);background:var(--card);border-radius:16px;padding:11px 14px;min-width:0;min-height:50px;font-size:1rem}
 textarea{resize:vertical;line-height:1.5}
 input:focus,select:focus,textarea:focus{outline:none;border-color:var(--leafMid)}
@@ -885,6 +885,10 @@ body.boarding{overflow:hidden}
 .famh{display:flex;gap:12px;align-items:center}.famh .grow{display:flex;flex-direction:column}.famheart{font-size:2rem;line-height:1}
 .famrep{display:flex;flex-direction:column;gap:4px}.famrep audio{width:100%;max-width:420px}
 #sh-msg{width:100%;font:inherit;border-radius:14px;border:2px solid var(--line);padding:10px;background:var(--card);color:var(--soil)}
+.iconbtn{width:44px;height:44px;min-height:44px}
+select.inline{min-height:44px}
+.nm,.linkbtn{position:relative}
+.nm::after,.linkbtn::after{content:"";position:absolute;left:50%;top:50%;width:max(calc(100% + 12px),44px);height:44px;transform:translate(-50%,-50%)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
 
