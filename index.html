@@ -14,6 +14,9 @@
 #ll-gate .ll-gate-card{max-width:440px;width:100%;align-items:stretch;gap:14px}
 #ll-gate h1{margin:0}#ll-gate form{display:flex;flex-direction:column;gap:12px}
 .ll-brand{--ls:40px;display:flex;align-items:center;gap:8px;align-self:center;margin-bottom:4px}.ll-brand .lg-pip{width:52px;height:64px;flex:none}</style>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://api.datamuse.com; worker-src 'self' blob:; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<style id="ll-fb">html{display:none!important}</style><script>if(self===top){var s=document.getElementById("ll-fb");s.parentNode.removeChild(s)}else{try{top.location.replace(self.location.href)}catch(e){}}</script>
 <script src="config.js"></script>
 <script src="supabase.js"></script>
 <script src="adapter.js"></script>
@@ -925,6 +928,20 @@ button.pvchip{cursor:pointer}
 .pvchip svg{width:18px;height:18px;flex:none}
 .pvmore summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:700;color:var(--leaf)}
 .pvmore[open] summary{margin-bottom:8px}
+.ll-sec{display:flex;flex-direction:column;gap:10px}
+.ll-sec-row{display:flex;gap:12px;align-items:center;justify-content:space-between;border:2px solid var(--line);border-radius:16px;padding:12px 14px;background:var(--card)}
+.ll-sec-row>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ll-sec-row span{font-size:.88rem;color:var(--muted)}
+.ll-sec-row .btn{flex:none}
+.ll-on{color:var(--leaf)}
+.ll-ok{background:var(--soft);border-radius:12px;padding:10px 12px;margin:0;font-size:.92rem}
+.ll-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px}
+.ll-steps li{line-height:1.45}
+.ll-qr{display:block;margin:10px 0 6px;background:#fff;border-radius:12px;padding:8px;width:180px;height:180px}
+.ll-key{font-family:ui-monospace,Menlo,monospace;letter-spacing:.04em;word-break:break-all}
+.secnudge{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border-left:6px solid var(--sun)}
+.secnudge p{margin:0;flex:1;min-width:220px}
+@media (max-width:520px){.ll-sec-row{flex-direction:column;align-items:stretch}.ll-sec-row .btn{align-self:flex-start}}
 .iconbtn{width:44px;height:44px;min-height:44px}
 select.inline{min-height:44px}
 .nm,.linkbtn{position:relative}
@@ -1489,7 +1506,7 @@ function hwCardHTML(L){const hs=hwFor(L);const todo=hs.filter(h=>!answerOf(L,h))
 
 /* ================= views ================= */
 const VIEWS={
-home(){const r=role();return r==="student"?studentHome():r==="parent"?parentHome():r==="admin"?adminHome():trainerHome();},
+home(){const r=role();return r==="student"?studentHome():r==="parent"?parentHome():r==="admin"?secNudgeHTML()+adminHome():secNudgeHTML()+trainerHome();},
 progress(){return parentProgress();},
 path(){return pathView();},
 library(){return libraryView();},
@@ -1881,11 +1898,14 @@ A.copyCode=code=>copyText(code,"Code");
 A.pipCheer=(_,btn)=>{const g=btn.closest(".pipguide"),sv=btn.querySelector("svg"),t=g&&g.querySelector(".pip-t");if(sv){sv.classList.remove("jump");void sv.getBoundingClientRect();sv.classList.add("jump")}if(t)t.textContent=PIP_CHEERS[Math.floor(Math.random()*PIP_CHEERS.length)];};
 A.flip=(_,btn)=>{const on=btn.classList.toggle("on");const w=btn.dataset.w,m=btn.dataset.m;btn.innerHTML=on?`<b>${esc(m)}</b><span>${esc(w)}</span>`:`<b>${esc(w)}</b><span>tap to flip</span>`;btn.setAttribute("aria-label",on?`${w}: ${m}`:`${w}. Tap to see the meaning`);};
 A.signOut=()=>{if(window.LL_signOut)LL_signOut();};
-A.setPassword=()=>{closeModal&&closeModal();if(window.LL_setPassword)LL_setPassword();};
+A.setPassword=()=>{closeModal&&closeModal();if(window.LL_security)LL_security();else if(window.LL_setPassword)LL_setPassword();};
+A.security=A.setPassword;
+function secNudgeHTML(){if(S.viewAs||!window.LL_twoStepOn||LL_twoStepOn())return "";
+  return `<section class="card panel secnudge"><p><b>Protect the children's data.</b> Turn on two-step sign-in, so nobody can get into this account with just your email or password.</p><button class="btn btn-primary btn-sm" data-act="security">Turn on</button></section>`;}
 A.profile=()=>{if(isParent()&&!S.viewAs){go("settings");return}if(isKid()&&!S.viewAs){go("me");return}
   const p=D.profiles[S.uid]||{};
   openModal("Your profile",`<div class="field"><label for="pf-name">Display name</label><input type="text" id="pf-name" name="name" maxlength="60" required data-label="Display name" value="${esc(p.displayName||myName())}"><span class="hint">Names on learner and trainer lists are set by the admin.</span></div>`,
-    {submitLabel:"Save",done:"Saved",footerExtra:`<button type="button" class="btn btn-ghost" data-mact="pw">Set or change password</button><button type="button" class="btn btn-ghost" data-mact="out">Sign out</button>`,actions:{out:()=>A.signOut(),pw:()=>A.setPassword()},onSubmit:async f=>{await upsert("profiles/"+S.uid,{displayName:f.name.value.trim()})}});
+    {submitLabel:"Save",done:"Saved",footerExtra:`<button type="button" class="btn btn-ghost" data-mact="pw">Sign-in &amp; security</button><button type="button" class="btn btn-ghost" data-mact="out">Sign out</button>`,actions:{out:()=>A.signOut(),pw:()=>A.setPassword()},onSubmit:async f=>{await upsert("profiles/"+S.uid,{displayName:f.name.value.trim()})}});
 };
 A.becomeParent=()=>save(()=>upsert("profiles/"+S.uid,{role:"parent"}));
 A.finish=async lid=>{if(await save(()=>upsert("progress/"+S.uid,{completed:{[lid]:Date.now()}}))){S.bloomed=lid;render(true);pipPlay("yay");window.scrollTo({top:0,behavior:"smooth"});}};
@@ -2657,7 +2677,7 @@ function parentSettings(){
   <section class="card panel"><div class="ph"><h2>Children</h2></div>
     ${ks.length?`<div class="list">${ks.map(k=>`<div class="item"><span class="kidchip on" style="pointer-events:none"><span class="av">${esc((firstOf(k.name)[0]||"?").toUpperCase())}</span></span><div class="grow"><div class="t">${esc(k.name)}</div><div class="s">${esc(stageLabel(k.stage))} · ${esc(kidTeacher(k))}</div></div></div>`).join("")}</div>`:`<p class="muted">No children connected yet.</p>`}
     <p class="small muted">The Little Lingos team manages which children are on your account. To add or remove a child, raise a ticket in Help.</p>
-    <p class="section-title">Sign-in</p><p class="small">You sign in with your email and a one-time code, or with a password once you set one. Both parents can sign in with their own emails; ask the academy to connect each one.</p><div class="row"><button class="btn btn-ghost btn-sm" data-act="setPassword">Set or change password</button><button class="btn btn-ghost btn-sm" data-act="signOut">Sign out</button></div></section>
+    <p class="section-title">Sign-in</p><p class="small">You sign in with your email and a one-time code, or with a password once you set one. For extra safety, turn on two-step sign-in. Both parents can sign in with their own emails; ask the academy to connect each one.</p><div class="row"><button class="btn btn-ghost btn-sm" data-act="setPassword">Sign-in &amp; security</button><button class="btn btn-ghost btn-sm" data-act="signOut">Sign out</button></div></section>
   </div>`;
 }
 document.addEventListener("submit",async e=>{
@@ -3059,7 +3079,7 @@ function storiesView(){
 function meView(){
   const L=myLearner(); if(!L)return pendingHTML(); const uid=L.uid, stars=starsOf(L), bs=badgesOf(L), certs=certsOf(L), av=avatarOf(uid), items=kpItems(uid).filter(x=>x.kind!=="rate"&&x.kind!=="join"), lim=limitFor(L), p=D.profiles[uid]||{};
   const got=bs.filter(b=>b.ok).length;
-  return `<div class="head"><div class="row" style="flex-wrap:nowrap;gap:14px">${avatarHTML(uid,80)}<div><h1>${esc(L.name)}</h1><p class="lede">${esc(stageLabel(L.stage))}</p></div></div>${S.viewAs?"":`<div class="row"><button class="btn btn-ghost btn-sm" data-act="setPassword">My password</button><button class="btn btn-ghost btn-sm" data-act="signOut">Sign out</button></div>`}</div>
+  return `<div class="head"><div class="row" style="flex-wrap:nowrap;gap:14px">${avatarHTML(uid,80)}<div><h1>${esc(L.name)}</h1><p class="lede">${esc(stageLabel(L.stage))}</p></div></div>${S.viewAs?"":`<div class="row"><button class="btn btn-ghost btn-sm" data-act="setPassword">My sign-in</button><button class="btn btn-ghost btn-sm" data-act="signOut">Sign out</button></div>`}</div>
   <div class="stats"><div class="stat f" style="background:var(--sunSoft)"><b class="num">⭐ ${stars}</b><span>Stars</span></div><div class="stat f" style="background:var(--leafSoft)"><b class="num">🏅 ${got}/${bs.length}</b><span>Badges</span></div><div class="stat f" style="background:var(--petalSoft)"><b class="num">🔥 ${streak(uid)}</b><span>Day streak</span><small>Best: ${longestStreak(uid)} days</small></div><div class="stat f" style="background:var(--skySoft)"><b class="num">🏆 ${certs.length}</b><span>Certificates</span></div></div>
   ${capMeHTML(L)}
   ${ppMeHTML(L)}
@@ -4971,7 +4991,7 @@ function memoriesHTML(L){if(!L||!L.uid)return "";if(!D.kp[L.uid])loadKp(L.uid);c
   const first=Math.min(...xs.map(expiresAt));
   return `<section class="alert a-sun"><b>Save ${esc(firstOf(L.name))}'s garden memories</b><span class="small">${xs.length} practice recording${xs.length===1?"":"s"} and photo${xs.length===1?"":"s"} will be tidied away ${first<=Date.now()+864e5?"very soon":`from ${esc(fmtDay(new Date(first)))}`} to save space. Download a copy to keep.</span><span class="spacer"></span><button class="btn btn-sun btn-sm" data-act="memDl" data-id="${esc(L.id)}">Download memories</button></section>`;}
 A.memDl=async lid=>{const L=learner(lid);if(!L||!L.uid)return;await loadKp(L.uid,true);const xs=kpItems(L.uid).filter(x=>x.kind!=="rate"&&x.kind!=="join"&&x.data);
-  const body=xs.map(x=>`<figure><figcaption><b>${esc(x.title||(x.kind==="audio"?"Recording":"Picture"))}</b> · ${esc(fmtDay(new Date(x.at)))}</figcaption>${x.kind==="audio"?`<audio controls src="${x.data}"></audio>`:`<img src="${x.data}" alt="">`}</figure>`).join("");
+  const body=xs.map(x=>`<figure><figcaption><b>${esc(x.title||(x.kind==="audio"?"Recording":"Picture"))}</b> · ${esc(fmtDay(new Date(x.at)))}</figcaption>${x.kind==="audio"?`<audio controls src="${esc(/^data:audio\//.test(x.data)?x.data:"")}"></audio>`:`<img src="${esc(/^data:image\//.test(x.data)?x.data:"")}" alt="">`}</figure>`).join("");
   const html=`<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${esc(firstOf(L.name))}'s garden memories</title><style>body{font-family:system-ui,sans-serif;background:#F5FAEE;color:#2E2219;max-width:720px;margin:0 auto;padding:24px}h1{color:#22703A}figure{background:#fff;border:2px solid #D5E8BE;border-radius:18px;padding:12px;margin:0 0 14px}img{max-width:100%;border-radius:12px}audio{width:100%}</style></head><body><h1>${esc(firstOf(L.name))}'s garden memories</h1><p>Saved from Little Lingos on ${esc(fmtDay(new Date()))}. Where words grow.</p>${body}</body></html>`;
   saveFile(`${firstOf(L.name).toLowerCase()}-garden-memories-${ymd(new Date())}.html`,html);};
 /* admin: storage meter + clean up */

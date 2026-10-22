@@ -272,7 +272,7 @@
   }
   function firstStep(prefill, note) { return LS.get("ll-method") === "password" ? passwordStep(prefill || LS.get("ll-email") || "", note) : emailStep(prefill, note); }
   function emailStep(prefill, note) {
-    const el = gate(`${brand}<h1>Sign in</h1><p class="lede">Enter your email and we'll send you a 6-digit sign-in code. No password needed.</p>
+    const el = gate(`${brand}<h1>Sign in</h1><p class="lede">Enter your email and we'll send you a sign-in code. No password needed.</p>
       <form id="ll-email" novalidate><div class="field"><label for="ll-em">Email</label><input type="email" id="ll-em" name="em" required autocomplete="email" inputmode="email" value="${esc(prefill || "")}" placeholder="you@example.com"></div>
       <p class="formerr" id="ll-err" ${note ? "" : "hidden"}>${esc(note || "")}</p>
       <button class="btn btn-primary btn-big" type="submit" id="ll-go">Email me a code</button></form>
@@ -292,8 +292,8 @@
     });
   }
   function codeStep(email) {
-    const el = gate(`${brand}<h1>Check your email</h1><p class="lede">We sent a 6-digit code to <b>${esc(email)}</b>. Type it here, or tap the link in the email.</p>
-      <form id="ll-code" novalidate><div class="field"><label for="ll-cd">Sign-in code</label><input type="text" id="ll-cd" name="cd" required inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456" style="letter-spacing:.3em;font-size:1.3rem;max-width:240px"></div>
+    const el = gate(`${brand}<h1>Check your email</h1><p class="lede">We sent a sign-in code to <b>${esc(email)}</b>. Type it here, or tap the link in the email.</p>
+      <form id="ll-code" novalidate><div class="field"><label for="ll-cd">Sign-in code</label><input type="text" id="ll-cd" name="cd" required inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="12345678" style="letter-spacing:.3em;font-size:1.3rem;max-width:260px"></div>
       <p class="formerr" id="ll-err" hidden></p>
       <button class="btn btn-primary btn-big" type="submit" id="ll-go">Sign in</button></form>
       <div class="row"><button class="btn btn-ghost btn-sm" type="button" id="ll-back">Use a different email</button><button class="btn btn-ghost btn-sm" type="button" id="ll-again">Send a new code</button></div>
@@ -316,14 +316,65 @@
       if (error) { btn.disabled = false; btn.textContent = "Sign in"; err.textContent = /expired|invalid/i.test(error.message) ? "That code didn't work. It may be from an older email: use the newest one, or tap \u201cSend a new code\u201d." : error.message; err.hidden = false; }
     });
   }
-  async function started(s) {
+  /* ---- two-step sign-in (authenticator app) ---- */
+  let mfaOn = false, mfaShown = false;
+  async function totpFactor() { const { data } = await sb.auth.mfa.listFactors(); return ((data && data.totp) || []).find(f => f.status === "verified") || null; }
+  async function aalNeeded() {
+    try { const { data } = await sb.auth.mfa.getAuthenticatorAssuranceLevel(); return !!(data && data.nextLevel === "aal2" && data.currentLevel !== "aal2"); } catch { return false; }
+  }
+  function mfaStep() {
+    if (mfaShown) return; mfaShown = true;
+    const el = gate(`${brand}<h1>Two-step sign-in</h1><p class="lede">Open your authenticator app and type the 6-digit code for <b>Little Lingos</b>.</p>
+      <form id="ll-mfa" novalidate><div class="field"><label for="ll-tc">Code from your app</label><input type="text" id="ll-tc" name="tc" required inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456" style="letter-spacing:.3em;font-size:1.3rem;max-width:240px"></div>
+      <p class="formerr" id="ll-err" hidden></p>
+      <button class="btn btn-primary btn-big" type="submit" id="ll-go">Continue</button></form>
+      <div class="row"><button class="btn btn-ghost btn-sm" type="button" id="ll-other">Use a different account</button></div>
+      <p class="small muted">Lost your phone? Ask the academy to switch off two-step sign-in for your account, then sign in again.</p>`);
+    const f = el.querySelector("form"), err = el.querySelector("#ll-err"), btn = el.querySelector("#ll-go");
+    setTimeout(() => f.tc.focus(), 50);
+    el.querySelector("#ll-other").onclick = async () => { await quickOut("local"); dropLocalSession(); location.reload(); };
+    f.addEventListener("submit", async e => {
+      e.preventDefault(); const code = f.tc.value.replace(/\D/g, "");
+      if (code.length !== 6) { err.textContent = "Type the 6 digits from your authenticator app."; err.hidden = false; return; }
+      btn.disabled = true; btn.textContent = "Checking…"; err.hidden = true;
+      try {
+        const fac = await totpFactor(); if (!fac) throw new Error("no factor");
+        const { error } = await sb.auth.mfa.challengeAndVerify({ factorId: fac.id, code });
+        if (error) throw error;
+        const { data } = await sb.auth.getSession(); mfaShown = false; started(data.session, true);
+      } catch (x) {
+        btn.disabled = false; btn.textContent = "Continue";
+        err.textContent = /invalid|expired|code/i.test((x && x.message) || "") ? "That code didn't work. Codes change every 30 seconds: type the one showing now." : "Couldn't check the code. Try again."; err.hidden = false;
+      }
+    });
+  }
+  async function started(s, mfaDone) {
+    if (session) return;
+    if (!mfaDone && await aalNeeded()) { mfaStep(); return; }
     if (session) return; session = s;
+    try { mfaOn = !!(await totpFactor()); } catch {}
     try { await sb.rpc("ll_link"); } catch {}
     try { await checkLevel(); } catch {}
     startRealtime();
     viaCode = viaCode || fromLink;
     closeGate(); readyResolve(true);
     setTimeout(maybeOffer, 600);
+    idleGuard();
+  }
+  /* ---- staff accounts sign out after a quiet spell (shared academy computers) ---- */
+  function idleGuard() {
+    if (level < 3) return;
+    const mins = level >= 4 ? 30 : 60, K = "ll-last-act", mark = () => LS.set(K, String(Date.now()));
+    mark();
+    ["pointerdown", "keydown", "wheel", "touchstart"].forEach(ev => addEventListener(ev, () => { if (Date.now() - (+LS.get(K) || 0) > 15000) mark(); }, { passive: true, capture: true }));
+    setInterval(async () => {
+      const last = +LS.get(K) || Date.now();
+      if (Date.now() - last > mins * 60000) {
+        try { sessionStorage.setItem("ll-idle", String(mins)); } catch {}
+        await quickOut("local");
+        dropLocalSession(); location.reload();
+      }
+    }, 30000);
   }
   /* ---- passwords: set once, then sign in without a code ---- */
   const hasPassword = () => !!(session && session.user && session.user.user_metadata && session.user.user_metadata.pw_set);
@@ -332,7 +383,7 @@
     const el = gate(`${brand}<h1>${had ? "Change your password" : "Set a password"}</h1>
       <p class="lede">${o.offer ? "Want to skip the email code next time? Set a password and sign in with your email and password." : had ? "Choose a new password for " : "Set a password for "}${o.offer ? "" : `<b>${esc(session.user.email || "")}</b>. Next time, sign in with your email and this password. Email codes still work too.`}</p>
       <form id="ll-setpw" novalidate><input type="email" name="u" autocomplete="username" value="${esc(session.user.email || "")}" hidden>
-      <div class="field"><label for="ll-np">New password</label><input type="password" id="ll-np" name="np" required minlength="8" autocomplete="new-password"><span class="hint">At least 8 characters. Don't reuse a password from another site.</span></div>
+      <div class="field"><label for="ll-np">New password</label><input type="password" id="ll-np" name="np" required minlength="8" autocomplete="new-password"><span class="hint">At least 8 characters, with letters and numbers. Don't reuse a password from another site.</span></div>
       <div class="field"><label for="ll-np2">Type it again</label><input type="password" id="ll-np2" name="np2" required minlength="8" autocomplete="new-password"></div>
       <label class="small" style="display:flex;gap:8px;align-items:center"><input type="checkbox" id="ll-show"> Show password</label>
       <div class="field" id="ll-nonce-f" hidden><label for="ll-nonce">Code from your email</label><input type="text" id="ll-nonce" name="nonce" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456"><span class="hint">To keep your account safe, we emailed you a code. Type it here.</span></div>
@@ -348,6 +399,7 @@
       e.preventDefault(); err.hidden = true;
       const np = f.np.value, np2 = f.np2.value, nonce = f.nonce.value.replace(/\D/g, "");
       if (np.length < 8) return show("Use at least 8 characters.");
+      if (!/[a-z]/i.test(np) || !/[0-9]/.test(np)) return show("Use both letters and numbers.");
       if (np !== np2) return show("The two passwords don't match.");
       if (np.toLowerCase() === String(session.user.email || "").toLowerCase()) return show("Don't use your email as your password.");
       btn.disabled = true; btn.textContent = "Saving…";
@@ -360,7 +412,7 @@
           const r = await sb.auth.reauthenticate();
           if (r.error) return show("Couldn't send the safety code: " + r.error.message);
           el.querySelector("#ll-nonce-f").hidden = false; f.nonce.focus();
-          return show("We emailed you a 6-digit code. Type it below, then tap Save password again.");
+          return show("We emailed you a code. Type it below, then tap Save password again.");
         }
         if (/different from the old|same/i.test(m)) return show("That's your current password. Choose a new one.");
         if (/weak|short|characters|pwned|leaked/i.test(m)) return show("That password is too easy to guess. Try a longer one.");
@@ -387,6 +439,65 @@
     } catch (e) { return { error: "failed" }; }
   };
   window.LL_setPassword = () => { if (session) passwordForm(); };
+  async function securityHub(msg) {
+    if (!session) return;
+    let f = null; try { f = await totpFactor(); } catch {} mfaOn = !!f;
+    const em = esc(session.user.email || ""), pw = hasPassword();
+    const row = (t, d, b) => `<div class="ll-sec-row"><div><b>${t}</b><span>${d}</span></div>${b}</div>`;
+    const el = gate(`${brand}<h1>Sign-in &amp; security</h1><p class="lede">Signed in as <b>${em}</b>.</p>${msg ? `<p class="ll-ok">${msg}</p>` : ""}
+      <div class="ll-sec">
+      ${row("Password", pw ? "Set. You can sign in with it instead of an email code." : "Not set. You sign in with a code from your email.", `<button class="btn btn-ghost btn-sm" type="button" id="ll-s-pw">${pw ? "Change" : "Set a password"}</button>`)}
+      ${row("Two-step sign-in", f ? "<b class=\"ll-on\">On.</b> After your email code or password, you also type a code from your authenticator app." : "Off. Turn it on so nobody can get in with just your email or password.", f ? `<button class="btn btn-ghost btn-sm" type="button" id="ll-s-off">Turn off</button>` : `<button class="btn btn-primary btn-sm" type="button" id="ll-s-on">Turn on</button>`)}
+      ${row("Lost or shared device?", "Sign out on every phone and computer, including this one.", `<button class="btn btn-ghost btn-sm" type="button" id="ll-s-all">Sign out everywhere</button>`)}
+      </div><div class="row"><button class="btn btn-ghost" type="button" id="ll-skip">Done</button></div>`);
+    el.querySelector("#ll-skip").onclick = closeGate;
+    el.querySelector("#ll-s-pw").onclick = () => passwordForm();
+    const on = el.querySelector("#ll-s-on"), off = el.querySelector("#ll-s-off");
+    if (on) on.onclick = enrollStep;
+    if (off) off.onclick = () => {
+      const g = gate(`${brand}<h1>Turn off two-step sign-in?</h1><p class="lede">Anyone who gets into your email could then sign in as you.</p><p class="formerr" id="ll-err" hidden></p>
+        <div class="row"><button class="btn btn-ghost" type="button" id="ll-no">Keep it on</button><button class="btn btn-danger" type="button" id="ll-yes">Turn off</button></div>`);
+      g.querySelector("#ll-no").onclick = () => securityHub();
+      g.querySelector("#ll-yes").onclick = async () => {
+        const { error } = await sb.auth.mfa.unenroll({ factorId: f.id });
+        if (error) { const e2 = g.querySelector("#ll-err"); e2.textContent = /aal2|assurance/i.test(error.message) ? "Sign out, then sign in again with your app code, and try once more." : "Couldn't turn it off: " + error.message; e2.hidden = false; return; }
+        try { await sb.auth.refreshSession(); } catch {}
+        securityHub("Two-step sign-in is off.");
+      };
+    };
+    el.querySelector("#ll-s-all").onclick = () => {
+      const g = gate(`${brand}<h1>Sign out everywhere?</h1><p class="lede">You'll be signed out on every phone and computer, including this one. You can sign in again any time.</p>
+        <div class="row"><button class="btn btn-ghost" type="button" id="ll-no">Cancel</button><button class="btn btn-primary" type="button" id="ll-yes">Sign out everywhere</button></div>`);
+      g.querySelector("#ll-no").onclick = () => securityHub();
+      g.querySelector("#ll-yes").onclick = async () => { await quickOut("global"); dropLocalSession(); location.reload(); };
+    };
+  }
+  async function enrollStep() {
+    try { const { data } = await sb.auth.mfa.listFactors(); for (const x of (data && data.all) || []) if (x.status !== "verified") await sb.auth.mfa.unenroll({ factorId: x.id }); } catch {}
+    const { data, error } = await sb.auth.mfa.enroll({ factorType: "totp", friendlyName: "Little Lingos " + new Date().toISOString().slice(0, 16) });
+    if (error || !data) return securityHub("Couldn't start two-step sign-in: " + esc((error && error.message) || "try again"));
+    const key = String(data.totp.secret || "").replace(/(.{4})/g, "$1 ").trim();
+    const el = gate(`${brand}<h1>Turn on two-step sign-in</h1>
+      <ol class="ll-steps"><li>Install a free authenticator app on your phone, such as Google Authenticator or Microsoft Authenticator.</li>
+      <li>In the app, add an account and scan this code.<img class="ll-qr" src="${esc(data.totp.qr_code)}" alt="QR code to add Little Lingos to your authenticator app" width="180" height="180"><span class="small muted">Can't scan? Type this key instead: <b class="ll-key">${esc(key)}</b></span></li>
+      <li>Type the 6-digit code the app shows.</li></ol>
+      <form id="ll-enr" novalidate><div class="field"><label for="ll-ec">6-digit code</label><input type="text" id="ll-ec" name="ec" required inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="123456" style="letter-spacing:.3em;font-size:1.3rem;max-width:240px"></div>
+      <p class="formerr" id="ll-err" hidden></p><button class="btn btn-primary btn-big" type="submit" id="ll-go">Turn on</button></form>
+      <div class="row"><button class="btn btn-ghost btn-sm" type="button" id="ll-skip">Cancel</button></div>`);
+    const f = el.querySelector("form"), err = el.querySelector("#ll-err"), btn = el.querySelector("#ll-go");
+    el.querySelector("#ll-skip").onclick = async () => { try { await sb.auth.mfa.unenroll({ factorId: data.id }); } catch {} securityHub(); };
+    f.addEventListener("submit", async e => {
+      e.preventDefault(); const code = f.ec.value.replace(/\D/g, "");
+      if (code.length !== 6) { err.textContent = "Type the 6 digits from your app."; err.hidden = false; return; }
+      btn.disabled = true; btn.textContent = "Checking…"; err.hidden = true;
+      const { error: ve } = await sb.auth.mfa.challengeAndVerify({ factorId: data.id, code });
+      if (ve) { btn.disabled = false; btn.textContent = "Turn on"; err.textContent = "That code didn't work. Type the code showing in the app now."; err.hidden = false; return; }
+      mfaOn = true;
+      securityHub(`Two-step sign-in is on. Keep your phone safe: you'll need the app code each time you sign in on a new device.${level >= 4 ? " If you ever lose the phone, remove the factor in Supabase (Authentication, Users, your account)." : ""}`);
+    });
+  }
+  window.LL_security = () => { if (session) securityHub(); };
+  window.LL_twoStepOn = () => mfaOn;
   window.LL_hasPassword = hasPassword;
   function maybeOffer() {
     if (!viaCode || hasPassword()) return;
@@ -394,7 +505,10 @@
     if (Date.now() - t < 7 * 864e5) return; // asked in the last week
     passwordForm({ offer: true });
   }
-  window.LL_signOut = async () => { try { await sb.auth.signOut(); } catch {} location.reload(); };
+  /* sign out, and make sure this device forgets the session even if the network call fails */
+  const quickOut = scope => Promise.race([sb.auth.signOut(scope ? { scope } : undefined).catch(() => {}), new Promise(r => setTimeout(r, 3000))]);
+  const dropLocalSession = () => { try { for (let i = localStorage.length - 1; i >= 0; i--) { const k = localStorage.key(i); if (/^sb-.*-auth-token/.test(k || "")) localStorage.removeItem(k); } } catch {} };
+  window.LL_signOut = async () => { await quickOut(); dropLocalSession(); location.reload(); };
 
   const fromLink = /access_token/.test(location.hash);
   async function init() {
@@ -403,9 +517,10 @@
       return;
     }
     const hashErr = new URLSearchParams(location.hash.slice(1)).get("error_description");
+    let idleMins = null; try { idleMins = sessionStorage.getItem("ll-idle"); sessionStorage.removeItem("ll-idle"); } catch {}
     const { data } = await sb.auth.getSession();
     if (data && data.session) started(data.session);
-    else firstStep("", hashErr ? "That sign-in link has expired. Send yourself a new code." : "");
+    else firstStep("", hashErr ? "That sign-in link has expired. Send yourself a new code." : idleMins ? `For safety, staff accounts sign out after ${idleMins} minutes without activity. Sign in again to carry on.` : "");
     sb.auth.onAuthStateChange((ev, s) => {
       if (ev === "SIGNED_IN" && s) { if (location.hash.includes("access_token")) history.replaceState(null, "", location.pathname); setTimeout(() => started(s), 0); } // defer: calling Supabase inside this callback can deadlock
       if (ev === "SIGNED_OUT") location.reload();
