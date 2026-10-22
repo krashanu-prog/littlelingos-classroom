@@ -942,6 +942,18 @@ button.pvchip{cursor:pointer}
 .secnudge{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border-left:6px solid var(--sun)}
 .secnudge p{margin:0;flex:1;min-width:220px}
 @media (max-width:520px){.ll-sec-row{flex-direction:column;align-items:stretch}.ll-sec-row .btn{align-self:flex-start}}
+.kpick{display:flex;flex-direction:column;gap:8px}.kpick .kpq{gap:6px;flex-wrap:wrap}.kpick .kpn{color:var(--leaf);font-weight:700;margin:0}
+.hwf2 .sheetpick{display:flex;flex-direction:column;gap:8px;border:2px dashed var(--line);border-radius:16px;padding:12px}
+.hwf2 .sheetcur{gap:8px;background:var(--leafSoft);border-radius:12px;padding:8px 12px}
+.hwf2 .hwbank{border:2px solid var(--line);border-radius:20px;padding:4px 16px;background:#fff}
+.hwf2 .hwbank>summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center;gap:8px}
+.hwf2 .hwbank[open]{padding-bottom:14px}.hwf2 .hwbank .savebank{margin-top:10px}
+.sheetbox{display:flex;flex-direction:column;gap:10px;border:2px solid var(--line);border-radius:16px;padding:12px;margin:8px 0;background:var(--leafSoft)}
+.sheetbox img{display:block;max-width:100%;max-height:340px;margin:0 auto;border-radius:12px;background:#fff}
+.sheeticon{font-size:1.4rem;line-height:1}
+.sheetsp .item{flex-wrap:wrap}.sheetsp .acts{display:flex;gap:6px;align-items:center}
+.donebtn{color:var(--leaf)}
+.lastcls{display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin:0}
 .iconbtn{width:44px;height:44px;min-height:44px}
 select.inline{min-height:44px}
 .nm,.linkbtn{position:relative}
@@ -1143,7 +1155,7 @@ const learnerTids=L=>{if(!L)return [];const s=new Set();if(L.trainerId)s.add(L.t
 const sessForLearner=(s,L)=>{if(!s.trainerId)return true;const t=learnerTids(L);return !t.length||t.includes(s.trainerId);};
 /* course-wide homework goes to the learners of the trainer who set it (set by the admin = whole course) */
 const hwForLearner=(h,L)=>{const t=trainerByUid(h.uid);if(!t)return true;const ts=learnerTids(L);return !ts.length||ts.includes(t.id);};
-const seesSession=s=>{const r=role();if(r!=="student"&&r!=="parent")return true;if(!s.forLids||!s.forLids.length)return myKids().some(L=>L&&(L.courses||[]).includes(s.courseId)&&sessForLearner(s,L));return myKids().some(L=>L&&s.forLids.includes(L.id));};
+const seesSession=s=>{const r=role();if(r!=="student"&&r!=="parent")return true;return myKids().some(L=>L&&(s.forLids||[]).includes(L.id));};
 const sessionsOf=cids=>entries(D.sessions).filter(s=>cids.includes(s.courseId)&&seesSession(s)).sort((a,b)=>String(a.startsAt).localeCompare(String(b.startsAt)));
 const sessEnd=s=>new Date(s.startsAt).getTime()+(s.durationMin||45)*6e4;
 function upcoming(cids,n){const now=Date.now();return sessionsOf(cids).filter(s=>sessEnd(s)>now).slice(0,n);}
@@ -1478,8 +1490,8 @@ function courseCard(c,uid){
 function attendCell(s){
   if(!isStaff())return "";
   const mk=allMarks()[s.id];
-  if(mk){const v=Object.values(mk.m);const here=v.filter(x=>x!=="absent").length;return `<button class="btn btn-ghost btn-sm" data-act="mark" data-id="${esc(s.id)}">${ic("check")}${here}/${v.length} here</button>`}
-  if(new Date(s.startsAt).getTime()<=Date.now()+15*6e4)return `<button class="btn btn-primary btn-sm" data-act="mark" data-id="${esc(s.id)}">${ic("clip")}Take attendance</button>`;
+  if(mk){const v=Object.values(mk.m);const here=v.filter(x=>x!=="absent").length;return `<button class="btn btn-ghost btn-sm" data-act="mark" data-id="${esc(s.id)}">${ic("check")}Completed · ${here}/${v.length} present</button>`}
+  if(new Date(s.startsAt).getTime()<=Date.now()+15*6e4)return `<button class="btn btn-primary btn-sm" data-act="mark" data-id="${esc(s.id)}">${ic("check")}Mark complete</button>`;
   return "";
 }
 function sessionRow(s,opts={}){
@@ -1491,7 +1503,7 @@ function sessionRow(s,opts={}){
     <div class="grow"><div class="t">${esc(s.title||"Live class")}</div><div class="s">${esc(fmtTime(d))}–${esc(fmtTime(end))} · ${esc(c?c.title:"Course removed")} · ${esc(who)}${s.notes?` · ${esc(s.notes)}`:""}</div></div>
     ${opts.tag?`<span class="pill p-sun">${esc(opts.tag)}</span>`:""}${live?`<span class="pill p-good">Live now</span>`:""}
     ${opts.attend?attendCell(s):""}
-    ${!past&&!opts.noJoin?(url?`<a class="btn ${live?"btn-primary":"btn-ghost"} btn-sm" href="${esc(url)}" target="_blank" rel="noopener">${ic("video")}Join</a>`:(opts.attend?"":`<span class="pill p-mute">Link soon</span>`)):(past&&!opts.attend?`<span class="pill p-mute">Ended</span>`:"")}
+    ${!past&&!opts.noJoin?(url?`<a class="btn ${live?"btn-primary":"btn-ghost"} btn-sm" href="${esc(url)}" target="_blank" rel="noopener">${ic("video")}Join</a>`:(opts.attend?"":`<span class="pill p-mute">Link soon</span>`)):(past&&!opts.attend?kidDonePill(s):"")}
     ${!past&&(opts.manage||opts.attend)&&isStaff()?`<button class="btn btn-ghost btn-sm" data-act="shareSession" data-id="${esc(s.id)}">${ic("share")}Share</button>`:""}
     ${opts.manage&&!past&&isStaff()?`<button class="btn btn-ghost btn-sm" data-act="boardNew" data-id="s:${esc(s.id)}">🖍️ Whiteboard</button>`:""}
     ${opts.manage?`<button class="iconbtn" data-act="editSession" data-id="${esc(s.id)}" aria-label="Edit class">${ic("edit")}</button>`:""}
@@ -1798,13 +1810,13 @@ function lessonView(){
 function trainerHomework(){
   const hs=myHw(), tr=toReview();
   const late=hs.reduce((n,h)=>n+hwLearners(h).filter(L=>hwState(L,h).k==="late").length,0);
-  return `<div class="head"><div><h1>Homework</h1><p class="lede">Set homework for a course or for chosen learners, then read their answers and reply. Pick ready-made activities by age group and skill.</p></div><button class="btn btn-primary" data-act="newHw">${ic("plus")}Set homework</button></div>
+  return `<div class="head"><div><h1>Homework</h1><p class="lede">Pick learners, add your own worksheet or a task, and set a due date. Then read their answers and reply.</p></div><div class="row"><button class="btn btn-ghost" data-act="newSheet">${ic("plus")}Upload worksheet</button><button class="btn btn-primary" data-act="newHw">${ic("plus")}Set homework</button></div></div>
   ${hs.length?`<div class="stats"><div class="stat f" style="background:var(--leafSoft)"><b class="num">${hs.length}</b><span>Homework set</span></div><div class="stat f" style="background:var(--sunSoft)"><b class="num">${tr.length}</b><span>Answers waiting for a reply</span></div><div class="stat f" style="background:var(--peach)"><b class="num" style="${late?"color:var(--bad)":""}">${late}</b><span>Late, not handed in</span></div></div>
   <div class="grid">${hs.map(h=>{const ls=hwLearners(h);const handed=ls.filter(L=>answerOf(L,h)).length;const waiting=ls.filter(L=>answerOf(L,h)&&!replyOf(L,h)).length;const c=D.courses[h.courseId];
-   return `<article class="card hwcard"><div class="row" style="flex-wrap:nowrap"><span class="stamp sm ${hue(c)}">${esc(c?langCode(c):"HW")}</span><div style="flex:1;min-width:0"><h3>${esc(h.title)}</h3><p class="small muted">${esc(hwTarget(h))}${h.due?` · due ${esc(fmtDay(hwDue(h)))}`:""}${scopeAll()?` · ${esc(hwAuthor(h))}`:""}</p></div></div>
+   return `<article class="card hwcard"><div class="row" style="flex-wrap:nowrap"><span class="stamp sm ${hue(c)}">${esc(c?langCode(c):"HW")}</span><div style="flex:1;min-width:0"><h3>${esc(h.title)}${h.sheet?" 📝":""}</h3><p class="small muted">${esc(hwTarget(h))}${h.due?` · due ${esc(fmtDay(hwDue(h)))}`:""}${scopeAll()?` · ${esc(hwAuthor(h))}`:""}</p></div></div>
     <div class="barrow h0"><div class="bar"><i style="width:${ls.length?pctStr(handed/ls.length):"0%"}"></i></div><b class="num">${handed}/${ls.length}</b></div>
     <div class="row">${waiting?`<span class="pill p-sun">${waiting} to reply</span>`:""}<span class="spacer"></span><button class="btn ${waiting?"btn-primary":"btn-ghost"} btn-sm" data-act="reviewHw" data-id="${esc(h.key)}">Answers</button>${canReview(h)?`<button class="iconbtn" data-act="editHw" data-id="${esc(h.key)}" aria-label="Edit homework">${ic("edit")}</button><button class="iconbtn" data-act="delHw" data-id="${esc(h.key)}" aria-label="Delete homework">${ic("trash")}</button>`:""}</div></article>`}).join("")}</div>`
-  :emptyBox("No homework yet","Set homework for one of your courses or for chosen learners. They see it straight away.",`<button class="btn btn-primary" data-act="newHw">${ic("plus")}Set homework</button>`,"buzz")}`;
+  :emptyBox("No homework yet","Set homework for one of your courses or for chosen learners. They see it straight away.",`<button class="btn btn-primary" data-act="newHw">${ic("plus")}Set homework</button>`,"buzz")}${sheetsPanel()}`;
 }
 
 /* ---------- PARENT ---------- */
@@ -1824,7 +1836,7 @@ function parentHome(){
     <div class="row"><h2>${esc(L.name)}</h2><span class="spacer"></span>${ratePill(s.a.rate)}</div>
     <div style="background:var(--leafSoft);border-radius:18px 18px 18px 4px;padding:12px 14px"><p class="small" style="font-weight:700;color:var(--leaf)">This week</p><p>${weekLine(L,s)}</p></div>
     <div class="stats" style="grid-template-columns:repeat(3,1fr)"><div class="stat f" style="background:var(--sunSoft)"><b class="num">${flowers(s.uid)}</b><span>Flowers</span></div><div class="stat f" style="background:var(--skySoft)"><b class="num">${s.a.t?`${s.a.p+s.a.l}/${s.a.t}`:"–"}</b><span>Classes attended</span></div><div class="stat f" style="background:var(--petalSoft)"><b class="num">${hwFor(L).filter(h=>!answerOf(L,h)).length}</b><span>Homework to do</span></div></div>
-    <p class="small muted">${s.next?`Next class: ${esc(fmtDay(new Date(s.next.startsAt)))}, ${esc(fmtTime(new Date(s.next.startsAt)))}`:"No classes booked"}${L.trainerId?` · Teacher: ${esc(trainerName(L.trainerId))}`:""}</p>
+    ${lastClassLine(L)}<p class="small muted">${s.next?`Next class: ${esc(fmtDay(new Date(s.next.startsAt)))}, ${esc(fmtTime(new Date(s.next.startsAt)))}`:"No classes booked"}${L.trainerId?` · Teacher: ${esc(trainerName(L.trainerId))}`:""}</p>
   </article>`}).join("")}</div>`;
 }
 function childView(lid){
@@ -2050,7 +2062,7 @@ A.mark=async sid=>{
   const roster=classRoster(s); const extra=Object.keys(cur).filter(id=>!roster.some(L=>L.id===id)&&D.learners[id]).map(learner);
   const list=[...roster,...extra];
   const d=new Date(s.startsAt);
-  const body=list.length?`<p class="small muted">${esc(c?c.title:"")} · ${esc(fmtDay(d))}, ${esc(fmtTime(d))}${mk?` · last saved ${esc(fmtDay(new Date(mk.at)))}`:""}</p>
+  const body=list.length?`<p class="small">Mark who came and who was absent, then tap <b>${mk?"Save changes":"Mark class complete"}</b>. The admin, parents and learners see the result.</p><p class="small muted">${esc(c?c.title:"")} · ${esc(fmtDay(d))}, ${esc(fmtTime(d))}${mk?` · last saved ${esc(fmtDay(new Date(mk.at)))}`:""}</p>
     <div class="row"><button type="button" class="btn btn-ghost btn-sm" data-mact="all">${ic("check")}Mark everyone present</button></div>
     <div>${list.map(L=>`<div class="markrow"><b>${esc(L.name)}</b><div class="seg" role="radiogroup" aria-label="${esc(L.name)}">${["present","late","absent"].map(st=>`<label><input type="radio" name="m_${esc(L.id)}" value="${st}" ${(cur[L.id]||(joins[L.id]?(joins[L.id]>st0+10*6e4?"late":"present"):""))===st?"checked":""}><span class="${st}">${ATT[st]}</span></label>`).join("")}</div>${joins[L.id]&&!cur[L.id]?`<span class="pill p-info">Auto: joined ${esc(fmtTime(new Date(joins[L.id])))}</span>`:""}<input type="text" class="mnote" name="n_${esc(L.id)}" maxlength="200" value="${esc((mk&&mk.notes||{})[L.id]||"")}" placeholder="Note for ${esc(firstOf(L.name))}'s family (optional)" aria-label="Note for ${esc(L.name)}'s family"></div>`).join("")}</div>
     <p class="section-title">After class</p>
@@ -2058,7 +2070,7 @@ A.mark=async sid=>{
     <div class="field"><label for="mk-voc">Words taught</label><textarea id="mk-voc" name="voc" rows="2" maxlength="2000" placeholder="cow = गाय">${esc(s.vocab||"")}</textarea><span class="hint">Learners marked present get these in My words.</span></div>
     <div class="field"><label for="mk-rec">Recording link (optional)</label><input type="url" id="mk-rec" name="rec" data-label="Recording link" value="${esc(s.recordingUrl||"")}" placeholder="https://…"></div>`
     :`<p>No learners are in ${esc(c?c.title:"this course")} yet.${role()==="admin"?" Add learners to the course first.":" Ask the admin to add learners to it."}</p>`;
-  openModal(s.title||"Take attendance",body,{wide:true,noFocus:true,submitLabel:"Save attendance",done:"Attendance saved",
+  openModal("Finish class: "+(s.title||"Live class"),body,{wide:true,noFocus:true,submitLabel:mk?"Save changes":"Mark class complete",done:"Class marked complete. Families can see it now.",
     actions:{all:(_,__,form)=>form.querySelectorAll('input[type=radio][value="present"]').forEach(r=>{r.checked=true})},
     onSubmit:list.length?async(f,form)=>{
       const m={};for(const L of list){const r=form.querySelector(`input[name="m_${CSS.escape(L.id)}"]:checked`);if(r)m[L.id]=r.value;}
@@ -2066,7 +2078,7 @@ A.mark=async sid=>{
       const notes={};for(const L of list){const t=form.querySelector(`input[name="n_${CSS.escape(L.id)}"]`);if(t&&t.value.trim())notes[L.id]=t.value.trim();}
       const rec=f.rec.value.trim();if(rec&&!safeUrl(rec))throw userErr("The recording link must start with https://");
       await S.db.doc(`tw/${S.uid}/x/m-${sid}`).set({kind:"mark",sid,at:Date.now(),by:S.uid,date:s.startsAt,courseId:s.courseId,title:s.title||(c?c.title:"Class"),m,note:f.cnote.value.trim(),notes});
-      const upd={};if(safeUrl(rec)!==(s.recordingUrl||""))upd.recordingUrl=safeUrl(rec);if(f.voc.value.trim()!==(s.vocab||""))upd.vocab=f.voc.value.trim();if(Object.keys(upd).length)await S.db.doc("sessions/"+sid).update(upd);
+      const upd={};if(safeUrl(rec)!==(s.recordingUrl||""))upd.recordingUrl=safeUrl(rec);if(f.voc.value.trim()!==(s.vocab||""))upd.vocab=f.voc.value.trim();if(Object.keys(upd).length)await S.db.doc("sessions/"+sid).update(upd);if(!s.doneAt){try{await S.db.doc("sessions/"+sid).update({doneAt:Date.now(),doneBy:S.uid})}catch(e){}}
     }:null});
 };
 
@@ -2107,45 +2119,129 @@ A.newNotice=()=>openModal("New notice",`<div class="field"><label for="nt-title"
 A.delNotice=key=>{const n=noticesFor(role()).find(x=>x.key===key);if(!n)return;openModal("Delete this message?",`<p>“${esc(n.title)}” will disappear for everyone.</p>`,{danger:true,submitLabel:"Delete",done:"Deleted",onSubmit:async()=>{await S.db.doc(n.src==="team"?"notices/"+n.id:`tw/${n.uid}/x/${n.id}`).delete()}});};
 A.copyNotice=key=>{const n=noticesFor(role()).find(x=>x.key===key);if(n)copyText(`*${n.title}*\n\n${n.body}\n\n– ${noteAuthor(n)}, Little Lingos`,"Message");};
 A.schedMode=v=>{S.schedAll=v==="all";render(true);};
-function hwForm(h={}){
-  const cs=courseList(), ls=scopedLearners(), isNew=!h.id, chosen=new Set(h.learnerIds||[]);
-  const byL=h.id?!!(h.learnerIds&&h.learnerIds.length):ls.length>0;
+function hwForm(h={},pre={}){
+  const cs=courseList(), ls=scopedLearners(), admin=role()==="admin", isNew=!h.id;
+  const wasCourse=!!(h.id&&!(h.learnerIds&&h.learnerIds.length)&&h.courseId);
+  const twoWays=admin||wasCourse;
   const defC=h.courseId||(cs.find(c=>c.teacherId&&c.teacherId===myTid())||cs[0]||{}).id;
-  return `<div class="hwf">
+  const sheets=sheetList(), sh=h.sheet&&h.sheet.asset?h.sheet:null, shUrl=sh&&window.LL_assetUrl?LL_assetUrl(sh.asset):"";
+  return `<div class="hwf hwf2">
   <section class="hwstep"><h3><span class="num">1</span>Who is it for?</h3>
-    <div class="seg" role="radiogroup" aria-label="Who is it for"><label><input type="radio" name="who" value="learners" ${byL?"checked":""}>Chosen learners</label><label><input type="radio" name="who" value="course" ${byL?"":"checked"}>A whole course</label></div>
-    <div class="hw-learners">${ls.length?`<div class="chips">${ls.map(L=>`<label class="chip"><input type="checkbox" name="hwl" value="${esc(L.id)}" ${chosen.has(L.id)?"checked":""}><span>${esc(L.name)}${L.stage?` <i>${esc(L.stage)}</i>`:""}</span></label>`).join("")}</div>`:`<p class="small muted">No learners are assigned to you yet. Choose a whole course instead.</p>`}</div>
-    <div class="hw-course field"><label for="hw-course">Course</label><select id="hw-course" name="course">${cs.map(c=>opt(c.id,c.title,c.id===defC)).join("")}</select><span class="hint">Everyone in this course gets the homework.</span></div>
+    ${twoWays?`<div class="seg" role="radiogroup" aria-label="Who is it for"><label><input type="radio" name="who" value="learners" ${wasCourse?"":"checked"}>Chosen learners</label><label><input type="radio" name="who" value="course" ${wasCourse?"checked":""}>A whole course</label></div>`:`<input type="hidden" name="who" value="learners">`}
+    <div class="hw-learners">${kidPicker("hwl",h.learnerIds||[],ls,false)}</div>
+    ${twoWays?`<div class="hw-course field"><label for="hw-course">Course</label><select id="hw-course" name="course">${cs.map(c=>opt(c.id,c.title,c.id===defC)).join("")}</select><span class="hint">Everyone in this course gets the homework.</span></div>`:""}
   </section>
-  <section class="hwstep"><h3><span class="num">2</span>Pick an activity <span class="opt">optional</span></h3>
-    ${bankPickerHTML(h)}
+  <section class="hwstep"><h3><span class="num">2</span>The task</h3>
+    <div class="field"><label for="hw-title">Title</label><input type="text" id="hw-title" name="title" required maxlength="100" data-label="Title" value="${esc(h.title||"")}" placeholder="e.g. Farm animals worksheet"></div>
+    <div class="sheetpick"><span class="lbl">📝 Worksheet <span class="opt">optional</span></span>
+      ${sh?`<div class="row sheetcur"><b class="grow">${esc(sh.name||"Worksheet")}</b>${shUrl?`<a class="btn btn-ghost btn-sm" href="${esc(shUrl)}" target="_blank" rel="noopener">${ic("open")}Open</a>`:""}<label class="small"><input type="checkbox" name="sheetdel"> Remove</label></div>`:""}
+      <div class="two"><div class="field"><label for="hw-file">${sh?"Replace with a new file":"Upload a worksheet"}</label><input type="file" id="hw-file" name="sheetfile" accept="application/pdf,image/*"><span class="hint">PDF or photo, up to 10 MB. It's also kept in My worksheets.</span></div>
+      ${sheets.length?`<div class="field"><label for="hw-sheet">Or pick a saved worksheet</label><select id="hw-sheet" name="sheetlib">${opt("","None",!pre.lib)}${sheets.map(x=>opt(x.id,x.title,x.id===pre.lib)).join("")}</select></div>`:""}</div>
+    </div>
+    <div class="field"><label for="hw-ins">Instructions <span class="opt">optional</span></label><textarea id="hw-ins" name="ins" rows="4" maxlength="4000" placeholder="e.g. Colour the animals and say each name out loud.">${esc(h.instructions||"")}</textarea></div>
   </section>
-  <section class="hwstep"><h3><span class="num">3</span>Check and set</h3>
-    <div class="field"><label for="hw-title">Title</label><input type="text" id="hw-title" name="title" required maxlength="100" data-label="Title" value="${esc(h.title||"")}" placeholder="e.g. Draw and label your garden"></div>
-    <div class="field"><label for="hw-ins">What should the learner do?</label><textarea id="hw-ins" name="ins" rows="6" maxlength="4000" placeholder="Write the task in simple steps. Activities you pick above appear here, and you can change them.">${esc(h.instructions||"")}</textarea></div>
-    <div class="field"><label for="hw-due">Due date</label><div class="duerow"><input type="date" id="hw-due" name="due" value="${esc(h.due||ymd(new Date(Date.now()+3*864e5)))}">${[["Tomorrow",1],["In 3 days",3],["In a week",7]].map(([t,n])=>`<button type="button" class="btn btn-ghost btn-sm" data-due="${n}">${t}</button>`).join("")}</div></div>
-    ${isNew?`<label class="savebank"><input type="checkbox" name="tobank"> Also save it to our activity bank so other trainers can use it</label>`:""}
-  </section></div>`;
+  <section class="hwstep"><h3><span class="num">3</span>Due date</h3>
+    <div class="duerow"><input type="date" id="hw-due" name="due" aria-label="Due date" value="${esc(h.due||ymd(new Date(Date.now()+3*864e5)))}">${[["Tomorrow",1],["In 3 days",3],["In a week",7]].map(([t,n])=>`<button type="button" class="btn btn-ghost btn-sm" data-due="${n}">${t}</button>`).join("")}</div>
+  </section>
+  <details class="hwbank"><summary>Use a ready-made activity from our bank <span class="opt">optional</span></summary>${bankPickerHTML(h)}
+    ${isNew?`<label class="savebank"><input type="checkbox" name="tobank"> Also save this task to our activity bank so other trainers can use it</label>`:""}</details>
+  </div>`;
 }
 async function saveHw(f,form,h){
   const title=f.title.value.trim(); if(!title)throw userErr("Add a title.");
-  const who=form.querySelector('input[name="who"]:checked').value;
+  const wEl=form.querySelector('input[name="who"]:checked')||form.querySelector('input[name="who"][type="hidden"]');const who=wEl?wEl.value:"learners";
   const ids=[...form.querySelectorAll('input[name="hwl"]:checked')].map(x=>x.value);
-  if(who==="learners"&&!ids.length)throw userErr("Tick at least one learner, or choose a whole course.");
-  if(who==="course"&&!f.course.value)throw userErr("Create a course first, or choose learners.");
-  const data={title,instructions:f.ins.value.trim(),due:f.due.value||null,courseId:who==="course"?f.course.value:null,learnerIds:who==="learners"?ids:[],stage:(f.bkstage&&f.bkstage.value)||null,skill:(f.bkskill&&f.bkskill.value)||null,bankIds:f.bkids&&f.bkids.value?f.bkids.value.split(",").filter(Boolean).slice(0,20):[]};
+  if(who==="learners"&&!ids.length)throw userErr("Tick at least one learner.");
+  if(who==="course"&&!(f.course&&f.course.value))throw userErr("Create a course first, or choose learners.");
+  let sheet=(h&&h.sheet)||null; if(f.sheetdel&&f.sheetdel.checked)sheet=null;
+  const file=f.sheetfile&&f.sheetfile.files&&f.sheetfile.files[0];
+  if(file)sheet=await uploadSheet(file,title,(f.bkstage&&f.bkstage.value)||"");
+  else if(f.sheetlib&&f.sheetlib.value){const x=D.library[f.sheetlib.value];if(x&&x.asset)sheet={asset:x.asset,name:x.title,lib:x.id,type:x.ctype||""};}
+  if(!sheet&&!f.ins.value.trim()&&!(f.bkids&&f.bkids.value))throw userErr("Add a worksheet or write what the learner should do.");
+  const data={title,instructions:f.ins.value.trim(),due:f.due.value||null,courseId:who==="course"?f.course.value:null,learnerIds:who==="learners"?ids:[],sheet,stage:(f.bkstage&&f.bkstage.value)||null,skill:(f.bkskill&&f.bkskill.value)||null,bankIds:f.bkids&&f.bkids.value?f.bkids.value.split(",").filter(Boolean).slice(0,20):[]};
   if(!h&&f.tobank&&f.tobank.checked){const st=data.stage||(form.querySelector("#bk-stage")||{}).value||bankStageFor(ids), sk=data.skill||(form.querySelector("#bk-skill")||{}).value;
-    if(!st||!sk)throw userErr("To save it to the activity bank, choose an age group and a skill in step 2.");
+    if(!st||!sk)throw userErr("To save it to the activity bank, choose an age group and a skill in the activity bank section.");
     try{await S.db.collection("bank").doc().set({stage:st,skill:sk,title:title.slice(0,100),instructions:data.instructions.slice(0,4000),questions:[],minutes:null,by:S.uid,byName:myName()||"",at:Date.now()});}catch(e){}}
   if(h)await S.db.doc(`tw/${h.uid}/x/${h.id}`).update(data);
   else await S.db.collection(`tw/${S.uid}/x`).doc().set({...data,kind:"hw",at:Date.now(),by:S.uid,feedback:{}});
 }
+/* ---------- a class reaches only the children picked for it ---------- */
+const realLids=s=>((s&&s.forLids)||[]).filter(id=>id&&id[0]!=="_");
+const noKidsClass=s=>!realLids(s).length&&!((s&&s.forLids)||[]).includes("_trial");
+const isKidSide=()=>{const r=role();return r==="student"||r==="parent";};
+function pickBatches(){const t=myTid(),admin=role()==="admin";return entries(D.batches||{}).filter(b=>(admin||b.tid===t)&&(b.learners||[]).length);}
+/* learner chips with quick picks. byCourse: only show learners of the course chosen in the same form */
+function kidPicker(name,chosen,pool,byCourse,c0){
+  const ids=new Set(chosen||[]);const extra=[...ids].filter(id=>D.learners[id]&&!pool.some(L=>L.id===id)).map(learner);
+  const all=[...pool,...extra].sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
+  if(!all.length)return `<p class="small muted">No learners are assigned to you yet. Ask the admin to assign learners to you.</p>`;
+  const hide=L=>byCourse&&c0&&!(L.courses||[]).includes(c0)&&!ids.has(L.id);
+  const bs=pickBatches();
+  return `<div class="kpick" data-kpick="${esc(name)}" ${byCourse?'data-kpcourse="1"':""}>
+    <div class="row kpq"><button type="button" class="btn btn-ghost btn-sm" data-kp="all">${byCourse?"Everyone in this course":"All my learners"}</button>${bs.map(b=>`<button type="button" class="btn btn-ghost btn-sm" data-kp="b:${esc(b.id)}" data-bc="${esc(b.courseId||"")}" ${byCourse&&c0&&b.courseId&&b.courseId!==c0?"hidden":""}>${ic("users")}${esc(b.name||"Batch")}</button>`).join("")}<button type="button" class="btn btn-ghost btn-sm" data-kp="none">Clear</button></div>
+    <div class="chips">${all.map(L=>`<label class="chip" ${hide(L)?"hidden":""}><input type="checkbox" name="${esc(name)}" value="${esc(L.id)}" data-c="${esc((L.courses||[]).join(" "))}" ${ids.has(L.id)?"checked":""}><span>${esc(L.name)}${L.stage?` <i>${esc(L.stage)}</i>`:""}</span></label>`).join("")}</div>
+    <p class="small kpn" aria-live="polite">${kpCount(ids.size)}</p></div>`;
+}
+const kpCount=n=>n?`${n} learner${n===1?"":"s"} picked.`:`No one picked yet.`;
+function kpSync(box){const n=box.querySelectorAll('input[type=checkbox]:checked').length;const p=box.querySelector(".kpn");if(p)p.textContent=kpCount(n);}
+function kpFilter(form){const box=form&&form.querySelector(".kpick[data-kpcourse]");if(!box)return;const sel=form.querySelector('select[name="course"]');const c=sel?sel.value:"";
+  box.querySelectorAll("label.chip").forEach(l=>{const i=l.querySelector("input");l.hidden=!!c&&!i.checked&&!(" "+i.dataset.c+" ").includes(" "+c+" ");});
+  box.querySelectorAll("[data-bc]").forEach(b=>{b.hidden=!!c&&!!b.dataset.bc&&b.dataset.bc!==c;});}
+if(!window.__kpWired){window.__kpWired=true;
+  document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-kp]");if(!b)return;e.preventDefault();const box=b.closest(".kpick");if(!box)return;const k=b.dataset.kp;
+    const boxes=[...box.querySelectorAll('label.chip input[type=checkbox]')];
+    if(k==="none")boxes.forEach(i=>{i.checked=false});
+    else if(k==="all")boxes.forEach(i=>{if(!i.closest("label").hidden)i.checked=true});
+    else if(k.startsWith("b:")){const bt=D.batches&&D.batches[k.slice(2)];const set=new Set((bt&&bt.learners)||[]);boxes.forEach(i=>{if(set.has(i.value)){i.checked=true;i.closest("label").hidden=false;}});}
+    kpSync(box);},true);
+  document.addEventListener("change",e=>{const t=e.target;if(!t||!t.closest)return;const box=t.closest(".kpick");if(box){kpSync(box);return;}
+    if(t.name==="course"&&t.form)kpFilter(t.form);},true);
+}
+function sessKids(f){const el=f.course,form=el&&(el.form||el.closest("form"));const root=form||document.getElementById("modal-root")||document;
+  const ids=[...root.querySelectorAll('input[name="sl"]:checked')].map(x=>x.value);
+  const keep=(f.keepfor&&f.keepfor.value?f.keepfor.value.split(","):[]).filter(Boolean);
+  if(!ids.length&&!keep.length)throw userErr("Pick the learners for this class. Only they will see it and its join link.");
+  return [...keep,...ids];}
+function sessPickHTML(s,cid){const cs=courseList();const c0=s.courseId||cid||(cs[0]||{}).id||"";const pool=role()==="admin"?activeLearners():scopedLearners();
+  return `<div class="field"><span class="lbl">Learners in this class</span>${kidPicker("sl",realLids(s),pool,true,c0)}<input type="hidden" name="keepfor" value="${esc(((s.forLids)||[]).filter(x=>x&&x[0]==="_").join(","))}"><span class="hint">Only the learners you pick see this class and its join link.</span></div>`;}
+function noKidsAlert(){const xs=scopedSessions().filter(s=>sessEnd(s)>Date.now()&&noKidsClass(s)).sort((a,b)=>String(a.startsAt).localeCompare(String(b.startsAt)));if(!xs.length)return "";
+  return `<section class="alert a-sun"><b>${xs.length} upcoming class${xs.length===1?" has":"es have"} no learners picked</b><span class="small">Children only see classes they are picked for. Next: ${esc(xs[0].title||"Live class")}, ${esc(fmtDay(new Date(xs[0].startsAt)))}</span><span class="spacer"></span><button class="btn btn-primary btn-sm" data-act="editSession" data-id="${esc(xs[0].id)}">Pick learners</button></section>`;}
+
+/* ---------- finished classes ---------- */
+function kidDonePill(s){const mk=allMarks()[s.id];
+  if(mk&&isKidSide())for(const L of myKids()){const st=L&&mk.m[L.id];if(st)return attPill(st);}
+  return mk||s.doneAt?`<span class="pill p-good">Completed</span>`:`<span class="pill p-mute">Ended</span>`;}
+function lastClassLine(L){const h=kidHistory(L)[0];if(!h||Date.now()-new Date(h.date).getTime()>30*864e5)return "";
+  return `<p class="small lastcls">Last class: <b>${esc(h.title||"Class")}</b> · ${esc(fmtDay(new Date(h.date)))} ${attPill(h.st)}</p>`;}
+
+/* ---------- worksheets ---------- */
+const sheetList=()=>libItems().filter(x=>x.asset&&(x.type==="worksheet"||x.type==="printable"));
+async function uploadSheet(file,title,stage){
+  if(!/^(application\/pdf|image\/)/.test(file.type||""))throw userErr("Upload a PDF or a picture (JPG or PNG).");
+  if(file.size>10*1024*1024)throw userErr("That file is over 10 MB. Try a smaller PDF or photo.");
+  const as=await window.claude.use("assets");if(!as)throw userErr("Uploading isn't available for your account.");
+  let r;try{r=await as.upload(file);}catch(e){throw userErr("Upload failed. Check your connection and try again.");}
+  const name=(title||String(file.name||"Worksheet").replace(/\.[^.]+$/,"")).slice(0,100);
+  const ref=S.db.collection("library").doc();
+  await ref.set({type:"worksheet",stage:stage||"",title:name,url:"",asset:r.id,ctype:file.type||"",vocab:"",tags:"",notes:"",by:S.uid,at:Date.now()});
+  return {asset:r.id,name,lib:ref.id,type:file.type||""};}
+function sheetHTML(h){const x=h&&h.sheet;if(!x||!x.asset)return "";const u=window.LL_assetUrl?LL_assetUrl(x.asset):"";if(!u)return "";
+  const img=/^image\//.test(x.type||"")||/\.(png|jpe?g|webp|gif)$/i.test(x.asset);
+  return `<div class="sheetbox">${img?`<a href="${esc(u)}" target="_blank" rel="noopener"><img src="${esc(u)}" alt="${esc(x.name||"Worksheet")}" loading="lazy"></a>`:""}<div class="row" style="flex-wrap:nowrap"><span class="sheeticon" aria-hidden="true">📝</span><b class="grow">${esc(x.name||"Worksheet")}</b><a class="btn btn-primary btn-sm" href="${esc(u)}" target="_blank" rel="noopener">${ic("open")}Open worksheet</a></div></div>`;}
+function sheetsPanel(){const xs=sheetList();
+  return `<section class="card panel sheetsp"><div class="ph"><h2>My worksheets</h2><button class="btn btn-ghost btn-sm" data-act="newSheet">${ic("plus")}Upload worksheet</button></div>
+  ${xs.length?`<div class="list">${xs.map(x=>`<div class="item"><span class="sheeticon" aria-hidden="true">📝</span><div class="grow"><div class="t">${esc(x.title)}</div><div class="s">${esc(x.stage||"Any stage")} · ${esc(fmtDay(new Date(x.at||Date.now())))}${x.by&&x.by!==S.uid?" · "+esc(byWho(x.by)):""}</div></div><div class="acts wrap"><a class="btn btn-ghost btn-sm" href="${esc(libHref(x)||"#")}" target="_blank" rel="noopener">${ic("open")}Open</a><button class="btn btn-primary btn-sm" data-act="assignSheet" data-id="${esc(x.id)}">Assign</button>${x.by===S.uid||role()==="admin"?`<button class="iconbtn" data-act="delLib" data-id="${esc(x.id)}" aria-label="Delete ${esc(x.title)}">${ic("trash")}</button>`:""}</div></div>`).join("")}</div>`
+  :`<p class="muted small">Upload your own worksheets (PDF or photo). Then tap Assign to give one to learners as homework.</p>`}</section>`;}
+A.newSheet=()=>openModal("Upload a worksheet",`<div class="field"><label for="ws-f">Worksheet file</label><input type="file" id="ws-f" name="file" accept="application/pdf,image/*" required data-label="Worksheet file"><span class="hint">PDF or photo, up to 10 MB.</span></div>
+  <div class="two"><div class="field"><label for="ws-t">Name</label><input type="text" id="ws-t" name="title" maxlength="100" placeholder="e.g. Farm animals: match and colour"><span class="hint">Leave empty to use the file name.</span></div><div class="field"><label for="ws-s">Stage</label><select id="ws-s" name="stage">${opt("","Any stage")}${STAGES.map(x=>opt(x.v,x.v)).join("")}</select></div></div>`,
+  {submitLabel:"Upload",done:"Worksheet saved. Tap Assign to give it as homework.",onSubmit:async f=>{const file=f.file.files&&f.file.files[0];if(!file)throw userErr("Choose a PDF or photo.");await uploadSheet(file,f.title.value.trim(),f.stage.value);}});
+A.assignSheet=id=>{const x=D.library[id];if(!x)return;openModal("Set homework",hwForm({title:x.title},{lib:id}),{wide:true,submitLabel:"Set homework",done:"Homework set. Learners can see it now.",onSubmit:(f,form)=>saveHw(f,form,null)});bankRender();};
 A.newHw=()=>{openModal("Set homework",hwForm(),{wide:true,submitLabel:"Set homework",done:"Homework set. Learners can see it now.",onSubmit:(f,form)=>saveHw(f,form,null)});bankRender();};
 A.editHw=key=>{const h=hwByKey(key);if(h){openModal("Edit homework",hwForm(h),{wide:true,done:"Homework saved",onSubmit:(f,form)=>saveHw(f,form,h)});bankRender();}};
 A.delHw=key=>{const h=hwByKey(key);if(h)openModal("Delete this homework?",`<p>“${esc(h.title)}” and learners' answers to it will no longer show.</p>`,{danger:true,submitLabel:"Delete",done:"Homework deleted",onSubmit:async()=>{await S.db.doc(`tw/${h.uid}/x/${h.id}`).delete()}});};
 A.reviewHw=key=>{const h=hwByKey(key);if(!h)return;const ls=hwLearners(h),can=canReview(h);
   const body=`<p class="small muted">${esc(hwTarget(h))}${h.due?` · due ${esc(fmtDay(hwDue(h)))}`:""} · ${ls.filter(L=>answerOf(L,h)).length} of ${ls.length} handed in</p>
-  ${h.instructions?`<details><summary class="small" style="font-weight:700;cursor:pointer">Instructions</summary><div class="prose" style="font-size:.98rem;margin-top:8px">${paras(h.instructions)}</div></details>`:""}
+  ${h.instructions?`<details><summary class="small" style="font-weight:700;cursor:pointer">Instructions</summary><div class="prose" style="font-size:.98rem;margin-top:8px">${paras(h.instructions)}</div></details>`:""}${sheetHTML(h)}
   <div>${ls.map(L=>{const a=answerOf(L,h),rp=replyOf(L,h),st=hwState(L,h);return `<div class="revrow"><div class="row"><b>${esc(L.name)}</b><span class="pill ${st.cls}">${esc(st.label)}</span>${a?`<span class="small muted">${esc(fmtDay(new Date(a.at)))}, ${esc(fmtTime(new Date(a.at)))}</span>`:""}</div>
     ${a?`<div class="answer">${esc(a.text)}</div>`:`<p class="small muted">${L.uid?"Not handed in yet.":"This learner hasn't signed in yet, so they can't hand in online."}</p>`}
     ${a&&can?`<div class="field"><label for="fb-${esc(L.id)}">Your reply to ${esc(firstOf(L.name))}</label><textarea id="fb-${esc(L.id)}" name="fb_${esc(L.id)}" rows="2" maxlength="1000" placeholder="Well done! Next time, try…">${esc(rp&&rp.text||"")}</textarea></div>
@@ -2212,6 +2308,7 @@ function sessionForm(s={},cid){
   const admin=role()==="admin", tdef=s.trainerId||(admin?"":myTid()||"");
   return `<div class="two"><div class="field"><label for="s-course">Course</label><select id="s-course" name="course" required data-label="Course">${cs.map(c=>opt(c.id,c.title,c.id===(s.courseId||cid))).join("")}</select></div>
   <div class="field"><label for="s-trainer">Trainer</label><select id="s-trainer" name="trainer">${admin?opt("","Course's trainer",!tdef)+activeTrainers().map(t=>opt(t.id,t.name,t.id===tdef)).join(""):activeTrainers().filter(t=>t.id===tdef||t.id===myTid()).map(t=>opt(t.id,t.name,t.id===tdef)).join("")||opt("","Course's trainer",true)}</select>${admin?"":`<span class="hint">The admin assigns trainers to classes and learners.</span>`}</div></div>
+  ${sessPickHTML(s,cid)}
   <div class="field"><label for="s-title">Class title</label><input type="text" id="s-title" name="title" maxlength="100" value="${esc(s.title||"")}" placeholder="e.g. Hello song circle"></div>
   <div class="two"><div class="field"><label for="s-start">Starts</label><input type="datetime-local" id="s-start" name="start" required data-label="Start time" value="${esc(toLocalInput(d))}"></div>
   <div class="field"><label for="s-dur">Length (minutes)</label><input type="number" id="s-dur" name="dur" min="10" max="240" step="5" value="${esc(s.durationMin||45)}"></div></div>
@@ -2225,7 +2322,7 @@ function sessionForm(s={},cid){
   <div class="field"><label for="s-rec">Recording link (optional)</label><input type="url" id="s-rec" name="rec" data-label="Recording link" value="${esc(s.recordingUrl||"")}" placeholder="https://drive.google.com/… or YouTube (unlisted)"><span class="hint">Add after the class so families can watch it again.</span></div>
   <div class="field"><label for="s-notes">Note for learners (optional)</label><input type="text" id="s-notes" name="notes" maxlength="140" value="${esc(s.notes||"")}" placeholder="Bring a soft toy"></div>`;
 }
-const sessData=f=>{const u=f.url.value.trim();if(u&&!safeUrl(u))throw userErr("The meeting link must start with https://");const d=new Date(f.start.value);if(isNaN(d))throw userErr("Pick a start time.");return {courseId:f.course.value,trainerId:f.trainer.value||null,title:f.title.value.trim(),startsAt:d.toISOString(),durationMin:+f.dur.value||45,joinUrl:safeUrl(u),notes:f.notes.value.trim(),icon:(f.icon&&f.icon.value)||"",plan:f.plan.value.trim(),vocab:f.voc.value.trim(),libIds:[...document.querySelectorAll('#modal-root input[name="lib"]:checked')].map(x=>x.value),topic:f.topic.value.trim(),objectives:f.obj.value.trim(),recordingUrl:(()=>{const r=f.rec.value.trim();if(r&&!safeUrl(r))throw userErr("The recording link must start with https://");return safeUrl(r)})()}};
+const sessData=f=>{const _fl=sessKids(f);const u=f.url.value.trim();if(u&&!safeUrl(u))throw userErr("The meeting link must start with https://");const d=new Date(f.start.value);if(isNaN(d))throw userErr("Pick a start time.");return {forLids:_fl,courseId:f.course.value,trainerId:f.trainer.value||null,title:f.title.value.trim(),startsAt:d.toISOString(),durationMin:+f.dur.value||45,joinUrl:safeUrl(u),notes:f.notes.value.trim(),icon:(f.icon&&f.icon.value)||"",plan:f.plan.value.trim(),vocab:f.voc.value.trim(),libIds:[...document.querySelectorAll('#modal-root input[name="lib"]:checked')].map(x=>x.value),topic:f.topic.value.trim(),objectives:f.obj.value.trim(),recordingUrl:(()=>{const r=f.rec.value.trim();if(r&&!safeUrl(r))throw userErr("The recording link must start with https://");return safeUrl(r)})()}};
 A.newSession=cid=>{if(!courseList().length){toast("Create a course first.",true);return}openModal("Schedule a class",sessionForm({},cid),{wide:true,submitLabel:"Schedule class",done:"Class scheduled",onSubmit:async f=>{const ref=S.db.collection("sessions").doc();const d={...sessData(f),createdBy:S.uid,createdAt:Date.now()};await ref.set(d);newSid=[ref.id,d]},after:()=>{if(newSid){const [id,d]=newSid;newSid=null;D.sessions[id]=D.sessions[id]||d;A.shareSession(id,null,true)}}});};
 let newSid=null;
 A.editSession=id=>openModal("Edit class",sessionForm(D.sessions[id]),{wide:true,done:"Class saved",footerExtra:`<button type="button" class="btn btn-ghost" data-mact="del">${ic("trash")}Cancel class</button>`,actions:{del:()=>{closeModal();A.delSession(id)}},onSubmit:async f=>{await S.db.doc("sessions/"+id).update(sessData(f))}});
@@ -2348,7 +2445,7 @@ document.addEventListener("submit",e=>{
 
 /* calendar helpers */
 const dayKey=d=>DKEY.format(d);
-const kidSessions=L=>sessionsOf(learnerCourses(L)).filter(s=>(!s.forLids||!s.forLids.length)?sessForLearner(s,L):s.forLids.includes(L.id));
+const kidSessions=L=>sessionsOf(learnerCourses(L)).filter(s=>(s.forLids||[]).includes(L.id));
 const sessById=id=>byId(D.sessions,id);
 function kidHistory(L,m){
   const out=[];for(const v of Object.values(allMarks())){const st=v.m[L.id];if(!st)continue;if(m&&!inMonth(v.date,m))continue;
@@ -2402,8 +2499,8 @@ function parentHome(){
     return `<section class="skycard"><span class="eyebrow">Next class</span><h2>${esc(next.title||"Live class")}</h2><p>${esc(LONGDAY.format(d))} · ${esc(fmtTime(d))}–${esc(fmtTime(new Date(sessEnd(next))))} ${esc(tzName(d))}</p>
     <p class="small">${esc(c?c.title:"")} · ${esc(next.trainerId&&D.trainers[next.trainerId]?trainerName(next.trainerId):courseTeacher(c))}</p>
     ${next.topic?`<p><b>Topic:</b> ${esc(next.topic)}</p>`:""}
-    <div class="row">${url?`<a class="btn ${soon?"btn-primary":"btn-ghost"}" href="${esc(url)}" target="_blank" rel="noopener">${ic("video")}Join class</a>`:`<span class="pill p-mute">At the centre</span>`}<button class="btn btn-ghost btn-sm" data-go="schedule">Calendar</button></div></section>`;})()
-    :`<section class="skycard"><span class="eyebrow">Next class</span><h2>No class booked yet</h2><p class="small">New classes appear here as soon as the teacher schedules them.</p></section>`;
+    <div class="row">${url?`<a class="btn ${soon?"btn-primary":"btn-ghost"}" href="${esc(url)}" target="_blank" rel="noopener">${ic("video")}Join class</a>`:`<span class="pill p-mute">At the centre</span>`}<button class="btn btn-ghost btn-sm" data-go="schedule">Calendar</button></div>${lastClassLine(L)}</section>`;})()
+    :`<section class="skycard"><span class="eyebrow">Next class</span><h2>No class booked yet</h2><p class="small">New classes appear here as soon as the teacher schedules them.</p>${lastClassLine(L)}</section>`;
   return `<div class="head"><div><p class="eyebrow">Overview</p><h1>${esc(L.name)}</h1><p class="lede">${esc(stageLabel(L.stage))} · Teacher: ${esc(kidTeacher(L))}</p></div><div class="row"><button class="btn btn-ghost btn-sm" data-go="settings">${ic("gear")}Settings</button></div></div>
   ${kidBar()}
   ${wodParentHTML([L])}
@@ -2463,7 +2560,7 @@ function classDetail(s,h,L){
   const d=new Date(s.startsAt),end=new Date(sessEnd(s)),c=D.courses[s.courseId],url=safeUrl(s.joinUrl),past=Date.now()>sessEnd(s),live=Date.now()>=d.getTime()-15*6e4&&!past;
   const rated=myPP().some(x=>x.kind==="rating"&&x.sid===s.id&&x.lid===L.id);
   const pendingReq=myPP().find(x=>x.kind==="req"&&x.sid===s.id&&x.status==="open");
-  return `<article class="classbox"><div class="row"><b>${esc(fmtTime(d))}–${esc(fmtTime(end))}</b><span class="pill p-mute">${esc(c?c.title:"")}</span>${live?`<span class="pill p-good">Live now</span>`:""}${h?attPill(h.st):""}</div>
+  return `<article class="classbox"><div class="row"><b>${esc(fmtTime(d))}–${esc(fmtTime(end))}</b><span class="pill p-mute">${esc(c?c.title:"")}</span>${live?`<span class="pill p-good">Live now</span>`:""}${h?attPill(h.st):past&&s.doneAt?`<span class="pill p-good">Completed</span>`:""}</div>
     <h3>${esc(s.title||"Live class")}</h3>
     ${s.topic?`<p><b>Topic:</b> ${esc(s.topic)}</p>`:""}
     ${s.objectives?`<div class="small"><b>Learning objectives</b><ul class="obj">${String(s.objectives).split("\n").map(x=>x.trim()).filter(Boolean).map(x=>`<li>${esc(x.replace(/^[-•*]\s*/,""))}</li>`).join("")}</ul></div>`:""}
@@ -2521,7 +2618,7 @@ function parentHomework(){
 }
 A.parentHw=key=>{const L=curKid();const h=hwByKey(key);if(!h||!L)return;const a=answerOf(L,h),rp=replyOf(L,h),st=hwState(L,h);
   openModal(h.title,`<div class="row"><span class="pill ${st.cls}">${esc(st.label)}</span><span class="small muted">${esc(hwAuthor(h))}${h.due?` · due ${esc(fmtDay(hwDue(h)))}`:""}</span></div>
-  ${h.instructions?`<div class="prose" style="font-size:1rem">${paras(h.instructions)}</div>`:""}
+  ${sheetHTML(h)}${h.instructions?`<div class="prose" style="font-size:1rem">${paras(h.instructions)}</div>`:""}
   <p class="section-title">${esc(firstOf(L.name))}'s answer</p>${a?`<div class="answer">${esc(a.text)}</div><p class="small muted">Handed in ${esc(fmtDay(new Date(a.at)))}</p>`:`<p class="muted">Not handed in yet.</p>`}
   ${rp?`<p class="section-title">Teacher's reply</p><div class="reply">${esc(rp.text)}</div>`:""}`,{wide:true,noFocus:true});};
 
@@ -3043,7 +3140,7 @@ function kidHomework(){
 }
 A.openHw=key=>{const h=hwByKey(key);const L=myLearner();if(!h||!L)return;const a=answerOf(L,h),rp=replyOf(L,h),d=hwDue(h),vn=voiceFor(h,L);
   openModal(h.title,`<p class="small muted">From ${esc(hwAuthor(h))}${h.courseId&&D.courses[h.courseId]?` · ${esc(D.courses[h.courseId].title)}`:""}${d?` · ${esc(relDue(d))} (${esc(fmtDay(d))})`:""}</p>
-   ${h.instructions?`<div class="prose" style="font-size:1.05rem">${paras(h.instructions)}</div>`:""}
+   ${sheetHTML(h)}${h.instructions?`<div class="prose" style="font-size:1.05rem">${paras(h.instructions)}</div>`:""}
    ${hwBoardHTML(h)}
    ${rp?`<div class="reply">${rp.sticker?`<span class="bigsticker">${esc(rp.sticker)}</span>`:""}${rp.stars?`<div class="hwstars">${"⭐".repeat(+rp.stars)}</div>`:""}<b>${esc(hwAuthor(h))}:</b> ${esc(rp.text||"Well done!")}</div>`:""}
    ${vn?`<div class="field"><span class="lbl">🔊 Voice note from your teacher</span><audio controls src="${esc(vn.audio)}"></audio></div>`:""}
@@ -3200,7 +3297,7 @@ function trainerClassRow(s){
   const startable=now>=d.getTime()-15*6e4&&now<=end.getTime(), past=now>end.getTime(), run=runOf(s.id), ros=classRoster(s);
   const subFor=s.subFor&&D.trainers[s.subFor]?trainerName(s.subFor):null;
   return `<div class="tclass ${startable?"now":""} ${past?"past":""}"><div class="when"><span>${esc(fmtTime(d))}</span><b style="font-size:1.6rem">${topicIcon(s)}</b></div>
-    <div class="grow"><div class="t">${esc(s.title||"Live class")}${s.forLids&&s.forLids.length?` <span class="pill p-info">Make-up</span>`:""}${subFor?` <span class="pill p-warn">Covering for ${esc(firstOf(subFor))}</span>`:""}</div>
+    <div class="grow"><div class="t">${esc(s.title||"Live class")}${s.makeup||/^Make-up/.test(s.title||"")?` <span class="pill p-info">Make-up</span>`:noKidsClass(s)?` <span class="pill p-warn">No learners picked</span>`:""}${subFor?` <span class="pill p-warn">Covering for ${esc(firstOf(subFor))}</span>`:""}</div>
       <div class="s">${esc(fmtTime(d))}–${esc(fmtTime(end))} · ${esc(c?c.title:"")} · ${ros.length} learner${ros.length===1?"":"s"}${s.topic?` · ${esc(s.topic)}`:""}</div>
       ${s.plan?`<details class="plan"><summary>Lesson plan</summary><div>${esc(s.plan)}</div></details>`:""}
       ${run?`<div class="small muted">Started ${esc(fmtTime(new Date(run.startAt)))}</div>`:""}</div>
@@ -3219,13 +3316,13 @@ function trainerHome(){
   const myLeave=txAll("leave").filter(l=>l.uid===S.uid&&l.to>=ymd(new Date())).sort((a,b)=>String(a.from).localeCompare(String(b.from)))[0];
   return `<div class="head"><div><p class="eyebrow">Today in the garden</p><h1>Hello, ${esc(firstOf(myName()))}</h1></div><div class="row"><button class="btn btn-ghost btn-sm" data-act="availability">${ic("cal")}Availability</button><button class="btn btn-ghost btn-sm" data-act="newLeave">${ic("swap")}Leave or substitute</button></div></div>
   ${myLeave?`<section class="alert ${myLeave.status==="approved"?"a-sky":myLeave.status==="declined"?"a-bad":"a-sun"}"><b>Leave ${esc(myLeave.status==="approved"?"approved":myLeave.status==="declined"?"not approved":"requested")}:</b> ${esc(fmtDay(new Date(myLeave.from+"T12:00")))}${myLeave.to!==myLeave.from?` – ${esc(fmtDay(new Date(myLeave.to+"T12:00")))}`:""}${myLeave.reply?` · ${esc(myLeave.reply)}`:""}</section>`:""}
-  ${newAssignCard()}
+  ${newAssignCard()}${noKidsAlert()}
   ${clockCard(tid)}
   <div class="cols">
     <div class="stack" style="gap:20px">
       <section class="card panel"><div class="ph"><h2>Today's schedule</h2><button class="btn btn-ghost btn-sm" data-act="newSession">${ic("plus")}Schedule</button></div>
         ${todays.length?`<div class="list">${todays.map(trainerClassRow).join("")}</div>`:`<p class="muted">No classes assigned to you today.</p>`}</section>
-      ${recentUnmarked.length?`<section class="card panel"><h2>Still need attendance</h2><div class="list">${recentUnmarked.slice(0,5).map(s=>sessionRow(s,{attend:true})).join("")}</div></section>`:""}
+      ${recentUnmarked.length?`<section class="card panel"><h2>Classes to mark complete</h2><div class="list">${recentUnmarked.slice(0,5).map(s=>sessionRow(s,{attend:true})).join("")}</div></section>`:""}
       ${tr.length?`<section class="card panel"><div class="ph"><h2>Homework to grade</h2><button class="btn btn-ghost btn-sm" data-go="homework">All homework</button></div><div class="list">${tr.slice(0,5).map(({h,L})=>`<div class="item click" data-act="reviewHw" data-id="${esc(h.key)}" role="button" tabindex="0"><div class="grow"><div class="t">${esc(L.name)}</div><div class="s">${esc(h.title)}</div></div><span class="pill p-sun">Grade</span></div>`).join("")}</div></section>`:""}
     </div>
     <div class="stack" style="gap:20px">
@@ -3275,7 +3372,7 @@ A.approveReq=v=>{const [uid,id]=v.split("|");const x=(D.pp[uid]||{})[id];if(!x)r
   {wide:true,submitLabel:"Approve",done:"Approved. The parent can see the new time.",onSubmit:async f=>{const nd=new Date(f.d.value);if(isNaN(nd))throw userErr("Pick the new time.");const mins=+f.m.value||40;
     let msg;
     if(f.how.value==="move"&&s){await S.db.doc("sessions/"+x.sid).update({startsAt:nd.toISOString(),durationMin:mins});msg=`Moved “${s.title||"the class"}” to ${fmtDay(nd)}, ${fmtTime(nd)}.`;}
-    else{const base=s||{courseId:L&&learnerCourses(L)[0],title:"Make-up class"};await S.db.collection("sessions").doc().set({courseId:base.courseId,trainerId:(s&&s.trainerId)||myTid()||null,title:`Make-up: ${base.title||"class"}`,startsAt:nd.toISOString(),durationMin:mins,joinUrl:(s&&s.joinUrl)||"",notes:"",topic:(s&&s.topic)||"",forLids:x.lid?[x.lid]:[],createdBy:S.uid,createdAt:Date.now()});msg=`Make-up class booked for ${fmtDay(nd)}, ${fmtTime(nd)}.`;}
+    else{const base=s||{courseId:L&&learnerCourses(L)[0],title:"Make-up class"};await S.db.collection("sessions").doc().set({courseId:base.courseId,trainerId:(s&&s.trainerId)||myTid()||null,title:`Make-up: ${base.title||"class"}`,startsAt:nd.toISOString(),durationMin:mins,joinUrl:(s&&s.joinUrl)||"",notes:"",topic:(s&&s.topic)||"",forLids:x.lid?[x.lid]:[],makeup:true,createdBy:S.uid,createdAt:Date.now()});msg=`Make-up class booked for ${fmtDay(nd)}, ${fmtTime(nd)}.`;}
     const r=f.r.value.trim();await S.db.doc(`pp/${uid}/x/${id}`).update({status:"done",reply:(r?r+" ":"")+msg,replyBy:S.uid,replyName:myName(),replyAt:Date.now()});await bumpPPI(uid,{staffAt:Date.now()});refreshThread(uid);}});};
 
 /* ---------- Leave and substitutes ---------- */
@@ -3472,7 +3569,7 @@ function adminHome(){
   const pendingLeave=txAll("leave").filter(l=>l.status==="pending").length, esc8=tix.filter(x=>x.escalated).length;
   const wl=waitingAccounts("student").length+waitingParents().length, wt=waitingAccounts("teacher").length;
   const latest=noticesFor("admin")[0];
-  const att2=[];{const ua=ls.filter(L=>!L.trainerId).length;if(ua)att2.push(`<button class="chipbtn" data-act="bulkAssign">${ua} learner${ua===1?"":"s"} without a trainer</button>`);}if(unmarked)att2.push(`<button class="chipbtn" data-go="attendance">${unmarked} class${unmarked===1?"":"es"} need attendance</button>`);if(pendingLeave)att2.push(`<button class="chipbtn" data-go="trainers">${pendingLeave} leave request${pendingLeave===1?"":"s"}</button>`);if(esc8)att2.push(`<button class="chipbtn bad" data-act="itab" data-id="reqs">${esc8} escalated ticket${esc8===1?"":"s"}</button>`);if(slaMiss)att2.push(`<button class="chipbtn bad" data-act="goReqs">${slaMiss} past response time</button>`);if(rem.length)att2.push(`<button class="chipbtn" data-go="fees">${rem.length} fee reminder${rem.length===1?"":"s"} to send</button>`);if(wl||wt)att2.push(`<button class="chipbtn" data-go="${wl?"parents":"trainers"}">${wl+wt} account${wl+wt===1?"":"s"} waiting</button>`);if(leadsF.length)att2.push(`<button class="chipbtn" data-go="leads">${leadsF.length} lead${leadsF.length===1?"":"s"} to follow up</button>`);
+  const att2=[];{const ua=ls.filter(L=>!L.trainerId).length;if(ua)att2.push(`<button class="chipbtn" data-act="bulkAssign">${ua} learner${ua===1?"":"s"} without a trainer</button>`);}if(unmarked)att2.push(`<button class="chipbtn" data-go="attendance">${unmarked} class${unmarked===1?"":"es"} not marked complete</button>`);{const nk=entries(D.sessions).filter(s=>sessEnd(s)>Date.now()&&noKidsClass(s)).length;if(nk)att2.push(`<button class="chipbtn bad" data-go="schedule">${nk} class${nk===1?"":"es"} with no learners picked</button>`);}if(pendingLeave)att2.push(`<button class="chipbtn" data-go="trainers">${pendingLeave} leave request${pendingLeave===1?"":"s"}</button>`);if(esc8)att2.push(`<button class="chipbtn bad" data-act="itab" data-id="reqs">${esc8} escalated ticket${esc8===1?"":"s"}</button>`);if(slaMiss)att2.push(`<button class="chipbtn bad" data-act="goReqs">${slaMiss} past response time</button>`);if(rem.length)att2.push(`<button class="chipbtn" data-go="fees">${rem.length} fee reminder${rem.length===1?"":"s"} to send</button>`);if(wl||wt)att2.push(`<button class="chipbtn" data-go="${wl?"parents":"trainers"}">${wl+wt} account${wl+wt===1?"":"s"} waiting</button>`);if(leadsF.length)att2.push(`<button class="chipbtn" data-go="leads">${leadsF.length} lead${leadsF.length===1?"":"s"} to follow up</button>`);
   return `<div class="head"><div><p class="eyebrow">Today in the garden</p><h1>Hello, ${esc(firstOf(myName()))}</h1></div>
    <div class="row"><button class="btn btn-ghost btn-sm" data-act="newLead">${ic("userplus")}New lead</button><button class="btn btn-ghost btn-sm" data-act="newNotice">${ic("mega")}Send a notice</button><button class="btn btn-ghost btn-sm" data-act="newTrainer">${ic("userplus")}Add trainer</button><button class="btn btn-primary btn-sm" data-act="newLearner">${ic("userplus")}Add learner</button></div></div>
   ${att2.length?`<section class="suncard"><b>Needs your attention</b><div class="row">${att2.join("")}</div></section>`:""}
@@ -4075,7 +4172,7 @@ function bankPickerHTML(h){
   <div class="bk-filters"><select id="bk-stage" aria-label="Age group">${opt("","All ages",!st)}${STAGES.map(s=>opt(s.v,`${s.v} · ${s.ages}`,s.v===st)).join("")}</select>
   <select id="bk-skill" aria-label="Skill">${opt("","All skills",!(h&&h.skill))}${BANK_SKILLS.map(([v,t])=>opt(v,t,h&&h.skill===v)).join("")}</select>
   <input id="bk-q" type="search" placeholder="Search, e.g. rhyme" aria-label="Search activities"></div>
-  <p class="small muted bk-n"><span id="bk-n"></span> · tap <b>Use</b> to add one to step 3</p>
+  <p class="small muted bk-n"><span id="bk-n"></span> · tap <b>Use</b> to add it to the task</p>
   <div id="bk-list" class="banklist"></div>
   <div id="bk-added" class="bk-added" aria-live="polite"></div>
   <details class="bk-more"><summary>Or make a word list from your own words</summary>
