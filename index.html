@@ -910,6 +910,7 @@ body.boarding{overflow:hidden}
 .wodcell.empty{border:0;background:none;cursor:default}.wodcell.rot{background:var(--soft);border-style:dashed}.wodcell.today{border-color:var(--sun)}
 .wodd{font-weight:700;font-size:.85rem}.wodw{font-size:.85rem;font-weight:700;overflow-wrap:anywhere;line-height:1.2}.wodcell i{font-style:normal;font-size:.75rem;color:var(--muted)}
 @media (max-width:640px){.wodweek{grid-template-columns:repeat(2,minmax(0,1fr))}.wodcal{gap:3px}.wodcell{min-height:64px;padding:4px;border-radius:10px}.wodw{font-size:.7rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;overflow-wrap:normal}.wodcell i{display:none}.wodemo{font-size:3rem}}
+.garden .pip{cursor:pointer;pointer-events:auto}
 .iconbtn{width:44px;height:44px;min-height:44px}
 select.inline{min-height:44px}
 .nm,.linkbtn{position:relative}
@@ -1872,7 +1873,7 @@ A.profile=()=>{if(isParent()&&!S.viewAs){go("settings");return}if(isKid()&&!S.vi
     {submitLabel:"Save",done:"Saved",footerExtra:`<button type="button" class="btn btn-ghost" data-mact="pw">Set or change password</button><button type="button" class="btn btn-ghost" data-mact="out">Sign out</button>`,actions:{out:()=>A.signOut(),pw:()=>A.setPassword()},onSubmit:async f=>{await upsert("profiles/"+S.uid,{displayName:f.name.value.trim()})}});
 };
 A.becomeParent=()=>save(()=>upsert("profiles/"+S.uid,{role:"parent"}));
-A.finish=async lid=>{if(await save(()=>upsert("progress/"+S.uid,{completed:{[lid]:Date.now()}}))){S.bloomed=lid;render(true);window.scrollTo({top:0,behavior:"smooth"});}};
+A.finish=async lid=>{if(await save(()=>upsert("progress/"+S.uid,{completed:{[lid]:Date.now()}}))){S.bloomed=lid;render(true);pipPlay("yay");window.scrollTo({top:0,behavior:"smooth"});}};
 A.undoDone=lid=>save(()=>upsert("progress/"+S.uid,{completed:{[lid]:null}}),"Flower taken back");
 /* ---- learners (admin) ---- */
 function learnerForm(L={},prefill={}){
@@ -5450,14 +5451,14 @@ A.wodSayIt=()=>{const L=myLearner();if(!L||!SR)return;if(timeUp()){render();retu
       if(sc.stars>=2){ui.listening=false;wodDone(L,x,"said");}else fail(sc.heard?`Nice try! Pip heard “${esc(sc.heard)}”. Tap Hear it, then say it once more.`:"Pip couldn't hear you. Try a little louder, close to the phone.");};
     r.onerror=()=>{if(!got)fail("Pip couldn't hear you that time. Try again, or tap “I learned it!”.");};
     r.onend=()=>{if(!got&&ui.listening)fail("Pip couldn't hear you. Try a little louder, close to the phone.");};
-    r.start();setTimeout(()=>{try{r.stop()}catch(e){}},6000);}catch(e){fail("Pip can't listen on this phone. Say it out loud, then tap “I learned it!”.");}};
+    pipPlay("sayit").then(()=>{try{r.start();setTimeout(()=>{try{r.stop()}catch(e){}},6000);}catch(e){fail("Pip can't listen on this phone. Say it out loud, then tap “I learned it!”.");}});}catch(e){fail("Pip can't listen on this phone. Say it out loud, then tap “I learned it!”.");}};
 A.wodLearned=()=>{const L=myLearner();if(!L)return;wodDone(L,wodFor(wodStageOf(L)),"tap");};
 async function wodDone(L,x,how){const ds=ymd(new Date());if(wodRec(L.uid,ds))return;
   if(realRole()!=="student"){S.wodUI={msg:"This is a preview, so nothing is saved."};render(true);return}
   const rec={w:x.word,m:x.mean||"",e:x.emo||"",how,at:Date.now()};
   const p=D.progress[S.uid]=D.progress[S.uid]||{};p.wod={...(p.wod||{}),[ds]:rec};p.days={...(p.days||{}),[ds]:1};
   S.wodUI={msg:`${how==="said"?`Yay! You said <b>${esc(x.word)}</b>!`:`Well done for learning <b>${esc(x.word)}</b>!`} A golden flower is growing in your garden. 🌼`};
-  render(true);toast("🌼 Golden flower planted!");try{await earn({wod:{[ds]:rec}});wkLog(x.word,true);}catch(e){toast("That didn't save. Check your internet and try again.",true);}}
+  render(true);toast("🌼 Golden flower planted!");pipPlay("yay");try{await earn({wod:{[ds]:rec}});wkLog(x.word,true);}catch(e){toast("That didn't save. Check your internet and try again.",true);}}
 A.wodSentence=()=>{const L=myLearner();if(!L||wodStageOf(L)==="Seeds")return;if(timeUp()){render();return}const ds=ymd(new Date()),r=wodRec(L.uid,ds);if(!r)return;
   const lim=recLimit(L);let clip=null,rec=false;S.wodDraft=r.s||"";
   const draw=()=>openModal("Use it in a sentence",`<p style="margin:0">Write or say your own sentence with <b>${esc(r.w)}</b>.</p>
@@ -5593,18 +5594,36 @@ A.wodPost=async id=>{if(role()!=="admin")return;const it=((D.wod||{}).items||{})
    {noFocus:true,submitLabel:"Download PNG",done:"Downloaded",onSubmit:async()=>{await saveFile(`word-seed-${String(it.word).toLowerCase().replace(/[^a-z0-9]+/g,"-")}.png`,b);}});};
 
 /* ================= Pip's voice: the same voice everywhere ================= */
-/* Saved from the "Pip's Word Seed" lessons: an Indian English voice (else British, else any English),
-   rate 0.92, pitch 1.5 for Pip (Bloom 1.25, Buzz 1.8). Applied to every line the app reads aloud. */
-const PIP_VOICE={rate:.92,pitch:{Pip:1.5,Bloom:1.25,Buzz:1.8,Drizzle:1.1}};
+/* Pip's real voice is the recorded set (Kokoro "af_heart", speed 0.88, US English, no pitch shift).
+   Lines and words we have recordings for play those recordings; everything else is read by the
+   device voice set as close to Pip as possible (a warm US English voice, rate 0.88, natural pitch). */
+const PIP_VOICE={rate:.88,pitch:1};
+const PIP_CLIP_FILES={hi:"pip-hi.mp3",plant:"pip-plant.mp3",sayit:"pip-sayit.mp3",yay:"pip-yay.mp3",curious:"pip-curious.mp3","curious-syl":"pip-curious-syl.mp3"};
+const PIP_PHRASES={"hi friends im pip":"hi","hi im pip":"hi","let us plant a new word today":"plant","lets plant a new word today":"plant","say it with me":"sayit","yay you planted a new word today":"yay","curious":"curious"};
+const pipNorm=t=>String(t||"").toLowerCase().replace(/[’']/g,"").replace(/[^a-z ]+/g," ").replace(/\s+/g," ").trim();
+let pipAudio=null;const pipCache={};
+function pipStop(){if(pipAudio){pipAudio.__stopped=1;try{pipAudio.pause();}catch(e){}pipAudio=null;}}
+/* play one of Pip's recordings; resolves when it ends (or at once if it can't play) */
+function pipPlay(key){const f=PIP_CLIP_FILES[key];if(!f)return Promise.resolve(false);pipStop();try{window.speechSynthesis&&window.speechSynthesis.__origCancel&&window.speechSynthesis.__origCancel();}catch(e){}
+  return new Promise(res=>{try{const a=pipCache[key]&&pipCache[key].paused?pipCache[key]:new Audio(f);pipCache[key]=a;a.currentTime=0;pipAudio=a;let done=false;a.__stopped=0;const fin=ok=>{if(done)return;done=true;if(!ok&&a.__stopped)ok=true;if(pipAudio===a)pipAudio=null;res(ok);};
+    a.onended=()=>fin(true);a.onerror=()=>fin(false);const p=a.play();if(p&&p.catch)p.catch(()=>fin(false));setTimeout(()=>fin(true),8000);}catch(e){res(false);}});}
+const pipClipFor=(text,slow)=>{const k=PIP_PHRASES[pipNorm(text)];if(!k)return null;if(slow&&PIP_CLIP_FILES[k+"-syl"])return k+"-syl";return k;};
 (function(){const synth=window.speechSynthesis;if(!synth||synth.__pipVoice)return;let voices=[];
   const load=()=>{try{voices=synth.getVoices()||[];}catch(e){voices=[];}};load();
   try{synth.addEventListener("voiceschanged",load);}catch(e){try{synth.onvoiceschanged=load;}catch(e2){}}
-  const pick=lang=>{const l=String(lang||"en-IN"),base=l.slice(0,2).toLowerCase();if(!voices.length)load();
-    if(base==="en")return voices.find(x=>/en[-_]IN/i.test(x.lang))||voices.find(x=>/en[-_]GB/i.test(x.lang))||voices.find(x=>/^en/i.test(x.lang))||null;
+  const WARM=/(Samantha|Ava|Allison|Susan|Aria|Jenny|Michelle|Emma|Zira|Google US English|Female)/i;
+  const pick=lang=>{const l=String(lang||"en-US"),base=l.slice(0,2).toLowerCase();if(!voices.length)load();
+    if(base==="en"){const us=voices.filter(x=>/^en[-_]US/i.test(x.lang));return us.find(x=>WARM.test(x.name))||us[0]||voices.find(x=>/^en[-_](GB|AU|IN)/i.test(x.lang)&&WARM.test(x.name))||voices.find(x=>/^en/i.test(x.lang))||null;}
     return voices.find(x=>x.lang&&x.lang.toLowerCase().replace("_","-")===l.toLowerCase())||voices.find(x=>x.lang&&x.lang.toLowerCase().startsWith(base))||null;};
-  const orig=synth.speak.bind(synth);
-  try{synth.speak=u=>{try{if(u&&!u.__pipDone){u.__pipDone=1;const who=u.__who||"Pip";const v=pick(u.lang);if(v){u.voice=v;if(!u.lang)u.lang=v.lang;}
-      u.pitch=PIP_VOICE.pitch[who]||PIP_VOICE.pitch.Pip;u.rate=(u.rate&&u.rate<.7)?u.rate:PIP_VOICE.rate;}}catch(e){}return orig(u);};synth.__pipVoice=1;}catch(e){}})();
+  const orig=synth.speak.bind(synth),origCancel=synth.cancel.bind(synth);
+  try{synth.__origCancel=origCancel;
+    synth.cancel=()=>{pipStop();return origCancel();};
+    synth.speak=u=>{try{if(u&&!u.__pipDone){u.__pipDone=1;const en=!u.lang||/^en/i.test(u.lang);const slow=u.rate&&u.rate<.7;
+        const clip=en&&pipClipFor(u.text,slow);if(clip){pipPlay(clip).then(ok=>{if(!ok){u.__pipDone=1;try{orig(u);}catch(e){}}});return;}
+        const v=pick(u.lang);if(v){u.voice=v;if(!u.lang||/^en/i.test(u.lang))u.lang=v.lang;}u.pitch=PIP_VOICE.pitch;u.rate=slow?u.rate:PIP_VOICE.rate;}}catch(e){}return orig(u);};
+    synth.__pipVoice=1;}catch(e){}})();
+/* tap Pip in the garden to hear him say hello */
+document.addEventListener("click",e=>{const p=e.target.closest&&e.target.closest(".garden .pip,.garden .pipbtn");if(!p)return;pipPlay("hi").then(ok=>{if(ok)setTimeout(()=>pipPlay("plant"),250);});});
 
 /* ================= events ================= */
 document.addEventListener("click",e=>{
