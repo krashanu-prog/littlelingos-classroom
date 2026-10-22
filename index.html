@@ -5592,6 +5592,20 @@ A.wodPost=async id=>{if(role()!=="admin")return;const it=((D.wod||{}).items||{})
   const url=URL.createObjectURL(b);openModal("Word Seed of the Week",`<img src="${url}" alt="Social post for ${esc(it.word)}" style="width:100%;max-width:420px;border-radius:16px;align-self:center">`,
    {noFocus:true,submitLabel:"Download PNG",done:"Downloaded",onSubmit:async()=>{await saveFile(`word-seed-${String(it.word).toLowerCase().replace(/[^a-z0-9]+/g,"-")}.png`,b);}});};
 
+/* ================= Pip's voice: the same voice everywhere ================= */
+/* Saved from the "Pip's Word Seed" lessons: an Indian English voice (else British, else any English),
+   rate 0.92, pitch 1.5 for Pip (Bloom 1.25, Buzz 1.8). Applied to every line the app reads aloud. */
+const PIP_VOICE={rate:.92,pitch:{Pip:1.5,Bloom:1.25,Buzz:1.8,Drizzle:1.1}};
+(function(){const synth=window.speechSynthesis;if(!synth||synth.__pipVoice)return;let voices=[];
+  const load=()=>{try{voices=synth.getVoices()||[];}catch(e){voices=[];}};load();
+  try{synth.addEventListener("voiceschanged",load);}catch(e){try{synth.onvoiceschanged=load;}catch(e2){}}
+  const pick=lang=>{const l=String(lang||"en-IN"),base=l.slice(0,2).toLowerCase();if(!voices.length)load();
+    if(base==="en")return voices.find(x=>/en[-_]IN/i.test(x.lang))||voices.find(x=>/en[-_]GB/i.test(x.lang))||voices.find(x=>/^en/i.test(x.lang))||null;
+    return voices.find(x=>x.lang&&x.lang.toLowerCase().replace("_","-")===l.toLowerCase())||voices.find(x=>x.lang&&x.lang.toLowerCase().startsWith(base))||null;};
+  const orig=synth.speak.bind(synth);
+  try{synth.speak=u=>{try{if(u&&!u.__pipDone){u.__pipDone=1;const who=u.__who||"Pip";const v=pick(u.lang);if(v){u.voice=v;if(!u.lang)u.lang=v.lang;}
+      u.pitch=PIP_VOICE.pitch[who]||PIP_VOICE.pitch.Pip;u.rate=(u.rate&&u.rate<.7)?u.rate:PIP_VOICE.rate;}}catch(e){}return orig(u);};synth.__pipVoice=1;}catch(e){}})();
+
 /* ================= events ================= */
 document.addEventListener("click",e=>{
   if(e.target.closest("#modal-root"))return;
