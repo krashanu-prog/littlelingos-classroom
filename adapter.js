@@ -225,6 +225,25 @@
   const brand = `<div class="ll-brand" role="img" aria-label="Little Lingos"><svg class="lg-pip" viewBox="24 12 152 186" aria-hidden="true"><path d="M100 58 c-4 -26 -30 -40 -54 -30 c8 24 30 34 54 30 z" fill="#A6DB5C"/><path d="M100 58 c4 -30 32 -46 60 -34 c-10 28 -34 38 -60 34 z" fill="#7CC243"/><path d="M100 56 v14" stroke="#22703A" stroke-width="6" stroke-linecap="round"/><ellipse cx="100" cy="128" rx="70" ry="64" fill="#2F8F46"/><ellipse cx="100" cy="150" rx="46" ry="30" fill="#3FA75A"/><circle cx="76" cy="116" r="15" fill="#FFFFFF"/><circle cx="79" cy="119" r="8" fill="#2E2219"/><circle cx="82" cy="115" r="2.6" fill="#FFFFFF"/><circle cx="124" cy="116" r="15" fill="#FFFFFF"/><circle cx="127" cy="119" r="8" fill="#2E2219"/><circle cx="130" cy="115" r="2.6" fill="#FFFFFF"/><ellipse cx="58" cy="140" rx="10" ry="6" fill="#F7A8C4"/><ellipse cx="142" cy="140" rx="10" ry="6" fill="#F7A8C4"/><path d="M84 140 q16 22 32 0 z" fill="#2E2219"/><path d="M92 148 q8 8 16 0 l-4 -2 h-8 z" fill="#E8492F"/></svg><span class="wm"><b>little</b><span>lingos<svg class="lg-leaf" viewBox="0 0 40 40" aria-hidden="true"><path d="M0 40 c2 -22 16 -36 40 -40 c-2 22 -16 36 -40 40 z" fill="#E8492F"/></svg></span></span></div>`;
   const LS = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
   let viaCode = false;
+  /* catch mistyped email domains (gnail.com, gmial.com, yaho.com...) before a code goes to an address that doesn't exist */
+  const MAIL_DOMS = ["gmail.com", "googlemail.com", "yahoo.com", "yahoo.co.in", "yahoo.in", "ymail.com", "rocketmail.com", "outlook.com", "outlook.in", "hotmail.com", "hotmail.co.in", "live.com", "live.in", "msn.com", "icloud.com", "me.com", "mac.com", "aol.com", "mail.com", "gmx.com", "proton.me", "protonmail.com", "zoho.com", "zohomail.in", "rediffmail.com", "rediff.com", "littlelingos.in"];
+  const lev = (a, b) => { const m = a.length, n = b.length, d = Array.from({ length: m + 1 }, (_, i) => [i]); for (let j = 1; j <= n; j++) d[0][j] = j;
+    for (let i = 1; i <= m; i++) for (let j = 1; j <= n; j++) { d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); if (i > 1 && j > 1 && a[i - 1] === b[j - 2] && a[i - 2] === b[j - 1]) d[i][j] = Math.min(d[i][j], d[i - 2][j - 2] + 1); }
+    return d[m][n]; };
+  function emailFix(email) {
+    const at = email.lastIndexOf("@"); if (at < 1) return null; const u = email.slice(0, at); let d = email.slice(at + 1);
+    if (MAIL_DOMS.includes(d)) return null;
+    if (/^g(ma|am|na|mi|ail)/.test(d) && !d.includes(".")) d += ".com";
+    let best = null, bd = 9; for (const x of MAIL_DOMS) { const k = lev(d, x); if (k < bd) { bd = k; best = x; } }
+    return best && best !== d && bd <= (d.length > 8 ? 2 : 1) ? u + "@" + best : null; }
+  /* show "Did you mean …?" under a form; resolves with the address to use */
+  function askFix(form, err, email) {
+    const fix = emailFix(email); if (!fix || form.dataset.keep === email) return Promise.resolve(email);
+    return new Promise(res => {
+      err.innerHTML = `Did you mean <b>${esc(fix)}</b>?<span class="ll-fix" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px"><button type="button" class="btn btn-leaf btn-sm" data-fix="1">Yes, use ${esc(fix)}</button><button type="button" class="btn btn-ghost btn-sm" data-fix="0">No, ${esc(email)} is right</button></span>`;
+      err.hidden = false;
+      err.querySelectorAll("[data-fix]").forEach(b => b.onclick = () => { const use = b.dataset.fix === "1" ? fix : email; form.dataset.keep = use; form.em.value = use; err.hidden = true; res(use); });
+    }); }
   const pwFails = e => /invalid login|invalid credentials/i.test(e.message || "") ? "That password didn't work. If you haven't set a password yet, use \u201cEmail me a code\u201d instead."
     : /rate|too many|seconds/i.test(e.message || "") ? "Too many tries. Wait a few minutes, or use \u201cEmail me a code\u201d." : (e.message || "Couldn't sign in.");
   function passwordStep(prefill, note) {
@@ -243,6 +262,7 @@
     f.addEventListener("submit", async e => {
       e.preventDefault(); const email = f.em.value.trim().toLowerCase(), password = f.pw.value;
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent = "Check the email address."; err.hidden = false; return; }
+      { const fx = emailFix(email); if (fx && f.dataset.keep !== email) { f.dataset.keep = email; err.innerHTML = `Check the email: did you mean <b>${esc(fx)}</b>? <button type="button" class="btn btn-ghost btn-sm" id="ll-usefix">Use it</button>`; err.hidden = false; err.querySelector("#ll-usefix").onclick = () => { f.em.value = fx; f.dataset.keep = fx; err.hidden = true; f.pw.focus(); }; return; } }
       if (!password) { err.textContent = "Type your password."; err.hidden = false; return; }
       btn.disabled = true; btn.textContent = "Signing in…"; err.hidden = true;
       const { error } = await sb.auth.signInWithPassword({ email, password });
@@ -262,8 +282,9 @@
     setTimeout(() => f.em.focus(), 50);
     el.querySelector("#ll-usepw").onclick = () => passwordStep(f.em.value.trim());
     f.addEventListener("submit", async e => {
-      e.preventDefault(); const email = f.em.value.trim().toLowerCase();
+      e.preventDefault(); let email = f.em.value.trim().toLowerCase();
       if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { err.textContent = "Check the email address."; err.hidden = false; return; }
+      email = await askFix(f, err, email);
       btn.disabled = true; btn.textContent = "Sending…"; err.hidden = true;
       const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: location.origin + location.pathname } });
       if (error) { btn.disabled = false; btn.textContent = "Email me a code"; err.textContent = /rate|seconds|too many/i.test(error.message) ? "Please wait a minute before asking for another code." : "Couldn't send the email: " + error.message; err.hidden = false; return; }
@@ -276,7 +297,7 @@
       <p class="formerr" id="ll-err" hidden></p>
       <button class="btn btn-primary btn-big" type="submit" id="ll-go">Sign in</button></form>
       <div class="row"><button class="btn btn-ghost btn-sm" type="button" id="ll-back">Use a different email</button><button class="btn btn-ghost btn-sm" type="button" id="ll-again">Send a new code</button></div>
-      <p class="small muted">Not there? Check your spam folder. Codes expire after an hour.</p>`);
+      <p class="small muted">The email usually arrives within a minute, from classroom@littlelingos.in. Not there? Check Spam and Promotions, and check the address above is spelt right. If you asked for more than one code, use the newest email.</p>`);
     const f = el.querySelector("form"), err = el.querySelector("#ll-err"), btn = el.querySelector("#ll-go");
     setTimeout(() => f.cd.focus(), 50);
     el.querySelector("#ll-back").onclick = () => emailStep(email);
@@ -292,7 +313,7 @@
       const { error } = await sb.auth.verifyOtp({ email, token, type: "email" });
       if (error) { viaCode = false; }
       else LS.set("ll-email", email);
-      if (error) { btn.disabled = false; btn.textContent = "Sign in"; err.textContent = /expired|invalid/i.test(error.message) ? "That code didn't work. Check it, or send a new one." : error.message; err.hidden = false; }
+      if (error) { btn.disabled = false; btn.textContent = "Sign in"; err.textContent = /expired|invalid/i.test(error.message) ? "That code didn't work. It may be from an older email: use the newest one, or tap \u201cSend a new code\u201d." : error.message; err.hidden = false; }
     });
   }
   async function started(s) {
