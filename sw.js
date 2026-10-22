@@ -1,13 +1,13 @@
 /* Little Lingos Classroom service worker: app shell offline + notification taps.
    Family data from the database is never cached here; only the app's own files. */
-const CACHE = "ll-shell-v2";
+const CACHE = "ll-shell-v3";
 const SHELL = ["./", "index.html", "adapter.js", "config.js", "supabase.js", "bank.js", "gk.js",
   "manifest.webmanifest", "icon-192.png", "icon-512.png", "icon.svg"];
 self.addEventListener("install", e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(SHELL)).catch(() => {}).then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith("ll-") && k !== CACHE && k !== "ll-fonts").map(k => caches.delete(k))))
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k.startsWith("ll-") && k !== CACHE && k !== "ll-fonts" && k !== "ll-pip").map(k => caches.delete(k))))
     .then(() => self.clients.claim()));
 });
 self.addEventListener("fetch", e => {
@@ -23,6 +23,14 @@ self.addEventListener("fetch", e => {
       return res;
     }).catch(() => caches.match(req.mode === "navigate" ? "index.html" : req, { ignoreSearch: true })
       .then(r => r || caches.match("index.html"))));
+    return;
+  }
+  /* Pip's voice clips: each file never changes (new recordings get a new ?v=), so keep them on the device */
+  if (/\/storage\/v1\/object\/public\/assets\/pv\//.test(url.pathname)) {
+    e.respondWith(caches.open("ll-pip").then(c => c.match(req).then(hit => hit || fetch(req).then(res => {
+      if (res && res.ok) c.put(req, res.clone());
+      return res;
+    }))));
     return;
   }
   /* fonts only: keep a copy so the app looks right offline */
