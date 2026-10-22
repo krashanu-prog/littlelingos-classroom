@@ -1137,7 +1137,13 @@ const waitingAccounts=kind=>Object.entries(D.profiles).filter(([uid,p])=>p&&p.ro
 /* ================= courses + garden ================= */
 const courseList=()=>entries(D.courses).sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
 const lessonsOf=cid=>entries(D.lessons).filter(l=>l.courseId===cid).sort(byOrder);
-const seesSession=s=>{if(!s.forLids||!s.forLids.length)return true;const r=role();if(r!=="student"&&r!=="parent")return true;return myKids().some(L=>L&&s.forLids.includes(L.id));};
+/* a learner's trainers: the one on their record plus any batch they are in */
+const learnerTids=L=>{if(!L)return [];const s=new Set();if(L.trainerId)s.add(L.trainerId);for(const b of entries(D.batches||{}))if(b.tid&&(b.learners||[]).includes(L.id))s.add(b.tid);return [...s];};
+/* a course-wide class goes to the learners of that class's trainer (no trainer = whole course; a learner with no trainer yet still sees the whole course) */
+const sessForLearner=(s,L)=>{if(!s.trainerId)return true;const t=learnerTids(L);return !t.length||t.includes(s.trainerId);};
+/* course-wide homework goes to the learners of the trainer who set it (set by the admin = whole course) */
+const hwForLearner=(h,L)=>{const t=trainerByUid(h.uid);if(!t)return true;const ts=learnerTids(L);return !ts.length||ts.includes(t.id);};
+const seesSession=s=>{const r=role();if(r!=="student"&&r!=="parent")return true;if(!s.forLids||!s.forLids.length)return myKids().some(L=>L&&(L.courses||[]).includes(s.courseId)&&sessForLearner(s,L));return myKids().some(L=>L&&s.forLids.includes(L.id));};
 const sessionsOf=cids=>entries(D.sessions).filter(s=>cids.includes(s.courseId)&&seesSession(s)).sort((a,b)=>String(a.startsAt).localeCompare(String(b.startsAt)));
 const sessEnd=s=>new Date(s.startsAt).getTime()+(s.durationMin||45)*6e4;
 function upcoming(cids,n){const now=Date.now();return sessionsOf(cids).filter(s=>sessEnd(s)>now).slice(0,n);}
@@ -1240,7 +1246,7 @@ const unreadCount=()=>unreadList().length;
 /* ================= homework ================= */
 function allHw(){const out=[];for(const [uid,docs] of Object.entries(D.hw))for(const [id,h] of Object.entries(docs||{}))if(h&&h.title)out.push({...h,id,uid,key:uid+"~"+id});
   return out.sort((a,b)=>String(a.due||"9999").localeCompare(String(b.due||"9999"))||(b.at||0)-(a.at||0));}
-function hwLearners(h){const ids=(h.learnerIds||[]).filter(id=>D.learners[id]);return (ids.length?ids.map(learner):(h.courseId?learnersInCourse(h.courseId):[])).filter(l=>l.active!==false);}
+function hwLearners(h){const ids=(h.learnerIds||[]).filter(id=>D.learners[id]);return (ids.length?ids.map(learner):(h.courseId?learnersInCourse(h.courseId).filter(L=>hwForLearner(h,L)):[])).filter(l=>l.active!==false);}
 const hwFor=L=>L?allHw().filter(h=>hwLearners(h).some(x=>x.id===L.id)):[];
 const hwByKey=k=>allHw().find(h=>h.key===k)||null;
 const answerOf=(L,h)=>{const a=L&&L.uid&&D.answers[L.uid]?.items?.[h.key];return a&&a.text?a:null};
@@ -2342,7 +2348,7 @@ document.addEventListener("submit",e=>{
 
 /* calendar helpers */
 const dayKey=d=>DKEY.format(d);
-const kidSessions=L=>sessionsOf(learnerCourses(L)).filter(s=>!s.forLids||!s.forLids.length||s.forLids.includes(L.id));
+const kidSessions=L=>sessionsOf(learnerCourses(L)).filter(s=>(!s.forLids||!s.forLids.length)?sessForLearner(s,L):s.forLids.includes(L.id));
 const sessById=id=>byId(D.sessions,id);
 function kidHistory(L,m){
   const out=[];for(const v of Object.values(allMarks())){const st=v.m[L.id];if(!st)continue;if(m&&!inMonth(v.date,m))continue;
@@ -3159,7 +3165,7 @@ const fmtHM=t=>{if(!t)return "";const [h,m]=t.split(":").map(Number);const d=new
 function availText(uid){const a=settingsOf(uid).avail||{};const parts=[];for(let i=1;i<=7;i++){const d=i%7;const r=a[d];if(r&&r.from&&r.to)parts.push(`${WDN[d]} ${fmtHM(r.from)}–${fmtHM(r.to)}`);}return parts.join(", ");}
 function replyHoursText(uid){const r=settingsOf(uid).reply;if(!r||!r.from||!r.to||!(r.days||[]).length)return "";const ds=r.days.slice().sort((a,b)=>((a+6)%7)-((b+6)%7)).map(d=>WDN[d]);return `${ds.length===7?"Every day":ds.length>2&&ds.join(",")==="Mon,Tue,Wed,Thu,Fri,Sat"?"Mon–Sat":ds.length>2&&ds.join(",")==="Mon,Tue,Wed,Thu,Fri"?"Mon–Fri":ds.join(", ")}, ${fmtHM(r.from)}–${fmtHM(r.to)}`;}
 function inReplyHours(uid){const r=settingsOf(uid).reply;if(!r||!r.from||!r.to)return true;const n=new Date();if(!(r.days||[]).includes(n.getDay()))return false;const hm=pad(n.getHours())+":"+pad(n.getMinutes());return hm>=r.from&&hm<=r.to;}
-const classRoster=s=>{const ls=learnersInCourse(s.courseId);return s.forLids&&s.forLids.length?ls.filter(L=>s.forLids.includes(L.id)).concat(s.forLids.filter(id=>D.learners[id]&&!ls.some(L=>L.id===id)).map(learner)):ls;};
+const classRoster=s=>{const ls=learnersInCourse(s.courseId);return s.forLids&&s.forLids.length?ls.filter(L=>s.forLids.includes(L.id)).concat(s.forLids.filter(id=>D.learners[id]&&!ls.some(L=>L.id===id)).map(learner)):ls.filter(L=>sessForLearner(s,L));};
 const runOf=sid=>txAll("run").find(r=>r.sid===sid)||null;
 const TBADGES=[["🗣️","Super speaker"],["📖","Star reader"],["🤝","Kind friend"],["👂","Great listener"],["🪄","Word wizard"],["🎨","Creative mind"],["✏️","Homework hero"],["🚀","Big improver"]];
 const awardsFor=L=>txAll("award").filter(a=>a.lid===L.id).sort((a,b)=>(b.at||0)-(a.at||0));
