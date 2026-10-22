@@ -1033,6 +1033,44 @@ button.pvchip{cursor:pointer}
 .stcanvas{display:flex;justify-content:center}
 .stcanvas .pad{width:min(100%,max(300px,calc((100dvh - 420px)*10/7)));height:auto;max-height:none;aspect-ratio:10/7;object-fit:fill;margin:0}
 @media (max-width:640px){.stcanvas .pad{width:100%}}
+/* full-screen art studio */
+body.st-on{overflow:hidden}
+.scrim.stfullwrap{padding:0;place-items:stretch;background:var(--ground)}
+.modal.stfull{width:100vw;max-width:none;height:100vh;height:100dvh;max-height:none;border-radius:0;box-shadow:none;overflow:hidden;padding:env(safe-area-inset-top,0px) env(safe-area-inset-right,0px) env(safe-area-inset-bottom,0px) env(safe-area-inset-left,0px);box-sizing:border-box}
+.modal.stfull header{padding:8px 16px 2px}
+.modal.stfull header h2{font-size:1.4rem}
+.modal.stfull .mbody{flex:1;min-height:0;overflow:hidden;padding:4px 16px;gap:8px}
+.modal.stfull footer{padding:6px 16px 10px}
+.stfull .stcanvas{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;padding:6px}
+.stfull .stcanvas .pad,.stfull .stcanvas .pad[class]{width:auto;height:auto;max-width:100%;max-height:100%;aspect-ratio:auto}
+.stfull .padfoot{align-items:center}.stfull .padfoot .field label{display:none}.stfull .padfoot .field{margin:0}
+@media (min-width:900px){
+  .stfull .mbody{display:grid;grid-template-columns:minmax(250px,300px) minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto auto;column-gap:16px}
+  .stfull .stbar{grid-column:1;grid-row:1/4;overflow-y:auto;padding-right:4px;align-content:start}
+  .stfull .sttools{display:grid;grid-template-columns:repeat(3,1fr);overflow:visible}
+  .stfull .stcanvas{grid-column:2;grid-row:1}.stfull .padfoot{grid-column:2;grid-row:2}.stfull .mbody>.formerr{grid-column:2;grid-row:3}
+  .stfull .strow{flex-direction:column;align-items:flex-start}
+}
+@media (max-width:899px){
+  .stfull .strow{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none}.stfull .strow::-webkit-scrollbar{display:none}
+  .stfull .stcols{flex-wrap:nowrap}.stfull .stcol{flex:none}
+  .stfull .stbar{gap:6px}.stfull .stacts .padbtn{min-height:40px;padding:4px 10px}
+  .stfull .ststamps{flex-wrap:nowrap;overflow-x:auto}.stfull .ststamp{flex:none;width:44px;height:44px}
+  .stfull .stpages{max-height:34vh;overflow:auto}
+}
+@media (orientation:landscape) and (max-height:540px){
+  .modal.stfull header{padding:4px 12px 0}.modal.stfull header h2{font-size:1.1rem}
+  .modal.stfull footer{padding:4px 12px 6px}.modal.stfull footer .btn{min-height:40px;padding:6px 14px}
+  .stfull .mbody{display:grid;grid-template-columns:minmax(200px,240px) minmax(0,1fr);grid-template-rows:minmax(0,1fr) auto;column-gap:10px;padding:2px 12px}
+  .stfull .stbar{grid-column:1;grid-row:1;overflow-y:auto;min-height:0}
+  .stfull .sttools{display:grid;grid-template-columns:repeat(4,1fr);overflow:visible;gap:4px}
+  .stfull .sttool{min-height:44px;font-size:.66rem;padding:3px 2px}.stfull .sttool svg{width:18px;height:18px}
+  .stfull .strow{flex-direction:column;align-items:flex-start;flex-wrap:wrap;overflow:visible}
+  .stfull .stcols{flex-wrap:wrap}.stfull .stcol{width:26px;height:26px}
+  .stfull .stcanvas{grid-column:2;grid-row:1/3;padding:2px}
+  .stfull .padfoot{grid-column:1;grid-row:2;flex-wrap:wrap;gap:6px}.stfull .padfoot .field{display:none}.stfull .padfoot .btn{min-height:40px}
+  .stfull .mbody>.formerr{grid-column:1}
+}
 .iconbtn{width:44px;height:44px;min-height:44px}
 select.inline{min-height:44px}
 .nm,.linkbtn{position:relative}
@@ -1369,7 +1407,7 @@ async function save(fn,okMsg){try{await fn();if(okMsg)toast(okMsg);return true}c
 let toastT;
 function toast(msg,bad){const r=document.getElementById("toast-root");r.innerHTML=`<div class="toast ${bad?"bad":""}">${esc(msg)}</div>`;clearTimeout(toastT);toastT=setTimeout(()=>{r.innerHTML=""},bad?6000:2600);}
 let modalOpen=false,lastFocus=null;
-function closeModal(){document.getElementById("modal-root").innerHTML="";modalOpen=false;if(lastFocus&&lastFocus.isConnected)lastFocus.focus();render();}
+function closeModal(){if(document.body.classList.contains("st-on")){document.body.classList.remove("st-on");try{if(document.fullscreenElement&&document.exitFullscreen)document.exitFullscreen().catch(()=>{});}catch(e){}}document.getElementById("modal-root").innerHTML="";modalOpen=false;if(lastFocus&&lastFocus.isConnected)lastFocus.focus();render();}
 function openModal(title,body,opts={}){
   if(!modalOpen)lastFocus=document.activeElement;modalOpen=true;
   const root=document.getElementById("modal-root");
@@ -6052,7 +6090,7 @@ function stPaintPreviews(root){root.querySelectorAll("svg[data-stamp]").forEach(
 function stRefresh(form){const bar=form.querySelector(".stbar");if(bar){bar.outerHTML=stBar();stPaintPreviews(form);}}
 function stPush(cv){const cx=cv.getContext("2d");ST.hist.push(cx.getImageData(0,0,cv.width,cv.height));if(ST.hist.length>20)ST.hist.shift();ST.redo=[];}
 A.drawPad=()=>{Object.assign(ST,{hist:[],redo:[],used:false,panel:"",page:"blank"});if(ST.tool==="eraser"||ST.tool==="fill")ST.tool="pen";
-  openModal("Art studio",`${stBar()}<div class="stcanvas"><canvas id="pad" width="1000" height="700" class="pad" aria-label="Drawing area"></canvas></div>
+  openModal("Art studio",`${stBar()}<div class="stcanvas"><canvas id="pad" width="${innerHeight>innerWidth*1.15?700:1000}" height="${innerHeight>innerWidth*1.15?1000:700}" class="pad" aria-label="Drawing area"></canvas></div>
   <div class="padfoot"><div class="field" style="flex:1;min-width:0"><label for="pd-t">Name your picture</label><input type="text" id="pd-t" name="t" maxlength="60" placeholder="e.g. My happy garden"></div><button type="button" class="btn btn-ghost" data-mact="dl">${stIc('<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>')}Download</button></div>`,
   {wide:true,noFocus:true,submitLabel:"Save to my portfolio",done:"Saved! Pip loves your picture.",
    actions:{
@@ -6066,7 +6104,7 @@ A.drawPad=()=>{Object.assign(ST,{hist:[],redo:[],used:false,panel:"",page:"blank
      stredo:()=>{const cv=document.getElementById("pad"),cx=cv.getContext("2d"),h=ST.redo.pop();if(!h){toast("Nothing to redo.");return;}ST.hist.push(cx.getImageData(0,0,cv.width,cv.height));cx.putImageData(h,0,0);},
      stwipe:()=>{const cv=document.getElementById("pad");stPush(cv);stPage(cv,ST.page==="blank"?"blank":ST.page);},
      dl:(_,b,form)=>{if(!ST.used){toast("Draw something first!");return;}const cv=document.getElementById("pad");const a=document.createElement("a");const nm=(form.querySelector("#pd-t").value.trim()||"my-drawing").replace(/[^a-z0-9]+/gi,"-").toLowerCase();a.href=cv.toDataURL("image/png");a.download=nm+".png";document.body.appendChild(a);a.click();a.remove();toast("Picture downloaded.");}},
-   onOpen:form=>{stPaintPreviews(form);const cv=document.getElementById("pad");const cx=cv.getContext("2d");stPage(cv,"blank");cx.lineCap="round";cx.lineJoin="round";let down=false,last=null,spray=null;
+   onOpen:form=>{form.classList.add("stfull");if(form.parentElement)form.parentElement.classList.add("stfullwrap");document.body.classList.add("st-on");try{const el=document.documentElement;if(!document.fullscreenElement&&el.requestFullscreen)el.requestFullscreen({navigationUI:"hide"}).catch(()=>{});}catch(e){}stPaintPreviews(form);const cv=document.getElementById("pad");const cx=cv.getContext("2d");stPage(cv,"blank");cx.lineCap="round";cx.lineJoin="round";let down=false,last=null,spray=null;
      const pt=e=>{const r=cv.getBoundingClientRect();return [(e.clientX-r.left)*cv.width/r.width,(e.clientY-r.top)*cv.height/r.height];};
      const k=()=>cv.width/cv.getBoundingClientRect().width;
      const col=()=>ST.tool==="eraser"?"#fff":ST.tool==="rainbow"?`hsl(${ST.hue},85%,55%)`:ST.c;
@@ -6083,7 +6121,7 @@ A.drawPad=()=>{Object.assign(ST,{hist:[],redo:[],used:false,panel:"",page:"blank
        seg(p,[p[0]+.01,p[1]+.01]);});
      cv.addEventListener("pointermove",e=>{if(!down)return;const p=pt(e);if(ST.tool==="spray"){last=p;return;}seg(last,p);last=p;});
      const up=()=>{down=false;if(spray){clearInterval(spray);spray=null;}};cv.addEventListener("pointerup",up);cv.addEventListener("pointercancel",up);cv.addEventListener("pointerleave",up);},
-   onSubmit:async f=>{if(!ST.used)throw userErr("Draw something first!");const cv=document.getElementById("pad");const sm=document.createElement("canvas");sm.width=800;sm.height=560;sm.getContext("2d").drawImage(cv,0,0,800,560);let q=.85,out=sm.toDataURL("image/jpeg",q);while(out.length>230000&&q>.3){q-=.1;out=sm.toDataURL("image/jpeg",q);}ST.used=false;await savePort("draw",f.t.value.trim()||"My drawing",out);}});};
+   onSubmit:async f=>{if(!ST.used)throw userErr("Draw something first!");const cv=document.getElementById("pad");const sm=document.createElement("canvas");sm.width=Math.round(cv.width*.8);sm.height=Math.round(cv.height*.8);sm.getContext("2d").drawImage(cv,0,0,sm.width,sm.height);let q=.85,out=sm.toDataURL("image/jpeg",q);while(out.length>230000&&q>.3){q-=.1;out=sm.toDataURL("image/jpeg",q);}ST.used=false;await savePort("draw",f.t.value.trim()||"My drawing",out);}});};
 
 /* ---------------- Pip's Chess ---------------- */
 const CH_LINES={cap:["Ooh, you took my {p}!","Nice one! My {p} is yours.","Wow, you caught my {p}!"],lost:["I took your {p}. Your turn!","Got your {p}! Can you get one back?"],
