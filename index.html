@@ -1071,6 +1071,7 @@ body.st-on{overflow:hidden}
   .stfull .padfoot{grid-column:1;grid-row:2;flex-wrap:wrap;gap:6px}.stfull .padfoot .field{display:none}.stfull .padfoot .btn{min-height:40px}
   .stfull .mbody>.formerr{grid-column:1}
 }
+.wbpanel .ph{flex-wrap:wrap;gap:8px}.wbitem{display:flex;flex-direction:column;gap:4px}.wbwhere{margin:0 4px}
 .iconbtn{width:44px;height:44px;min-height:44px}
 select.inline{min-height:44px}
 .nm,.linkbtn{position:relative}
@@ -3541,7 +3542,8 @@ A.decideLeave=v=>{const [uid,id]=v.split("|");const l=txOf(uid,id);if(!l)return;
 /* ---------- Content library ---------- */
 function libraryView(){
   const t=S.libT||"all", q=(S.libQ||"").toLowerCase(), xs=libItems().filter(x=>(t==="all"||x.type===t)&&(!q||`${x.title} ${x.tags||""} ${x.stage||""}`.toLowerCase().includes(q)));
-  return `<div class="head"><div><h1>Content library</h1><p class="lede">Slides, songs, flashcards and worksheets to use in class. Attach any of them to a class from the class form.</p></div><button class="btn btn-primary" data-act="newLib">${ic("plus")}Add to library</button></div>
+  return `<div class="head"><div><h1>Content library</h1><p class="lede">Class whiteboards, slides, songs, flashcards and worksheets. Attach any of them to a class from the class form.</p></div><button class="btn btn-primary" data-act="newLib">${ic("plus")}Add to library</button></div>
+  ${boardsLibHTML()}
   <div class="row"><div class="seg" role="tablist" aria-label="Type"><button class="tog ${t==="all"?"on":""}" data-act="libT" data-id="all">All</button>${Object.entries(LIBTYPES).map(([k,[l,e]])=>`<button class="tog ${t===k?"on":""}" data-act="libT" data-id="${k}">${e} ${l}</button>`).join("")}</div></div>
   ${xs.length?`<div class="libgrid">${xs.map(x=>{const [l,e]=LIBTYPES[x.type]||LIBTYPES.other;const href=libHref(x);return `<article class="libcard"><div class="row" style="flex-wrap:nowrap"><span class="libicon">${e}</span><div class="grow"><b>${esc(x.title)}</b><div class="small muted">${esc(l)}${x.stage?` · ${esc(x.stage)}`:""}${x.tags?` · ${esc(x.tags)}`:""}</div></div></div>${x.notes?`<p class="small">${esc(x.notes)}</p>`:""}
     <div class="row">${x.type==="flashcards"&&x.vocab?`<button class="btn btn-ghost btn-sm" data-act="libCards" data-id="${esc(x.id)}">🃏 Open cards</button>`:""}${href?`<a class="btn btn-ghost btn-sm" href="${esc(href)}" target="_blank" rel="noopener">${ic("open")}Open</a>`:""}<span class="spacer"></span>${x.by===S.uid||role()==="admin"?`<button class="iconbtn" data-act="delLib" data-id="${esc(x.id)}" aria-label="Delete">${ic("trash")}</button>`:""}</div></article>`}).join("")}</div>`:emptyBox("Nothing here yet","Add a link, upload a file or make a flashcard deck.",`<button class="btn btn-primary" data-act="newLib">${ic("plus")}Add to library</button>`,"bloom")}`;
@@ -5027,7 +5029,7 @@ async function boardSave(thenHw){if(!B)return;let snap;try{snap=await boardSnaps
   openModal(thenHw?"Save and share as homework":"Save whiteboard",`<img class="bprev" src="${esc(snap.png)}" alt="Preview of the whiteboard">
     <div class="field"><label for="bs-t">Name</label><input id="bs-t" name="t" type="text" maxlength="80" required data-label="Name" value="${esc(title||"Class whiteboard")}"></div>
     <div class="field"><label for="bs-l">Save to lesson</label><select id="bs-l" name="l">${ls.map(l=>opt(l.id,`${l.title} · ${l.course}`,l.id===pre)).join("")}</select><span class="hint">Learners in this course see it on the lesson page.</span></div>`,
-   {submitLabel:thenHw?"Save and continue":"Save",...(thenHw?{}:{done:"Whiteboard saved to the lesson"}),onSubmit:async f=>{const l=D.lessons[f.l.value];if(!l)throw userErr("Pick a lesson.");
+   {submitLabel:thenHw?"Save and continue":"Save",...(thenHw?{}:{done:"Whiteboard saved. Find it in Library → Class whiteboards, or on its lesson page."}),onSubmit:async f=>{const l=D.lessons[f.l.value];if(!l)throw userErr("Pick a lesson.");
      const id=B&&B.id||("b"+Date.now().toString(36)+Math.random().toString(36).slice(2,6));const now=Date.now();
      const doc={title:f.t.value.trim().slice(0,80),lessonId:f.l.value,courseId:l.courseId,sid:B&&B.sid||null,png:snap.png,scene:snap.scene,mode:B?B.mode:"pad",at:now,by:S.uid};
      await S.db.doc("boards/"+id).set(doc);BRD[id]=doc;
@@ -6190,6 +6192,16 @@ A.noKidsList=()=>{const xs=noKidsUpcoming();
   openModal(`${xs.length} class${xs.length===1?"":"es"} with no learners`,`<p class="small">Children only see classes they are picked for. Pick the learners for each class, or cancel classes that aren't needed.</p>
    <div class="list nklist">${xs.map(s=>{const d=new Date(s.startsAt),c=D.courses[s.courseId];return `<div class="item"><div class="when"><span>${esc(WD.format(d))}</span><b class="num">${esc(DNUM.format(d))}</b></div><div class="grow"><div class="t">${esc(s.title||"Live class")}</div><div class="s">${esc(fmtDay(d))}, ${esc(fmtTime(d))} · ${esc(c?c.title:"Course removed")} · ${esc(s.trainerId&&D.trainers[s.trainerId]?trainerName(s.trainerId):"No trainer")}</div></div><div class="acts wrap"><button type="button" class="btn btn-leaf btn-sm" data-mact="pick" data-id="${esc(s.id)}">Pick learners</button><button type="button" class="btn btn-ghost btn-sm" data-mact="del" data-id="${esc(s.id)}">Cancel class</button></div></div>`;}).join("")}</div>`,
   {wide:true,actions:{pick:id=>{closeModal();A.editSession(id,true);},del:id=>{closeModal();A.delSession(id);}}});};
+
+/* ---------- all class whiteboards in one place (Library) ---------- */
+function allBoards(){const out=[];for(const l of entries(D.lessons||{}))for(const [id,v] of Object.entries(l.boards||{}))if(v)out.push({id,meta:v,l,c:D.courses[l.courseId]});return out.sort((a,b)=>(b.meta.at||0)-(a.meta.at||0));}
+function boardsLibHTML(){const all=allBoards();const mineOnly=(S.wbAll!==true)&&role()!=="admin";
+  for(const x of all)if(!BRD[x.id])boardGet(x.id);
+  const xs=mineOnly?all.filter(x=>{const b=BRD[x.id];return !b||b.by===S.uid;}):all;
+  return `<section class="card panel wbpanel" id="whiteboards"><div class="ph"><h2>🖍️ Class whiteboards</h2><div class="row">${role()!=="admin"?`<div class="seg" role="tablist" aria-label="Whose whiteboards"><button class="tog ${mineOnly?"on":""}" data-act="wbAll" data-id="mine">Mine</button><button class="tog ${mineOnly?"":"on"}" data-act="wbAll" data-id="all">Everyone's</button></div>`:""}<button class="btn btn-ghost btn-sm" data-act="boardNew" data-id="">${ic("plus")}New whiteboard</button></div></div>
+   ${xs.length?`<div class="bgrid">${xs.map(x=>{const b=BRD[x.id];return `<div class="wbitem">${boardThumb(x.id,x.meta)}<p class="small muted wbwhere">${esc(x.c?x.c.title:"Course")} · ${esc(x.l.title||"Lesson")}${b&&b.by&&b.by!==S.uid?` · by ${esc(byWho(b.by))}`:""}</p></div>`;}).join("")}</div>`
+   :`<p class="small muted">${mineOnly&&all.length?"You haven't saved a whiteboard yet. ":"No whiteboards yet. "}Open one from a class (Whiteboard button) or tap New whiteboard. Saved boards appear here and on their lesson page.</p>`}</section>`;}
+A.wbAll=v=>{S.wbAll=v==="all";render(true);};
 
 /* ================= events ================= */
 document.addEventListener("click",e=>{
