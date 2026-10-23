@@ -1,0 +1,14 @@
+.ll-sec{display:flex;flex-direction:column;gap:10px}
+.ll-sec-row{display:flex;gap:12px;align-items:center;justify-content:space-between;border:2px solid var(--line);border-radius:16px;padding:12px 14px;background:var(--card)}
+.ll-sec-row>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.ll-sec-row span{font-size:.88rem;color:var(--muted)}
+.ll-sec-row .btn{flex:none}
+.ll-on{color:var(--leaf)}
+.ll-ok{background:var(--soft);border-radius:12px;padding:10px 12px;margin:0;font-size:.92rem}
+.ll-steps{margin:0;padding-left:20px;display:flex;flex-direction:column;gap:10px}
+.ll-steps li{line-height:1.45}
+.ll-qr{display:block;margin:10px 0 6px;background:#fff;border-radius:12px;padding:8px;width:180px;height:180px}
+.ll-key{font-family:ui-monospace,Menlo,monospace;letter-spacing:.04em;word-break:break-all}
+.secnudge{display:flex;gap:12px;align-items:center;flex-wrap:wrap;border-left:6px solid var(--sun)}
+.secnudge p{margin:0;flex:1;min-width:220px}
+@media (max-width:520px){.ll-sec-row{flex-direction:column;align-items:stretch}.ll-sec-row .btn{align-self:flex-start}}

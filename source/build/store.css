@@ -1,0 +1,7 @@
+#recpill{position:fixed;left:50%;transform:translateX(-50%);top:14px;z-index:90;background:var(--soil);color:#fff;border-radius:999px;padding:10px 18px;font-weight:700;display:flex;align-items:center;gap:8px;box-shadow:0 8px 24px rgba(0,0,0,.25)}
+#recpill[hidden]{display:none}
+.rdot{width:12px;height:12px;border-radius:50%;background:#E8492F;animation:rpulse 1s infinite}
+@keyframes rpulse{50%{opacity:.35}}
+.smeter{display:flex;flex-direction:column;gap:6px;padding:10px 0;border-bottom:1px solid var(--line)}
+.smeter .bar{height:12px;border-radius:99px;background:var(--soft);overflow:hidden}.smeter .bar i{display:block;height:100%;background:var(--leafMid)}
+.smeter.warn .bar i{background:#E8A400}.smeter.bad .bar i{background:var(--bad)}

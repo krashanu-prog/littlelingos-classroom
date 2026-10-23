@@ -1,0 +1,12 @@
+.packgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(190px,100%),1fr));gap:12px}.packcard{min-width:0}.packcard .btn{white-space:normal;max-width:100%}
+.packcard{display:flex;flex-direction:column;align-items:flex-start;gap:4px;border:2px solid var(--line);border-radius:20px;background:var(--card);padding:14px;min-height:110px;cursor:pointer;font:inherit;color:var(--soil);text-align:left}
+.packcard.st{cursor:default}.packcard b{font-family:var(--display);font-size:1.1rem}
+.packemo{font-size:2.2rem;line-height:1}.packemo.sm{font-size:1.6rem}
+.packwords{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.pword{display:flex;align-items:center;gap:12px;background:var(--card);border:2px solid var(--line);border-radius:18px;padding:10px 12px}
+.pword b{display:block;font-family:var(--display);font-size:1.3rem}.pword span{font-size:.95rem;color:var(--muted)}.pwemo{font-size:2.2rem}
+.mission{display:flex;gap:12px;align-items:flex-start;border-radius:24px;padding:14px 16px;background:var(--sunSoft)}
+.mission.done{background:var(--leafSoft)}.mission b{display:block;font-family:var(--display);font-size:1.2rem;margin:2px 0}
+.stamps{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px}
+.stamp2{display:flex;flex-direction:column;align-items:center;text-align:center;gap:2px;border:3px dashed var(--tomato);border-radius:18px;padding:10px;transform:rotate(-3deg);background:var(--card)}
+.stamp2:nth-child(even){transform:rotate(2deg)}.stamp2 span{font-size:2rem}.stamp2 b{font-size:.85rem}.stamp2 i{font-size:.75rem;color:var(--muted);font-style:normal}

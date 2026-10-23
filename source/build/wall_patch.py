@@ -1,0 +1,21 @@
+# ---- Phase 4: Garden wall ----
+R('/* ================= events ================= */',open(W+'wall_block.js').read()+'\n/* ================= events ================= */')
+R('ICON={\n','ICON={\n wall:\'<rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/>\',\n')
+R('["fun","Fun corner","sunny"],','["fun","Fun corner","sunny"],["wall","Garden wall","wall"],')
+R('["progress","Progress","leaf"],["homework","Homework","pencil"],["messages","Messages","bell",un]','["progress","Progress","leaf"],["wall","Garden wall","wall"],["homework","Homework","pencil"],["messages","Messages","bell",un]')
+R('["review","Review","star",speakingQueue().length],','["review","Review","star",speakingQueue().length],["wall","Garden wall","wall"],')
+R('["review","Review","star"],["reports","Reports","doc",reportsPending().length],','["review","Review","star"],["wall","Garden wall","wall"],["reports","Reports","doc",reportsPending().length],')
+R('fun(){return funView();},','fun(){return funView();},\nwall(){return wallView();},')
+R('const PIP_LINES={\n','const PIP_LINES={\n  wall:f=>[["Look what your friends made!","Tap an emoji to cheer them on."],[`Your garden friends are blooming, ${f}!`,"Ask your teacher to share your best work too."]],\n')
+R('${own?`<button class="iconbtn" data-act="delPort"','${own?wallShareBtn(x):""}${own?`<button class="iconbtn" data-act="delPort"')
+R('<button class="tog ${tab==="skills"?"on":""}" data-act="rvT" data-id="skills">📈 Skills and levels</button>','<button class="tog ${tab==="wall"?"on":""}" data-act="rvT" data-id="wall">🖼️ Garden wall (${pipTry(()=>wallAskedCount())||0})</button><button class="tog ${tab==="skills"?"on":""}" data-act="rvT" data-id="skills">📈 Skills and levels</button>')
+R('  else body=`<section class="card panel"><div class="tablewrap"><table><thead><tr><th>Learner</th><th>Level</th>','  else if(tab==="wall")body=wallReviewHTML(items);\n  else body=`<section class="card panel"><div class="tablewrap"><table><thead><tr><th>Learner</th><th>Level</th>')
+R('kidtile t4" data-go="me"><span>🏅</span>My stars</button>','kidtile t4" data-go="me"><span>🏅</span>My stars</button><button class="kidtile t5" data-go="wall"><span>🖼️</span>Garden wall</button>')
+R('<label class="row" style="font-weight:700;flex-wrap:nowrap"><input type="checkbox" name="gate"','''<p class="section-title">Garden wall</p><label class="row consentrow"><input type="checkbox" name="wall" ${((p.consent||{}).wall)===true?"checked":""}> <span>Share my child's work on the Garden wall with families in the same class, after a teacher approves it. <i>Only their first name and level are shown. You can turn this off at any time.</i></span></label>
+    <label class="row" style="font-weight:700;flex-wrap:nowrap"><input type="checkbox" name="gate"''')
+R('gate:f.gate.checked,limits:','...(f.wall&&f.wall.checked!==(((D.profiles[S.uid]||{}).consent||{}).wall===true)?{consent:{wall:f.wall.checked,wallAt:Date.now()}}:{}),gate:f.gate.checked,limits:')
+R('<th>Recordings</th><th>Photos and voice</th><th>Date</th>','<th>Recordings</th><th>Photos and voice</th><th>Garden wall</th><th>Date</th>')
+R('<td class="small">${cs?esc(fmtDay(new Date(cs.at))):"–"}</td></tr>','<td>${cs&&cs.wall===true?\'<span class="pill p-good">Shares</span>\':cs&&cs.wall===false?\'<span class="pill p-warn">No</span>\':"–"}</td><td class="small">${cs?esc(fmtDay(new Date(cs.at))):"–"}</td></tr>')
+R('''    const sp=pipTry(()=>speakingQueue().length)||0;if(sp)add(`${sp} speaking practice to review`,"review");''','''    const sp=pipTry(()=>speakingQueue().length)||0;if(sp)add(`${sp} speaking practice to review`,"review");
+    const wa=pipTry(()=>wallAskedCount())||0;if(wa)add(`${wa} learner${wa===1?"":"s"} asked to share work on the Garden wall`,"review");''')
+R('@media (prefers-reduced-motion:reduce)',open(W+'wall.css').read()+'@media (prefers-reduced-motion:reduce)')

@@ -1,0 +1,27 @@
+insert into auth.users(id,email,raw_user_meta_data,email_confirmed_at) values
+ ('00000000-0000-0000-0000-00000000000a','krashanuagarwal@gmail.com','{}',now()),
+ ('00000000-0000-0000-0000-0000000000b1','t1@x.com','{}',now()),('00000000-0000-0000-0000-0000000000b2','t2@x.com','{}',now()),
+ ('00000000-0000-0000-0000-0000000000c1','p1@x.com','{}',now()),('00000000-0000-0000-0000-0000000000c2','p2@x.com','{}',now()),
+ ('00000000-0000-0000-0000-0000000000d1','k1@x.com','{}',now()),('00000000-0000-0000-0000-0000000000e1','s@x.com','{}',now());
+insert into docs(path,data) values
+ ('config/app','{"ownerUid":"00000000-0000-0000-0000-00000000000a","academy":{"name":"LittleLingos"}}'),
+ ('courses/c1','{"title":"First Words","level":"Seeds","language":"English","langCode":"en","hue":4}'),
+ ('lessons/s1','{"courseId":"c1","order":1,"title":"Hello song","kind":"song","minutes":5,"vocab":"hello = नमस्ते"}'),
+ ('trainers/t1','{"name":"Meera Iyer","uid":"00000000-0000-0000-0000-0000000000b1","active":true}'),
+ ('trainers/t2','{"name":"Vikram Das","uid":"00000000-0000-0000-0000-0000000000b2","active":true}'),
+ ('learners/l1','{"name":"Anaya Sharma","stage":"Seeds","courses":["c1"],"trainerId":"t1","parents":["00000000-0000-0000-0000-0000000000c1"],"uid":"00000000-0000-0000-0000-0000000000d1","active":true,"createdAt":1}'),
+ ('learners/l2','{"name":"Rohan Khan","stage":"Seeds","courses":["c1"],"trainerId":"t2","parents":["00000000-0000-0000-0000-0000000000c2"],"active":true,"createdAt":1}'),
+ ('private/l1','{"guardian":"Priya Sharma","email":"p1@x.com","phone":"9876543210"}'),('private/l2','{"guardian":"Farah Khan","email":"p2@x.com"}'),
+ ('fees/l1','{"monthly":1000,"start":"2026-10","dueDay":10}'),
+ ('profiles/00000000-0000-0000-0000-0000000000c1','{"displayName":"Priya Sharma","role":"parent","createdAt":1,"consent":{"v":1,"at":1,"rec":true,"photo":true}}'),
+ ('profiles/00000000-0000-0000-0000-0000000000c2','{"displayName":"Farah Khan","role":"parent","createdAt":1,"consent":{"v":1,"at":1,"rec":true,"photo":true}}'),
+ ('profiles/00000000-0000-0000-0000-0000000000d1','{"displayName":"Anaya Sharma","role":"student","createdAt":1}'),
+ ('profiles/00000000-0000-0000-0000-0000000000b1','{"displayName":"Meera Iyer","role":"teacher","createdAt":1}'),
+ ('profiles/00000000-0000-0000-0000-0000000000b2','{"displayName":"Vikram Das","role":"teacher","createdAt":1}'),
+ ('tw/00000000-0000-0000-0000-0000000000b1/x/m1','{"kind":"mark","sid":"sa","date":"2026-10-19T10:00:00Z","courseId":"c1","title":"Colours","m":{"l1":"present","l2":"absent"},"notes":{"l1":"Lovely singing","l2":"Rohan struggles, possible learning difficulty"},"note":"We sang"}'),
+ ('tw/00000000-0000-0000-0000-0000000000b2/x/r2','{"kind":"report","lid":"l2","term":"Term 1","comment":"Rohan needs support"}'),
+ ('progress/00000000-0000-0000-0000-0000000000d1','{"completed":{"s1":1792000000000}}'),
+ ('kp/00000000-0000-0000-0000-0000000000d1/x/a1','{"kind":"rate","sid":"sa","e":"😀","at":1}'),
+ ('ptmb/00000000-0000-0000-0000-0000000000c2','{"slot":"p1","lid":"l2","note":"worried about Rohan"}'),
+ ('sessions/sa','{"courseId":"c1","title":"Colours","startsAt":"2030-01-01T10:00:00Z","durationMin":40,"forLids":["l1"],"plan":"STAFF PLAN","trainerId":"t1"}'),
+ ('sessions/sb','{"courseId":"c1","title":"Rohan 1:1","startsAt":"2030-01-02T10:00:00Z","durationMin":40,"forLids":["l2"],"trainerId":"t2"}');

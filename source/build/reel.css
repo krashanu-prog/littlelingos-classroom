@@ -1,0 +1,10 @@
+.reelcard{display:flex;align-items:flex-start;gap:12px;border-radius:24px;padding:14px 16px;background:var(--sky)}
+.reelcard b{display:block;font-family:var(--display);font-size:1.25rem}
+.reel{min-height:300px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px;background:var(--sky);border-radius:22px;padding:20px;position:relative;overflow:hidden}
+.reel h2{margin:0}
+.reelclip{display:flex;flex-direction:column;align-items:center;gap:10px}
+.reelcap{font-family:var(--display);font-weight:800;font-size:clamp(1.8rem,7vw,2.8rem);line-height:1.1}
+.reelwave{display:flex;gap:6px;align-items:flex-end;height:40px}.reelwave i{width:8px;background:var(--leafMid);border-radius:6px;animation:rwave 1s infinite ease-in-out}
+.reelwave i:nth-child(2){animation-delay:.15s}.reelwave i:nth-child(3){animation-delay:.3s}.reelwave i:nth-child(4){animation-delay:.45s}.reelwave i:nth-child(5){animation-delay:.6s}
+@keyframes rwave{0%,100%{height:10px}50%{height:38px}}
+.reelbar{height:8px;border-radius:9px;background:var(--soft);overflow:hidden;margin-top:10px}.reelbar i{display:block;height:100%;width:0;background:var(--leafMid);transition:width .4s}

@@ -1,0 +1,29 @@
+#boardwrap{position:fixed;inset:0;z-index:45;background:var(--ground);display:flex;flex-direction:column}
+#boardwrap[hidden]{display:none}
+body.boarding #pipfab{display:none!important}
+body.boarding{overflow:hidden}
+.bwbar{display:flex;align-items:center;gap:8px;padding:8px 12px;border-bottom:2px solid var(--line);flex-wrap:wrap;background:var(--card)}
+.bwbar input{min-height:44px;border:2px solid var(--line);border-radius:12px;padding:6px 12px;font:inherit;font-weight:700;min-width:0;flex:1 1 180px;max-width:360px}
+.bwbar .btn,.bwbar .iconbtn{min-height:44px}
+#bw-area{flex:1;min-height:0;position:relative}
+.bwexc{position:absolute;inset:0}
+.bwload{padding:24px;text-align:center;color:var(--muted)}
+.bwpad{position:absolute;inset:0;display:flex;flex-direction:column}
+.bwtools{display:flex;gap:6px;padding:8px;flex-wrap:wrap;align-items:center;background:var(--soft)}
+.bwt{min-width:52px;min-height:48px;border:2px solid var(--line);border-radius:12px;background:var(--card);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:1.1rem;cursor:pointer;padding:2px 6px}
+.bwt small{font-size:.68rem;font-weight:700;color:var(--muted)}
+.bwt.on{border-color:var(--leafMid);background:var(--leafSoft)}
+.bwc{width:44px;height:44px;border-radius:50%;border:3px solid #fff;box-shadow:0 0 0 2px var(--line);cursor:pointer}
+.bwc.on{box-shadow:0 0 0 3px var(--leafMid)}
+.bwsep{width:2px;height:32px;background:var(--line);margin:0 4px}
+.bwcv{flex:1;position:relative;overflow:hidden;background:#fff;touch-action:none}
+.bwcv canvas{display:block;touch-action:none;cursor:crosshair}
+#bw-txt{position:absolute;width:auto;max-width:60%;min-height:40px;font:700 22px var(--display);border:2px dashed var(--leafMid);border-radius:8px;padding:2px 6px;background:#fff;min-width:160px}
+.bgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px}
+.bthumb{margin:0;border:2px solid var(--line);border-radius:18px;overflow:hidden;background:var(--card);display:flex;flex-direction:column}
+.bthumb figcaption{padding:10px;display:flex;flex-direction:column;gap:4px}
+.bimg{display:block;width:100%;aspect-ratio:16/10;border:0;padding:0;background:#fff;cursor:zoom-in}
+.bimg img{width:100%;height:100%;object-fit:contain;display:block}
+.bimg.skel{min-height:120px}
+.bfull,.bprev{width:100%;height:auto;border-radius:14px;border:2px solid var(--line);background:#fff}
+.bprev{max-height:240px;object-fit:contain}

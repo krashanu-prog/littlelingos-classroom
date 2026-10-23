@@ -1,0 +1,7 @@
+.sharepv{display:flex;flex-direction:column;gap:2px;background:var(--skySoft);border-radius:16px;padding:10px 14px}
+.sharebtns{gap:6px;flex-wrap:wrap;margin-top:6px}.shareitem .t{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.certs .iconbtn{align-self:center}
+.famcard{background:var(--petalSoft);border-radius:24px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+.famh{display:flex;gap:12px;align-items:center}.famh .grow{display:flex;flex-direction:column}.famheart{font-size:2rem;line-height:1}
+.famrep{display:flex;flex-direction:column;gap:4px}.famrep audio{width:100%;max-width:420px}
+#sh-msg{width:100%;font:inherit;border-radius:14px;border:2px solid var(--line);padding:10px;background:var(--card);color:var(--soil)}

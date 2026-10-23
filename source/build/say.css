@@ -1,0 +1,5 @@
+.sayres{display:flex;flex-direction:column;align-items:center;gap:4px;border-radius:18px;padding:10px 16px;background:var(--sunSoft);width:100%;max-width:380px}
+.sayres.s3{background:var(--leafSoft)}.sayres.s0{background:var(--soft)}
+.saystars{font-size:2.2rem;letter-spacing:4px;line-height:1}.saystars span{color:var(--line)}.saystars span.on{color:#E8A400}
+.sayheard,.saymsg{margin:0}.saymsg{font-weight:700}
+#pipfab{z-index:48}

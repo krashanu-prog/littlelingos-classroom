@@ -1,0 +1,7 @@
+/* ---------- classes with no learners: list them, fix them ---------- */
+function noKidsUpcoming(){return (role()==="admin"?entries(D.sessions):scopedSessions()).filter(s=>sessEnd(s)>Date.now()&&noKidsClass(s)).sort((a,b)=>String(a.startsAt).localeCompare(String(b.startsAt)));}
+A.noKidsList=()=>{const xs=noKidsUpcoming();
+  if(!xs.length){toast("Every upcoming class has its learners picked.");render();return;}
+  openModal(`${xs.length} class${xs.length===1?"":"es"} with no learners`,`<p class="small">Children only see classes they are picked for. Pick the learners for each class, or cancel classes that aren't needed.</p>
+   <div class="list nklist">${xs.map(s=>{const d=new Date(s.startsAt),c=D.courses[s.courseId];return `<div class="item"><div class="when"><span>${esc(WD.format(d))}</span><b class="num">${esc(DNUM.format(d))}</b></div><div class="grow"><div class="t">${esc(s.title||"Live class")}</div><div class="s">${esc(fmtDay(d))}, ${esc(fmtTime(d))} · ${esc(c?c.title:"Course removed")} · ${esc(s.trainerId&&D.trainers[s.trainerId]?trainerName(s.trainerId):"No trainer")}</div></div><div class="acts wrap"><button type="button" class="btn btn-leaf btn-sm" data-mact="pick" data-id="${esc(s.id)}">Pick learners</button><button type="button" class="btn btn-ghost btn-sm" data-mact="del" data-id="${esc(s.id)}">Cancel class</button></div></div>`;}).join("")}</div>`,
+  {wide:true,actions:{pick:id=>{closeModal();A.editSession(id,true);},del:id=>{closeModal();A.delSession(id);}}});};

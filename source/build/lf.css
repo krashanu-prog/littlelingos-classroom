@@ -1,0 +1,6 @@
+.lfx{display:flex;flex-direction:column;gap:12px}.lfx .section-title{margin:6px 0 -4px}
+.lfstage{flex-wrap:wrap}.lfstage i{font-style:normal;font-weight:400;opacity:.8;font-size:.85em;margin-left:2px}
+.lfdup{background:var(--sunSoft);border-radius:14px;padding:10px 14px;display:flex;flex-direction:column;gap:6px}.lfdup p{margin:0;font-weight:700}.lfdup input{width:20px;height:20px;accent-color:var(--leafMid)}
+.lfmore{border:2px solid var(--line);border-radius:18px;padding:2px 14px}.lfmore[open]{padding-bottom:14px}
+.lfmore>summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.lfmore[open]>summary{margin-bottom:8px}.lfmore .field{margin-bottom:10px}

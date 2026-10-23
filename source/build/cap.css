@@ -1,0 +1,6 @@
+.adapt.cap{background:var(--leafSoft)}
+.capthen{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px}
+.capcard{margin:0;background:var(--ground);border:2px solid var(--line);border-radius:18px;padding:12px;display:flex;flex-direction:column;gap:6px}
+.capcard audio{width:100%}.capcard.empty{border-style:dashed}
+.captree{align-items:center;text-align:center}
+.capmini{display:flex;flex-direction:row!important;align-items:center;gap:14px}

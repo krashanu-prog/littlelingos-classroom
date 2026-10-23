@@ -1,0 +1,11 @@
+.wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:14px}
+.wpost{margin:0;background:var(--card);border:2px solid var(--line);border-radius:20px;overflow:hidden;display:flex;flex-direction:column}
+.wpost.hid{opacity:.55}
+.wpost img{width:100%;aspect-ratio:4/3;object-fit:contain;background:#fff;display:block}
+.wpost .ptaudio{padding:16px}.wpost figcaption{display:flex;flex-direction:column;gap:6px;padding:12px}
+.wreact{display:flex;gap:6px;flex-wrap:wrap}
+.wr{min-width:48px;min-height:44px;border-radius:999px;border:2px solid var(--line);background:var(--ground);font-size:1.2rem;display:inline-flex;align-items:center;justify-content:center;gap:4px;padding:0 10px;cursor:pointer}
+.wr i{font-style:normal;font-size:.85rem;font-weight:700;color:var(--soil)}
+.wr.on{border-color:var(--leafMid);background:var(--leafSoft)}
+.wr:active{transform:scale(.94)}
+.kidtile.t5{background:var(--leafSoft);grid-column:1/-1;flex-direction:row;align-items:center;gap:10px;min-height:72px}

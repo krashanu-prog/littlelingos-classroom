@@ -1,0 +1,14 @@
+.pvstats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:4px 0 14px}
+.pvstats div{background:var(--soft);border-radius:16px;padding:12px;text-align:center}
+.pvstats b{display:block;font-family:var(--display);font-size:1.7rem;line-height:1.1;color:var(--soil)}
+.pvstats span{font-size:.82rem;color:var(--muted)}
+.pvprog{margin-top:12px}
+.pvbar{height:12px;border-radius:999px;background:var(--line);overflow:hidden;margin-bottom:8px}
+.pvbar i{display:block;height:100%;background:var(--leaf);border-radius:999px;transition:width .3s}
+.pvchips{display:flex;flex-wrap:wrap;gap:8px}
+.pvchip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:6px 14px;border-radius:999px;border:2px solid var(--line);background:var(--card);color:var(--soil);font:inherit;font-size:.92rem}
+button.pvchip{cursor:pointer}
+.pvchip.on{border-color:var(--sprout)}
+.pvchip svg{width:18px;height:18px;flex:none}
+.pvmore summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:700;color:var(--leaf)}
+.pvmore[open] summary{margin-bottom:8px}
