@@ -56,7 +56,12 @@ GK = {
  ("In 'She sings beautifully', what is 'beautifully'?","An adverb",["A noun","An adjective","A verb"]),
 ],
 }
-for k,v in GK.items():
+_m={};exec(open(__file__.rsplit("/",1)[0]+"/gk_more.py" if "/" in __file__ else "gk_more.py").read(),_m)
+for k,v in _m["GK_MORE"].items():
+    have={q for q,_,_ in GK[k]}
+    GK[k]+= [x for x in v if x[0] not in have]
+EN=_m["EN"]
+for k,v in list(GK.items())+list(EN.items()):
     for q,a,o in v: assert len(o)==3 and a not in o, q
-open("site/gk.js","w").write("/* Little Lingos GK quiz: original questions by age group. Free to use and adapt. */\nwindow.LL_GK = "+json.dumps({k:[{"q":q,"a":a,"o":o} for q,a,o in v] for k,v in GK.items()},ensure_ascii=False,separators=(",",":"))+";\n")
-print({k:len(v) for k,v in GK.items()})
+open("site/gk.js","w").write("/* Little Lingos GK quiz: original questions by age group. Free to use and adapt. */\nwindow.LL_GK = "+json.dumps({k:[{"q":q,"a":a,"o":o} for q,a,o in v] for k,v in GK.items()},ensure_ascii=False,separators=(",",":"))+";\nwindow.LL_EN = "+json.dumps({k:[{"q":q,"a":a,"o":o} for q,a,o in v] for k,v in EN.items()},ensure_ascii=False,separators=(",",":"))+";\n")
+print({k:len(v) for k,v in GK.items()},{k:len(v) for k,v in EN.items()})

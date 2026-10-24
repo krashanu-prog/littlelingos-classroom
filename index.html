@@ -620,7 +620,7 @@ button.stat{font:inherit;color:inherit;cursor:pointer}.stat.sel{box-shadow:inset
 .bk-sure{background:var(--badSoft)!important;color:var(--bad)!important}
 .bk-words{display:flex;gap:10px;align-items:flex-end;margin-bottom:8px}
 @media (max-width:640px){.bk-filters{grid-template-columns:1fr 1fr}.bk-filters .field:last-child{grid-column:1/-1}.bk-words{flex-direction:column;align-items:stretch}}
-.funtiles{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.funtiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}.funtile.ft-en{background:#FFE3D9}.qzscore{font-family:var(--display);font-weight:700;color:var(--leaf);margin:0}
 .funtile{all:unset;box-sizing:border-box;cursor:pointer;border-radius:24px;padding:18px 18px 16px;display:flex;flex-direction:column;gap:6px;min-height:120px;border:3px solid transparent}
 .funtile b{font-family:var(--display);font-size:1.45rem;font-weight:800;line-height:1.05;color:var(--soil)}
 .funtile span{font-size:.95rem;color:var(--muted);line-height:1.35}
@@ -3210,7 +3210,7 @@ function wordsView(){
   const i=Math.min(S.fc||0,ws.length-1), x=ws[i], flipped=!!S.fcFlip;
   return `<div class="head"><div><h1>My words</h1><p class="lede">${ws.length} word${ws.length===1?"":"s"} in your garden · ${Object.keys(known).filter(k=>known[k]).length} you know by heart</p></div><div class="row"><button class="btn btn-primary" data-act="drill">🎤 Repeat after me</button><button class="btn btn-ghost btn-sm" data-act="printWords">${ic("doc")}Printable sheet</button></div></div>
   <section class="fcwrap"><button class="fcard ${flipped?"on":""}" data-act="fcFlip" aria-label="${esc(flipped?`${x.w}: ${x.m}`:`${x.w}. Tap to see the meaning`)}"><b>${esc(flipped?x.m:x.w)}</b><span>${flipped?esc(x.w):"tap to flip"}</span>${known[x.w.toLowerCase()]?`<i class="known">⭐ I know it</i>`:""}</button>
-    <div class="fcbar"><button class="iconbtn big" data-act="fcMove" data-id="-1" aria-label="Previous word" ${i===0?"disabled":""}>${ic("back")}</button>${sp?`<button class="iconbtn big" data-act="say" data-w="${esc(x.w)}" data-l="${esc(x.lang)}" aria-label="Hear ${esc(x.w)}">${ic("sound")}</button>`:""}<span class="num fcpos">${i+1} / ${ws.length}</span><button class="btn ${known[x.w.toLowerCase()]?"btn-ghost":"btn-sun"} btn-sm" data-act="fcKnow" data-id="${esc(x.w.toLowerCase())}">${known[x.w.toLowerCase()]?"Practise again":"⭐ I know it"}</button><button class="iconbtn big" data-act="fcMove" data-id="1" aria-label="Next word" ${i>=ws.length-1?"disabled":""}>${ic("fwd")}</button></div></section>
+    <div class="fcbar"><button class="iconbtn big" data-act="fcMove" data-id="-1" aria-label="Previous word" ${i===0?"disabled":""}>${ic("back")}</button>${sp?`<button class="iconbtn big" data-act="say" data-w="${esc(x.w)}" data-l="${esc(x.lang)}" aria-label="Hear ${esc(x.w)}">${ic("sound")}</button>`:""}<button class="btn ${known[x.w.toLowerCase()]?"btn-ghost":"btn-sun"} btn-sm" data-act="fcKnow" data-id="${esc(x.w.toLowerCase())}">${known[x.w.toLowerCase()]?"Practise again":"⭐ I know it"}</button><button class="iconbtn big" data-act="fcMove" data-id="1" aria-label="Next word" ${i>=ws.length-1?"disabled":""}>${ic("fwd")}</button></div></section>
   ${wodPastHTML(L)}
   <section class="card panel"><h2>All my words</h2><div class="words">${ws.map((w,j)=>`<div class="word ${j===i?"cur":""}"><div><b>${esc(w.w)}</b><span>${esc(w.m)}</span></div>${sp?`<button class="iconbtn" data-act="say" data-w="${esc(w.w)}" data-l="${esc(w.lang)}" aria-label="Hear ${esc(w.w)}">${ic("sound")}</button>`:""}</div>`).join("")}</div></section>`;
 }
@@ -3253,8 +3253,8 @@ function playView(){
   if(g&&g.type==="memory")return `<div class="head"><div><h1>Memory pairs</h1><p class="lede">Find each word and its meaning. Moves: ${g.moves}</p></div><button class="btn btn-ghost btn-sm" data-act="endGame">Stop</button></div>
     <div class="memgrid">${g.cards.map((c,i)=>{const open=g.done.has(i)||g.open.includes(i);return `<button class="mem ${open?"open":""} ${g.done.has(i)?"done":""} ${c.w?"isw":""}" data-act="memTap" data-id="${i}" aria-label="${open?esc(c.t):"Hidden card"}">${open?esc(c.t):"🌱"}</button>`}).join("")}</div>`;
   if(g&&g.qs){const q=g.qs[g.i];const ansI=q.opts.indexOf(q.ans);
-    return `<div class="head"><div><h1>${g.type==="daily"?"Daily challenge":g.type==="listen"?"Listen and pick":"Word quiz"}</h1><p class="lede">Question ${g.i+1} of ${g.qs.length} · ⭐ ${g.score}</p></div><button class="btn btn-ghost btn-sm" data-act="endGame">Stop</button></div>
-    <section class="quiz"><div class="bar"><i style="width:${pctStr(g.i/g.qs.length)}"></i></div><h2>${esc(q.prompt)}</h2>${q.k==="listen"?`<button class="btn btn-sun btn-big" data-act="sayQ" style="align-self:center">${ic("sound",24)}Hear it again</button>`:canSpeak()?`<button class="iconbtn big" data-act="sayQ" aria-label="Hear the word" style="align-self:center">${ic("sound")}</button>`:""}
+    return `<div class="head"><div><h1>${g.type==="daily"?"Daily challenge":g.type==="listen"?"Listen and pick":"Word quiz"}</h1><p class="lede">⭐ ${g.score} right</p></div><button class="btn btn-ghost btn-sm" data-act="endGame">Stop</button></div>
+    <section class="quiz"><h2>${esc(q.prompt)}</h2>${q.k==="listen"?`<button class="btn btn-sun btn-big" data-act="sayQ" style="align-self:center">${ic("sound",24)}Hear it again</button>`:canSpeak()?`<button class="iconbtn big" data-act="sayQ" aria-label="Hear the word" style="align-self:center">${ic("sound")}</button>`:""}
       <div class="qopts">${q.opts.map((o,i)=>`<button class="qopt ${g.pick!=null?(i===ansI?"right":i===g.pick?"wrong":""):""}" data-act="answer" data-id="${i}" ${g.pick!=null?"disabled":""}>${esc(o)}</button>`).join("")}</div>
       ${g.pick!=null?`<div class="qfb ${g.pick===ansI?"ok":""}">${g.pick===ansI?"🎉 Yes! Well done!":`The answer is “${esc(q.ans)}”.`}<button class="btn btn-primary" data-act="nextQ">${g.i<g.qs.length-1?"Next":"Finish"} ${ic("fwd")}</button></div>`:""}</section>`;}
   const dDone=(progOf(L.uid).daily||{})[ymd(new Date())]!=null, n=gamePool(L).length;
@@ -3265,6 +3265,8 @@ function playView(){
     <button class="gamecard g1" data-act="startGame" data-id="quiz" ${n<4?"disabled":""}><span>❓</span><b>Word quiz</b><i>What does it mean?</i></button>
     <button class="gamecard g2" data-act="startGame" data-id="listen" ${n<4||!canSpeak()?"disabled":""}><span>👂</span><b>Listen and pick</b><i>Hear a word, find it</i></button>
     <button class="gamecard g3" data-act="startGame" data-id="memory" ${n<4?"disabled":""}><span>🃏</span><b>Memory pairs</b><i>Match words and meanings</i></button>
+    <button class="gamecard g1" data-act="goQuiz" data-id="en"><span>🔤</span><b>Word power</b><i>English quiz, always open</i></button>
+    <button class="gamecard g2" data-act="goQuiz" data-id="gk"><span>🌍</span><b>GK quiz</b><i>Questions about our world</i></button>
     <button class="gamecard g4" data-act="drill" ${n<1?"disabled":""}><span>🎤</span><b>Repeat after me</b><i>Listen, say it, hear yourself</i></button>
   </div>`;
 }
@@ -4501,8 +4503,9 @@ function funView(){
   const tiles=`<div class="funtiles">
     <button class="funtile ft-draw" data-act="drawPad"><b>Art studio</b><span>Crayons, rainbow brush, stickers and colouring pages.</span><span class="ftart">${art("bloom",76)}</span></button>
     <button class="funtile ft-chess ${t==="chess"?"on":""}" data-act="funTab" data-id="chess"><b>Pip's Chess</b><span>Play Pip or a friend. Pip gives hints!</span><span class="ftart">${art("pip",76)}</span></button>
-    <button class="funtile ft-gk ${t==="gk"?"on":""}" data-act="funTab" data-id="gk"><b>GK quiz</b><span>Five quick questions. How many can you get?</span><span class="ftart">${art("buzz",76)}</span></button></div>`;
-  return `<div class="head"><div><h1>Fun corner</h1><p class="lede">Take a little break: draw, play chess or try a quiz.</p></div></div>${tiles}${t==="chess"?chessHTML():t==="gk"?gkHTML():""}`;
+    <button class="funtile ft-gk ${t==="gk"?"on":""}" data-act="funTab" data-id="gk"><b>GK quiz</b><span>Hundreds of questions about our world. Play as long as you like!</span><span class="ftart">${art("buzz",76)}</span></button>
+    <button class="funtile ft-en ${t==="en"?"on":""}" data-act="funTab" data-id="en"><b>Word power</b><span>Opposites, rhymes, spellings and more English fun.</span><span class="ftart">${art("drizzle",76)}</span></button></div>`;
+  return `<div class="head"><div><h1>Fun corner</h1><p class="lede">Take a little break: draw, play chess or answer quiz questions.</p></div></div>${tiles}${t==="chess"?chessHTML():t==="gk"?quizHTML("gk"):t==="en"?quizHTML("en"):""}`;
 }
 
 /* ---- Trainer: My space (journal + chess) ---- */
@@ -6202,6 +6205,28 @@ function boardsLibHTML(){const all=allBoards();const mineOnly=(S.wbAll!==true)&&
    ${xs.length?`<div class="bgrid">${xs.map(x=>{const b=BRD[x.id];return `<div class="wbitem">${boardThumb(x.id,x.meta)}<p class="small muted wbwhere">${esc(x.c?x.c.title:"Course")} · ${esc(x.l.title||"Lesson")}${b&&b.by&&b.by!==S.uid?` · by ${esc(byWho(b.by))}`:""}</p></div>`;}).join("")}</div>`
    :`<p class="small muted">${mineOnly&&all.length?"You haven't saved a whiteboard yet. ":"No whiteboards yet. "}Open one from a class (Whiteboard button) or tap New whiteboard. Saved boards appear here and on their lesson page.</p>`}</section>`;}
 A.wbAll=v=>{S.wbAll=v==="all";render(true);};
+
+/* ---------- GK quiz and Word power: endless, no question count ---------- */
+const QZ={gk:{src:()=>window.LL_GK||{},title:"GK quiz",art:"buzz"},en:{src:()=>window.LL_EN||{},title:"Word power",art:"drizzle"}};
+const QS={};
+const qzDeck=(kind,stage)=>shuffle(((QZ[kind].src()[stage])||[]).slice()).map(x=>({q:x.q,a:x.a,opts:shuffle([x.a,...x.o])}));
+function qzState(kind){let st=QS[kind];if(!st){const L=myLearner();const stage=(L&&L.stage)||"Sprouts";st=QS[kind]={stage,deck:qzDeck(kind,stage),i:0,score:0,answered:0,streak:0,picked:null,done:false};}if(!st.deck.length)st.deck=qzDeck(kind,st.stage);return st;}
+const QZ_YAY=["Yay! That's right.","Brilliant!","Super thinking!","You got it!","Well done!"];
+function quizHTML(kind){const st=qzState(kind),K=QZ[kind];
+  const head=`<div class="ph"><h2>${esc(K.title)}</h2><div class="row"><select data-change="qzStage" aria-label="Level">${STAGES.map(s=>`<option value="${kind}:${s.v}" ${s.v===st.stage?"selected":""}>${s.v} · ${s.ages}</option>`).join("")}</select>${st.answered&&!st.done?`<button class="btn btn-ghost btn-sm" data-act="qzDone" data-id="${kind}">I'm done</button>`:""}</div></div>`;
+  if(!st.deck.length)return `<section class="card panel">${head}<p class="muted">No questions for this level yet.</p></section>`;
+  if(st.done){const n=st.answered,m=st.score;return `<section class="card panel">${head}<div class="gkdone">${art(m>=n*.7?"bloom":"pip",110,m>=n*.7?"Bloom":"Pip")}<h3>You answered ${n} question${n===1?"":"s"} and got ${m} right!</h3><p class="muted">${m>=n*.7?"You've bloomed! Your brain is growing.":"Good try! Every question helps your brain grow."}</p><button class="btn btn-primary" data-act="qzAgain" data-id="${kind}">Keep playing</button></div></section>`;}
+  if(st.i>=st.deck.length){st.deck=qzDeck(kind,st.stage);st.i=0;}
+  const x=st.deck[st.i],done=st.picked!=null;
+  return `<section class="card panel qzpanel">${head}<p class="qzscore" aria-live="polite">⭐ ${st.score} right${st.streak>=3?` · 🔥 ${st.streak} in a row!`:""}</p><h3 class="gkq">${esc(x.q)}</h3>
+    <div class="gkopts">${x.opts.map((o,k)=>`<button class="gkopt ${done?(o===x.a?"right":(st.picked===k?"nope":"")):""}" data-act="qzPick" data-id="${kind}:${k}" ${done?"disabled":""}>${esc(o)}</button>`).join("")}</div>
+    ${done?`<p class="gkfb" aria-live="polite">${x.opts[st.picked]===x.a?esc(QZ_YAY[st.answered%QZ_YAY.length]):`Good try! The answer is <b>${esc(x.a)}</b>.`}</p><button class="btn btn-primary" data-act="qzNext" data-id="${kind}">Next question</button>`:""}</section>`;}
+A.qzPick=v=>{const [kind,k]=String(v).split(":");const st=qzState(kind);if(st.picked!=null)return;st.picked=+k;st.answered++;const x=st.deck[st.i];if(x.opts[+k]===x.a){st.score++;st.streak++;}else st.streak=0;render(true);};
+A.qzNext=kind=>{const st=qzState(kind);st.i++;st.picked=null;render(true);};
+A.qzDone=kind=>{const st=qzState(kind);st.done=true;render(true);};
+A.qzAgain=kind=>{const st=qzState(kind);Object.assign(st,{score:0,answered:0,streak:0,picked:null,done:false});st.i++;render(true);};
+A.qzStage=(_,v)=>{const [kind,stage]=String(v).split(":");QS[kind]={stage,deck:qzDeck(kind,stage),i:0,score:0,answered:0,streak:0,picked:null,done:false};render(true);};
+A.goQuiz=kind=>{S.fun=kind;go("fun");};
 
 /* ================= events ================= */
 document.addEventListener("click",e=>{
