@@ -82,6 +82,7 @@ exec(open(W+'wb_patch.py').read())
 exec(open(W+'qz_patch.py').read())
 exec(open(W+'nav2_patch.py').read())
 exec(open(W+'hidewords_patch.py').read())
+exec(open(W+'rzp_patch.py').read())
 exec(open(W+'polish_patch.py').read())
 # drop the claude-only meta
 R('<meta name="claude:viewport-fit-sides" content="cover">\n', '')
@@ -102,7 +103,7 @@ head = '''<!doctype html>
 #ll-gate .ll-gate-card{max-width:440px;width:100%;align-items:stretch;gap:14px}
 #ll-gate h1{margin:0}#ll-gate form{display:flex;flex-direction:column;gap:12px}
 .ll-brand{--ls:40px;display:flex;align-items:center;gap:8px;align-self:center;margin-bottom:4px}.ll-brand .lg-pip{width:52px;height:64px;flex:none}</style>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://api.datamuse.com; worker-src 'self' blob:; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://checkout.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://api.datamuse.com https://*.razorpay.com; worker-src 'self' blob:; frame-src https://api.razorpay.com https://checkout.razorpay.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <style id="ll-fb">html{display:none!important}</style><script>if(self===top){var s=document.getElementById("ll-fb");s.parentNode.removeChild(s)}else{try{top.location.replace(self.location.href)}catch(e){}}</script>
 <script src="config.js"></script>
@@ -121,5 +122,5 @@ shutil.copy(W + 'package/dist/umd/supabase.js', W + 'site/supabase.js')
 shutil.copy(W + 'share_src.html', W + 'site/share.html')
 for _f in os.listdir(W + '../pipvoice/out'): shutil.copy(W + '../pipvoice/out/' + _f, W + 'site/pip-' + _f)
 shutil.copy(W + 'sw_src.js', W + 'site/sw.js')
-open(W + 'site/robots.txt', 'w').write('User-agent: *\nDisallow: /share.html\nDisallow: /share\n')
+open(W + 'site/robots.txt', 'w').write('User-agent: *\nDisallow: /share.html\nDisallow: /share\nDisallow: /source/\n')
 print('built', len(s))

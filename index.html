@@ -14,12 +14,12 @@
 #ll-gate .ll-gate-card{max-width:440px;width:100%;align-items:stretch;gap:14px}
 #ll-gate h1{margin:0}#ll-gate form{display:flex;flex-direction:column;gap:12px}
 .ll-brand{--ls:40px;display:flex;align-items:center;gap:8px;align-self:center;margin-bottom:4px}.ll-brand .lg-pip{width:52px;height:64px;flex:none}</style>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://api.datamuse.com; worker-src 'self' blob:; frame-src 'none'; object-src 'none'; base-uri 'self'; form-action 'self'">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval' https://cdn.jsdelivr.net https://checkout.razorpay.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' data: https://fonts.gstatic.com; img-src 'self' data: blob: https:; media-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co wss://*.supabase.co https://cdn.jsdelivr.net https://huggingface.co https://*.huggingface.co https://*.hf.co https://api.datamuse.com https://*.razorpay.com; worker-src 'self' blob:; frame-src https://api.razorpay.com https://checkout.razorpay.com; object-src 'none'; base-uri 'self'; form-action 'self'">
 <meta name="referrer" content="strict-origin-when-cross-origin">
 <style id="ll-fb">html{display:none!important}</style><script>if(self===top){var s=document.getElementById("ll-fb");s.parentNode.removeChild(s)}else{try{top.location.replace(self.location.href)}catch(e){}}</script>
 <script src="config.js"></script>
 <script src="supabase.js"></script>
-<script src="adapter.js?v=e55aa0ef9f"></script>
+<script src="adapter.js?v=b434dff01f"></script>
 <script src="bank.js"></script>
 <script src="gk.js"></script>
 </head>
@@ -1094,6 +1094,8 @@ body.st-on{overflow:hidden}
   .nav a{flex:1 1 0}
   .hubtabs{width:auto}
 }
+.paybox{border-color:var(--leafMid)}.payrow{flex-wrap:wrap}.payrow .btn{min-height:44px}
+#rzp-setup code{background:var(--ground);padding:1px 5px;border-radius:6px;font-size:.92em}
 .iconbtn{width:44px;height:44px;min-height:44px}
 select.inline{min-height:44px}
 .nm,.linkbtn{position:relative}
@@ -1136,7 +1138,7 @@ const stageLabel=l=>{const s=STAGES.find(x=>x.v===l);return s?`${s.v} · ${s.age
 const KINDS={story:"Story",video:"Video",song:"Song",speak:"Speaking",game:"Game",culture:"Culture corner"};
 const ROLE_LABEL={admin:"Admin",teacher:"Trainer",student:"Learner",parent:"Parent",pending:"Waiting"};
 const ATT={present:"Present",late:"Late",absent:"Absent"};
-const METHODS=["UPI","Cash","Bank transfer","Card","Cheque"];
+const METHODS=["UPI","Cash","Bank transfer","Card","Cheque","Razorpay"];
 const FLOWERS=["#E8492F","#F7A8C4","#4BA3E3","#FFC94A","#D9789E","#E8492F"];
 const CHIPS=["var(--peach)","var(--leafSoft)","var(--skySoft)","var(--petalSoft)","var(--sunSoft)"];
 const ICON={
@@ -1831,6 +1833,7 @@ function feesView(){
   const recent=withFee.flatMap(r=>r.fi.pays.map(p=>({...p,L:r.L})).concat(Object.values(r.fi.f.refunds||{}).filter(Boolean).map(x=>({...x,L:r.L,refund:true})))).sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,10);
   return `<div class="head"><div><h1>Fees</h1><p class="lede">Monthly fees, payments and who still owes, month by month.</p></div><div class="row"><button class="btn btn-ghost btn-sm" data-act="goSettings" data-id="billing">${ic("gear")}Plans and coupons</button><button class="btn btn-ghost btn-sm" data-act="academy">${ic("doc")}Invoice details</button>${monthNav()}</div></div>
   ${(()=>{const r=remindersToday();return r.length?`<section class="card panel"><h2>Reminders to send today <span class="pill p-sun num">${r.length}</span></h2><div class="list">${r.map(reminderRow).join("")}</div><p class="small muted">From your reminder rules in Settings → Billing.</p></section>`:"";})()}
+  ${rzpAdminHTML()}
   ${upiAdminHTML()}
   <div class="stats">
     <div class="stat f" style="background:var(--skySoft)"><b class="num">${money(expected)}</b><span>Expected · ${esc(monthShort(m))}</span></div>
@@ -2828,7 +2831,8 @@ function parentFees(){
   if(!fk)return head+emptyBox("Fee details aren't ready yet","The Little Lingos team hasn't set up a fee plan for "+firstOf(L.name)+", or it hasn't synced yet. It appears here once they have.","","drizzle");
   const due=fk.nextDue?new Date(fk.nextDue+"T12:00"):null, left=fk.classes?Math.max(0,fk.classes-fk.used):null, late=fk.statusK==="overdue"||(due&&due<new Date(new Date().toDateString())&&fk.remainingM>0);
   return `${head}
-  ${fk.remainingM>0?`<section class="alert ${late?"a-bad":"a-sun"}"><b>${late?"Overdue":"Due"}: ${money(fk.remainingM)}</b><span class="small">for ${esc(monthLabel(thisMonth()))}${due?` · due by ${esc(fmtDay(due))}`:""}${fk.balance>fk.remainingM?` · total owed ${money(fk.balance)}`:""}. ${upiOn()?"Pay with UPI below, or pay the academy as usual.":"Pay the academy as usual; it shows here once recorded."}</span></section>`:""}
+  ${fk.remainingM>0&&!(rzpOn()&&!rzpDues(L,fk).length)?`<section class="alert ${late?"a-bad":"a-sun"}"><b>${late?"Overdue":"Due"}: ${money(fk.remainingM)}</b><span class="small">for ${esc(monthLabel(thisMonth()))}${due?` · due by ${esc(fmtDay(due))}`:""}${fk.balance>fk.remainingM?` · total owed ${money(fk.balance)}`:""}. ${rzpOn()?"Tap Pay now below to pay securely online.":upiOn()?"Pay with UPI below, or pay the academy as usual.":"Pay the academy as usual; it shows here once recorded."}</span></section>`:""}
+  ${rzpParentHTML(L,fk)}
   ${upiParentHTML(L,fk)}
   <div class="stats">
     <div class="stat f" style="background:var(--leafSoft)"><b>${esc(fk.plan||"Monthly plan")}</b><span>Current plan</span><small>${money(fk.monthly)} a month${fk.classes?` · ${fk.classes} classes`:""}</small></div>
@@ -4080,7 +4084,7 @@ function adminSettings(){const tab=S.stab||"academy";const tabs=`<div class="seg
     <div class="field"><label for="sa-d">Class lengths (minutes)</label><input type="text" id="sa-d" name="durs" maxlength="60" value="${esc(DURATIONS().join(", "))}"><span class="hint">Shown when you set up batches.</span></div>
     <button class="btn btn-primary" type="submit" style="align-self:flex-start">Save</button></form>
    <section class="card panel"><div class="ph"><h2>Holidays</h2><button class="btn btn-ghost btn-sm" data-act="addHoliday">${ic("plus")}Add holiday</button></div>${HOLIDAYS().length?`<div class="list">${HOLIDAYS().slice().sort((x,y)=>x.date.localeCompare(y.date)).map(h=>`<div class="item"><div class="grow"><div class="t">${esc(h.name)}</div><div class="s">${esc(fmtDay(new Date(h.date+"T12:00")))}</div></div><button class="iconbtn" data-act="delHoliday" data-id="${esc(h.date)}" aria-label="Remove">${ic("trash")}</button></div>`).join("")}</div>`:`<p class="muted">Batches skip these dates, and parents see them on their calendar.</p>`}</section>`;
-  else if(tab==="billing"){const R=s.reminders||{before:3,onDue:true,after:[3,7]};body=`<section class="card panel"><div class="ph"><h2>Plans</h2><button class="btn btn-ghost btn-sm" data-act="editPlan">${ic("plus")}Add plan</button></div>${(s.plans||[]).length?`<div class="list">${s.plans.map(p=>`<div class="item"><div class="grow"><div class="t">${esc(p.name)}</div><div class="s">${p.type==="1:1"?"One-to-one":"Group"} · ${p.classes||"–"} classes a month · ${esc(p.lang||"Any language")}</div></div><b class="num">${money(p.price)}</b><button class="iconbtn" data-act="editPlan" data-id="${esc(p.id)}" aria-label="Edit">${ic("edit")}</button></div>`).join("")}</div>`:`<p class="muted">Add your plans, for example "Group · 8 classes · ₹2,199". Pick a plan when you set a learner's fee.</p>`}</section>
+  else if(tab==="billing"){const R=s.reminders||{before:3,onDue:true,after:[3,7]};body=`${rzpSetupHTML()}<section class="card panel"><div class="ph"><h2>Plans</h2><button class="btn btn-ghost btn-sm" data-act="editPlan">${ic("plus")}Add plan</button></div>${(s.plans||[]).length?`<div class="list">${s.plans.map(p=>`<div class="item"><div class="grow"><div class="t">${esc(p.name)}</div><div class="s">${p.type==="1:1"?"One-to-one":"Group"} · ${p.classes||"–"} classes a month · ${esc(p.lang||"Any language")}</div></div><b class="num">${money(p.price)}</b><button class="iconbtn" data-act="editPlan" data-id="${esc(p.id)}" aria-label="Edit">${ic("edit")}</button></div>`).join("")}</div>`:`<p class="muted">Add your plans, for example "Group · 8 classes · ₹2,199". Pick a plan when you set a learner's fee.</p>`}</section>
    <section class="card panel"><div class="ph"><h2>Coupons</h2><button class="btn btn-ghost btn-sm" data-act="editCoupon">${ic("plus")}Add coupon</button></div>${(s.coupons||[]).length?`<div class="list">${s.coupons.map((c2,i)=>`<div class="item"><div class="grow"><div class="t num">${esc(c2.code)}</div><div class="s">${c2.kind==="flat"?money(c2.value):c2.value+"%"} off${c2.until?` · until ${esc(fmtDay(new Date(c2.until+"T12:00")))}`:""}${c2.note?` · ${esc(c2.note)}`:""}</div></div>${c2.until&&c2.until<ymd(new Date())?`<span class="pill p-mute">Expired</span>`:`<span class="pill p-good">Active</span>`}<button class="iconbtn" data-act="delCoupon" data-id="${i}" aria-label="Delete">${ic("trash")}</button></div>`).join("")}</div>`:`<p class="muted">No coupons yet.</p>`}</section>
    <form class="card panel" id="set-billing" novalidate><h2>Discounts, tax and reminders</h2>
     <div class="three"><div class="field"><label for="sb-s">Sibling discount (%)</label><input type="number" id="sb-s" name="sib" min="0" max="100" value="${esc(s.siblingPct||0)}"><span class="hint">For the second child onwards.</span></div><div class="field"><label for="sb-g">GST rate (%)</label><input type="number" id="sb-g" name="gst" min="0" max="28" step=".5" value="${esc(a.gstRate||0)}"><span class="hint">Prices include GST. 0 = not shown.</span></div><div class="field"><label for="sb-r">Referral credit (₹)</label><input type="number" id="sb-r" name="ref" min="0" step="50" value="${esc(s.referralCredit||0)}"><span class="hint">Given to a parent when someone they refer enrols.</span></div></div>
@@ -6286,6 +6290,82 @@ A.navMore=()=>{const b=navBadges(),gs=navGroups().filter(g=>g[0]!=="-"&&!g[4]);
 function hubTabs(v){const g=groupOf(v);if(!g||g[3].length<2)return "";
   return `<div class="hubtabs" role="tablist" aria-label="${esc(g[1])}">${g[3].map(([t,l])=>`<button type="button" role="tab" class="hubtab ${t===v?"on":""}" aria-selected="${t===v}" data-go="${t}">${esc(l)}</button>`).join("")}</div>`;}
 for(const v of Object.keys(VIEWS)){const f=VIEWS[v];VIEWS[v]=function(){return hubTabs(v)+f.apply(this,arguments);};}
+
+/* ================= Online fee payments (Razorpay) =================
+   The parent taps "Pay now"; the razorpay Edge Function creates the order from the fee record (the amount is
+   never taken from the browser), Razorpay Checkout takes the payment (UPI, cards, netbanking, wallets), and the
+   function checks the signature and records the payment. Keys live only on Supabase. */
+const RZP_SRC="https://checkout.razorpay.com/v1/checkout.js";
+const rzpOn=()=>!!(CFG().academy||{}).rzp;
+let rzpLoading=null;
+function needRzp(){if(window.Razorpay)return Promise.resolve(true);if(!rzpLoading)rzpLoading=new Promise(res=>{const s=document.createElement("script");s.src=RZP_SRC;s.onload=()=>res(!!window.Razorpay);s.onerror=()=>{rzpLoading=null;res(false)};document.head.appendChild(s);});return rzpLoading;}
+/* the parent's own online receipts: rzp/<uid>/x/<pid>, written by the function */
+let rzpSub=false;
+function rzpLoadMine(){if(rzpSub||!S.db||!S.uid)return;rzpSub=true;try{S.db.collection(`rzp/${S.uid}/x`).onSnapshot(s=>{const o={};for(const d of s.docs)o[d.id]=d.data();D.rzpMine=o;render();},()=>{D.rzpMine=D.rzpMine||{};});}catch{D.rzpMine={};}}
+/* what is still due for this child, after online payments the summary may not show yet */
+function rzpDues(L,fk){const mine=entries(D.rzpMine||{}).filter(x=>x.lid===L.id);
+  return upiDues(L,fk).map(d=>{const paid=mine.filter(x=>x.month===d.month&&!(fk.pays||[]).some(p=>p.id===x.id)).reduce((s,x)=>s+(+x.amount||0),0);return {month:d.month,amount:d.amount-paid};}).filter(d=>d.amount>0);}
+function rzpParentHTML(L,fk){
+  if(!rzpOn())return "";
+  rzpLoadMine();
+  const dues=rzpDues(L,fk);
+  const busy=S.rzpBusy;
+  const fresh=entries(D.rzpMine||{}).filter(x=>x.lid===L.id&&!(fk.pays||[]).some(p=>p.id===x.id)).sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,3);
+  const freshHTML=fresh.length?`<section class="card panel"><h2>Paid online</h2><div class="list">${fresh.map(x=>`<div class="item"><div class="grow"><div class="t">${money(x.amount)} · ${esc(monthLabel(x.month))}</div><div class="s">${esc(fmtDay(new Date(x.at||Date.now())))} · Razorpay ${esc(x.rp||"")}</div></div><span class="pill p-good">Paid</span></div>`).join("")}</div><p class="small muted" style="margin:0">Thank you! Your receipt appears under Receipts shortly.</p></section>`:"";
+  if(!dues.length)return freshHTML;
+  return freshHTML+`<section class="card panel paybox"><div class="ph"><h2>Pay online</h2><span class="pill p-good">Secure · Razorpay</span></div>
+    <p class="small muted" style="margin:0">UPI, debit or credit card, net banking or wallet. Your receipt appears here the moment the payment goes through.</p>
+    <div class="list">${dues.map(d=>`<div class="item payrow"><div class="grow"><div class="t">${money(d.amount)} · ${esc(monthLabel(d.month))}</div><div class="s">Fees for ${esc(firstOf(L.name))}</div></div>
+      <button class="btn btn-primary" data-act="rzpPay" data-id="${esc(L.id)}|${esc(d.month)}" ${busy?"disabled":""}>${ic("rupee")}${busy===L.id+"|"+d.month?"Opening…":`Pay ${money(d.amount)} now`}</button></div>`).join("")}</div></section>`;
+}
+A.rzpPay=async id=>{const [lid,month]=id.split("|");const L=learner(lid);if(!L||S.rzpBusy)return;
+  S.rzpBusy=id;render();
+  try{
+    const ok=await needRzp();if(!ok)throw userErr("Couldn't load the payment window. Check your connection and try again.");
+    const o=await window.LL_fn("razorpay",{action:"order",lid,month});
+    if(o.off)throw userErr("Online payments aren't switched on yet. Please pay the academy as usual.");
+    if(o.error==="signin")throw userErr("Please sign in again to pay.");
+    if(o.error==="nothing due")throw userErr("Nothing is due for this month. Thank you!");
+    if(o.error||!o.order_id)throw userErr("Couldn't start the payment. Please try again in a moment.");
+    const a=ACAD();
+    const rz=new window.Razorpay({key:o.key_id,amount:o.amount,currency:"INR",order_id:o.order_id,name:(a.name||"Little Lingos").slice(0,40),description:`Fees · ${o.kid||L.name} · ${monthLabel(month)}`.slice(0,120),image:location.origin+location.pathname.replace(/[^/]*$/,"")+"icon-192.png",
+      prefill:{name:o.prefill?.name||"",email:o.prefill?.email||"",contact:o.prefill?.contact||""},notes:{lid,month},theme:{color:"#2F8F46"},retry:{enabled:true,max_count:2},
+      modal:{ondismiss:()=>{S.rzpBusy=null;render();},confirm_close:true},
+      handler:async r=>{toast("Checking your payment…");
+        const v=await window.LL_fn("razorpay",{action:"verify",order_id:r.razorpay_order_id,payment_id:r.razorpay_payment_id,signature:r.razorpay_signature});
+        S.rzpBusy=null;
+        if(v.ok){toast("Payment received. Thank you!");D.rzpMine=D.rzpMine||{};D.rzpMine[v.pid]={lid,month,amount:Math.round(o.amount/100),status:"paid",at:Date.now(),rp:r.razorpay_payment_id};}
+        else toast("The payment went through but we couldn't confirm it yet. It will be recorded shortly; contact the academy if it doesn't appear.",true);
+        render();}});
+    rz.on("payment.failed",r=>{S.rzpBusy=null;render();toast((r&&r.error&&r.error.description)||"The payment didn't go through. Nothing was charged.",true);});
+    rz.open();
+  }catch(e){S.rzpBusy=null;render();handleErr(e);}
+};
+/* ---- admin: setup panel (Settings › Billing) and recent online payments (Fees) ---- */
+function rzpSetupHTML(){const on=rzpOn();
+  return `<section class="card panel" id="rzp-setup"><div class="ph"><h2>Online payments (Razorpay)</h2><span class="pill ${on?"p-good":"p-mute"}">${on?"On":"Off"}</span></div>
+    <p class="small muted" style="margin:0">Parents get a <b>Pay now</b> button on their Fees page and pay by UPI, card, net banking or wallet. Payments are recorded here automatically with a receipt for the parent. Razorpay charges its standard fee per payment; there is no monthly cost.</p>
+    <ol class="steps small"><li>Create a free account at razorpay.com and finish KYC, then open <b>Account &amp; Settings › API Keys</b> and generate a key.</li>
+      <li>In Supabase, open <b>Edge Functions › razorpay › Secrets</b> and add <code>RAZORPAY_KEY_ID</code> and <code>RAZORPAY_KEY_SECRET</code>. (Optional, recommended: add a webhook in Razorpay for <i>payment.captured</i> pointing to the function's <code>/webhook</code> address and save its secret as <code>RAZORPAY_WEBHOOK_SECRET</code>, so payments are recorded even if a parent closes the page early.)</li>
+      <li>Tap <b>Check setup</b>, then switch online payments on.</li></ol>
+    <div class="row wrap"><button type="button" class="btn btn-ghost btn-sm" data-act="rzpPing">${ic("check")}Check setup</button>
+      <button type="button" class="btn ${on?"btn-ghost":"btn-primary"} btn-sm" data-act="rzpToggle">${on?"Switch off":"Switch on"}</button><span class="small muted" id="rzp-ping"></span></div></section>`;}
+A.rzpPing=async()=>{const el=document.getElementById("rzp-ping");if(el)el.textContent="Checking…";
+  const r=await window.LL_fn("razorpay",{action:"ping"});
+  const msg=r.off?"The razorpay function isn't deployed yet (or returned 404).":r.error?`Couldn't check: ${r.error}.`:r.ok?`Ready · ${r.mode==="live"?"LIVE keys":"TEST keys"}${r.webhook?" · webhook secret set":" · no webhook secret (optional)"}.`:`Keys missing: ${[!r.key&&"RAZORPAY_KEY_ID",!r.secret&&"RAZORPAY_KEY_SECRET"].filter(Boolean).join(", ")}.`;
+  if(el)el.textContent=msg;else toast(msg,!(r.ok));};
+A.rzpToggle=async()=>{const on=rzpOn();
+  if(!on){const r=await window.LL_fn("razorpay",{action:"ping"});if(!r.ok){toast(r.off?"Deploy the razorpay function and add the keys first (see the steps).":"Add both Razorpay keys in Supabase first, then check the setup again.",true);return;}
+    if(r.mode==="test"){openModal("Test keys",`<p>The keys in Supabase are <b>TEST</b> keys: parents would see a test payment window and no money moves. Switch on anyway (for a trial run), or add your LIVE keys first.</p>`,{submitLabel:"Switch on with test keys",done:"Online payments are on (test mode)",onSubmit:async()=>{await saveCfg({academy:{...(CFG().academy||{}),rzp:true}});await audit("Online payments","on (test keys)");}});return;}}
+  await save(()=>saveCfg({academy:{...(CFG().academy||{}),rzp:!on}}),on?"Online payments switched off":"Online payments are on");await audit("Online payments",on?"off":"on");};
+let rzpAdmSubs={};
+function rzpLoadAll(){if(!S.isOwner||!S.db)return;const uids=new Set();for(const L of activeLearners())for(const u of (L.parents||[]))uids.add(u);
+  for(const u of uids){if(rzpAdmSubs[u])continue;rzpAdmSubs[u]=1;try{S.db.collection(`rzp/${u}/x`).onSnapshot(s=>{D.rzpAll=D.rzpAll||{};D.rzpAll[u]={};for(const d of s.docs)D.rzpAll[u][d.id]=d.data();schedule();},()=>{});}catch{}}}
+function rzpRecent(n=8){rzpLoadAll();const out=[];for(const [u,xs] of Object.entries(D.rzpAll||{}))for(const [id,x] of Object.entries(xs||{}))if(x)out.push({...x,id,uid:u});return out.sort((a,b)=>(b.at||0)-(a.at||0)).slice(0,n);}
+function rzpAdminHTML(){if(!rzpOn())return "";const xs=rzpRecent();
+  return `<section class="card panel"><div class="ph"><h2>Online payments</h2><button class="btn btn-ghost btn-sm" data-act="stabGo" data-id="billing">${ic("gear")}Settings</button></div>
+  ${xs.length?`<div class="list">${xs.map(p=>`<div class="item"><div class="grow"><div class="t">${money(p.amount)} · ${esc(learnerName(p.lid))} · ${esc(monthLabel(p.month))}</div><div class="s">${esc(fmtDay(new Date(p.at||Date.now())))} ${esc(fmtTime(new Date(p.at||Date.now())))} · ${esc(p.rp||"")} · from ${esc(accountName(p.uid))}</div></div><span class="pill p-good">Recorded</span></div>`).join("")}</div>`:`<p class="muted">Parents' online payments appear here and in each learner's fee record the moment they go through.</p>`}</section>`;}
+A.stabGo=id=>{S.stab=id;go("settings");};
 
 /* ================= events ================= */
 document.addEventListener("click",e=>{

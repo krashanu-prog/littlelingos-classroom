@@ -438,6 +438,21 @@
       return data || { error: "failed" };
     } catch (e) { return { error: "failed" }; }
   };
+  /* ---- generic edge-function call (online payments): the Razorpay keys stay on Supabase ---- */
+  window.LL_fn = async (name, body) => {
+    if (!sb || !session) return { error: "signin" };
+    try {
+      const { data, error } = await sb.functions.invoke(name, { body });
+      if (error) {
+        let d = null; try { d = error.context && await error.context.json(); } catch {}
+        const st = error.context && error.context.status;
+        if (st === 503 || st === 404) return { off: true, error: (d && d.error) || "not_configured" };
+        if (st === 401) return { error: "signin" };
+        return { error: (d && d.error) || "failed", status: st };
+      }
+      return data || { error: "failed" };
+    } catch (e) { return { error: "failed" }; }
+  };
   window.LL_setPassword = () => { if (session) passwordForm(); };
   async function securityHub(msg) {
     if (!session) return;

@@ -135,6 +135,22 @@ class H(SimpleHTTPRequestHandler):
                 v = rows[0][fn] if rows else None
                 return self.send_json(200, v)
             return self.single(200, rows)
+        if u.path == '/functions/v1/razorpay':   # mock of the Edge Function (test keys)
+            b = self.body() or {}; cl = claims_from(self.headers) or {}
+            a = b.get('action')
+            if a == 'ping': return self.send_json(200, {'ok': True, 'mode': 'test', 'key': True, 'secret': True, 'webhook': False})
+            if a == 'order':
+                c = conn(); cur = c.cursor(); cur.execute("select data from public.docs where path=%s", ('fees/' + b['lid'],)); f = cur.fetchone()[0]
+                paid = sum(+p['amount'] for p in (f.get('payments') or {}).values() if p and p.get('month') == b['month'])
+                amt = max(0, int(f['monthly']) - paid)
+                if amt <= 0: return self.send_json(409, {'error': 'nothing due'})
+                return self.send_json(200, {'order_id': 'order_T1', 'amount': amt * 100, 'key_id': 'rzp_test_x', 'kid': 'Anaya', 'month': b['month'], 'prefill': {'name': 'P One', 'email': 'p1@x.com', 'contact': ''}})
+            if a == 'verify':
+                pay = {'amount': 1000, 'month': '2026-10', 'date': '2026-10-25', 'method': 'Razorpay', 'note': 'Razorpay ' + b['payment_id'], 'at': 1761000000000, 'rp': b['payment_id'], 'order': b['order_id'], 'uid': cl.get('sub')}
+                c = conn(); cur = c.cursor(); cur.execute("select public.ll_rzp_record(%s,%s,%s,%s::jsonb)", ('l1', cl.get('sub'), 'rp_' + b['payment_id'].replace('pay_', ''), json.dumps(pay))); r = cur.fetchone()[0]; c.commit()
+                LOG.append(('RZP', 'verify', r))
+                return self.send_json(200, {'ok': True, 'pid': 'rp_' + b['payment_id'].replace('pay_', ''), 'fresh': r})
+            return self.send_json(400, {'error': 'unknown action'})
         if u.path == '/rest/v1/docs':
             b = self.body(); items = b if isinstance(b, list) else [b]
             for it in items:
