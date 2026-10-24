@@ -20,12 +20,18 @@ try:
                 ctx,p=open_as(b,who,390 if phone else 1280,844 if phone else 900)
                 ctx.route('**/cdn.jsdelivr.net/**', lambda r: r.fulfill(status=200,body=CJ,headers={'Content-Type':'application/javascript','Access-Control-Allow-Origin':'*'}))
                 p.on('dialog', lambda d: d.dismiss())
-                labels=[x.strip().split('\n')[0] for x in p.locator('#nav a').all_inner_texts()]
+                keys=p.evaluate("[...document.querySelectorAll('#nav a[data-go]')].map(a=>a.dataset.go)")
+                allk=[]
+                for k in keys:
+                    p.evaluate("k=>document.querySelector('#nav a[data-go=\"'+k+'\"]').click()",k); p.wait_for_timeout(400)
+                    for t in p.evaluate("[...document.querySelectorAll('.hubtab')].map(b=>b.dataset.go)") or [k]:
+                        if t not in allk: allk.append(t)
+                labels=allk
                 for lab in labels:
                     if not lab: continue
                     n0=len(errors)
                     try:
-                        p.locator('#nav a').filter(has=p.locator('span', has_text=_re.compile('^'+_re.escape(lab)+'$'))).first.click(timeout=5000); p.wait_for_timeout(600)
+                        p.evaluate("k=>{const el=document.querySelector('[data-go=\"'+k+'\"]');el.click();}",lab); p.wait_for_timeout(600)
                     except Exception as e:
                         report.append((who,'phone' if phone else 'desk',lab,['could not open: '+str(e)[:60]])); continue
                     iss=check_page(p,who,lab,phone)

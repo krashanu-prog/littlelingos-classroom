@@ -80,6 +80,7 @@ exec(open(W+'studio_patch.py').read())
 exec(open(W+'nk_patch.py').read())
 exec(open(W+'wb_patch.py').read())
 exec(open(W+'qz_patch.py').read())
+exec(open(W+'nav2_patch.py').read())
 exec(open(W+'polish_patch.py').read())
 # drop the claude-only meta
 R('<meta name="claude:viewport-fit-sides" content="cover">\n', '')

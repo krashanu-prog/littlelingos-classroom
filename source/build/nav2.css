@@ -1,0 +1,22 @@
+/* simpler menus */
+.hubtabs{display:flex;gap:4px;background:var(--leafSoft);border-radius:999px;padding:4px;margin:0 0 14px;overflow-x:auto;scrollbar-width:none;max-width:100%;width:max-content}
+.hubtabs::-webkit-scrollbar{display:none}
+.hubtab{all:unset;box-sizing:border-box;cursor:pointer;flex:none;min-height:40px;padding:8px 16px;border-radius:999px;font-weight:700;font-size:.92rem;color:var(--leaf);display:inline-flex;align-items:center}
+.hubtab.on{background:var(--card);color:var(--soil);box-shadow:0 0 0 2px var(--leafMid)}
+.hubtab:focus-visible{outline:3px solid var(--skyDeep);outline-offset:2px}
+.nav .navmore{display:none}
+.moregrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:10px}
+.moretile{all:unset;box-sizing:border-box;position:relative;cursor:pointer;background:var(--card);border:2px solid var(--line);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:4px;min-height:96px;color:var(--soil)}
+.moretile svg{color:var(--leaf)}.moretile b{font-family:var(--display);font-size:1.1rem}.moretile span{font-size:.8rem;color:var(--muted);line-height:1.3}
+.moretile .nbadge{position:absolute;top:8px;right:8px}
+.moretile:focus-visible{outline:3px solid var(--skyDeep);outline-offset:2px}
+.slimnudge{padding:10px 14px}
+.clock{padding:14px 18px;border-radius:22px}
+.clock .timer{font-size:clamp(1.8rem,1.5rem + 1vw,2.3rem);margin:2px 0}
+.clock p{margin:0;font-size:.92rem}
+@media (max-width:760px){
+  .nav a.nmore{display:none}
+  .nav .navmore{display:flex}
+  .nav a{flex:1 1 0}
+  .hubtabs{width:auto}
+}
