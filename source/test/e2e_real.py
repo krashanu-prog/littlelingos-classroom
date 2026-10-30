@@ -14,7 +14,8 @@ def session(uid, email):
     exp = int(time.time()) + 86400
     jwt = b64({'alg': 'HS256', 'typ': 'JWT'}) + '.' + b64({'sub': uid, 'email': email, 'role': 'authenticated', 'aud': 'authenticated', 'exp': exp}) + '.sig'
     return {'access_token': jwt, 'refresh_token': 'r', 'token_type': 'bearer', 'expires_in': 86400, 'expires_at': exp,
-            'user': {'id': uid, 'email': email, 'aud': 'authenticated', 'role': 'authenticated', 'app_metadata': {}, 'user_metadata': {}}}
+            'user': {'id': uid, 'email': email, 'aud': 'authenticated', 'role': 'authenticated', 'app_metadata': {}, 'user_metadata': ({} if NOPW.get(email) else {'pw_set': True})}}
+NOPW = {}
 errors = []; bodies = {}
 def open_as(b, who, w=1280, h=900):
     uid, email = users[who]

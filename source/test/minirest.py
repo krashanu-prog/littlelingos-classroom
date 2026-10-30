@@ -172,5 +172,11 @@ class H(SimpleHTTPRequestHandler):
             self.send_response(204); self.send_header('Access-Control-Allow-Origin', '*'); self.end_headers(); return
         self.send_json(404, {'message': 'nope'})
     do_PATCH = do_POST
+    def do_PUT(self):
+        u = urllib.parse.urlparse(self.path)
+        if u.path == '/auth/v1/user':
+            b = self.body() or {}; cl = claims_from(self.headers) or {}
+            return self.send_json(200, {'id': cl.get('sub'), 'email': cl.get('email'), 'aud': 'authenticated', 'role': 'authenticated', 'app_metadata': {}, 'user_metadata': b.get('data') or {}})
+        self.send_json(404, {'message': 'nope'})
 
 ThreadingHTTPServer(('127.0.0.1', PORT), H).serve_forever()

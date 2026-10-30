@@ -224,7 +224,7 @@
   function closeGate() { const el = document.getElementById("ll-gate"); if (el) el.remove(); }
   const brand = `<div class="ll-brand" role="img" aria-label="Little Lingos"><svg class="lg-pip" viewBox="24 12 152 186" aria-hidden="true"><path d="M100 58 c-4 -26 -30 -40 -54 -30 c8 24 30 34 54 30 z" fill="#A6DB5C"/><path d="M100 58 c4 -30 32 -46 60 -34 c-10 28 -34 38 -60 34 z" fill="#7CC243"/><path d="M100 56 v14" stroke="#22703A" stroke-width="6" stroke-linecap="round"/><ellipse cx="100" cy="128" rx="70" ry="64" fill="#2F8F46"/><ellipse cx="100" cy="150" rx="46" ry="30" fill="#3FA75A"/><circle cx="76" cy="116" r="15" fill="#FFFFFF"/><circle cx="79" cy="119" r="8" fill="#2E2219"/><circle cx="82" cy="115" r="2.6" fill="#FFFFFF"/><circle cx="124" cy="116" r="15" fill="#FFFFFF"/><circle cx="127" cy="119" r="8" fill="#2E2219"/><circle cx="130" cy="115" r="2.6" fill="#FFFFFF"/><ellipse cx="58" cy="140" rx="10" ry="6" fill="#F7A8C4"/><ellipse cx="142" cy="140" rx="10" ry="6" fill="#F7A8C4"/><path d="M84 140 q16 22 32 0 z" fill="#2E2219"/><path d="M92 148 q8 8 16 0 l-4 -2 h-8 z" fill="#E8492F"/></svg><span class="wm"><b>little</b><span>lingos<svg class="lg-leaf" viewBox="0 0 40 40" aria-hidden="true"><path d="M0 40 c2 -22 16 -36 40 -40 c-2 22 -16 36 -40 40 z" fill="#E8492F"/></svg></span></span></div>`;
   const LS = { get(k) { try { return localStorage.getItem(k); } catch { return null; } }, set(k, v) { try { localStorage.setItem(k, v); } catch {} } };
-  let viaCode = false;
+  let viaCode = false, viaPassword = false;
   /* catch mistyped email domains (gnail.com, gmial.com, yaho.com...) before a code goes to an address that doesn't exist */
   const MAIL_DOMS = ["gmail.com", "googlemail.com", "yahoo.com", "yahoo.co.in", "yahoo.in", "ymail.com", "rocketmail.com", "outlook.com", "outlook.in", "hotmail.com", "hotmail.co.in", "live.com", "live.in", "msn.com", "icloud.com", "me.com", "mac.com", "aol.com", "mail.com", "gmx.com", "proton.me", "protonmail.com", "zoho.com", "zohomail.in", "rediffmail.com", "rediff.com", "littlelingos.in"];
   const lev = (a, b) => { const m = a.length, n = b.length, d = Array.from({ length: m + 1 }, (_, i) => [i]); for (let j = 1; j <= n; j++) d[0][j] = j;
@@ -265,8 +265,9 @@
       { const fx = emailFix(email); if (fx && f.dataset.keep !== email) { f.dataset.keep = email; err.innerHTML = `Check the email: did you mean <b>${esc(fx)}</b>? <button type="button" class="btn btn-ghost btn-sm" id="ll-usefix">Use it</button>`; err.hidden = false; err.querySelector("#ll-usefix").onclick = () => { f.em.value = fx; f.dataset.keep = fx; err.hidden = true; f.pw.focus(); }; return; } }
       if (!password) { err.textContent = "Type your password."; err.hidden = false; return; }
       btn.disabled = true; btn.textContent = "Signing in…"; err.hidden = true;
+      viaPassword = true;
       const { error } = await sb.auth.signInWithPassword({ email, password });
-      if (error) { btn.disabled = false; btn.textContent = "Sign in"; err.textContent = pwFails(error); err.hidden = false; return; }
+      if (error) { viaPassword = false; btn.disabled = false; btn.textContent = "Sign in"; err.textContent = pwFails(error); err.hidden = false; return; }
       LS.set("ll-method", "password"); LS.set("ll-email", email);
     });
   }
@@ -357,8 +358,9 @@
     try { await checkLevel(); } catch {}
     startRealtime();
     viaCode = viaCode || fromLink;
-    closeGate(); readyResolve(true);
-    setTimeout(maybeOffer, 600);
+    if (viaPassword && !hasPassword()) { try { const { data } = await sb.auth.updateUser({ data: { pw_set: true } }); if (data && data.user) session = { ...session, user: data.user }; } catch {} }
+    if (hasPassword()) closeGate(); else passwordForm({ required: true });
+    readyResolve(true);
     idleGuard();
   }
   /* ---- staff accounts sign out after a quiet spell (shared academy computers) ---- */
@@ -380,8 +382,8 @@
   const hasPassword = () => !!(session && session.user && session.user.user_metadata && session.user.user_metadata.pw_set);
   function passwordForm(opts) {
     const o = opts || {}, had = hasPassword();
-    const el = gate(`${brand}<h1>${had ? "Change your password" : "Set a password"}</h1>
-      <p class="lede">${o.offer ? "Want to skip the email code next time? Set a password and sign in with your email and password." : had ? "Choose a new password for " : "Set a password for "}${o.offer ? "" : `<b>${esc(session.user.email || "")}</b>. Next time, sign in with your email and this password. Email codes still work too.`}</p>
+    const el = gate(`${brand}<h1>${had ? "Change your password" : o.required ? "Set your password" : "Set a password"}</h1>
+      ${o.required ? `<p class="lede">One last step before you start: set a password for <b>${esc(session.user.email || "")}</b>. Next time, sign in with your email and this password, with no waiting for a code.</p>` : `<p class="lede">${o.offer ? "Want to skip the email code next time? Set a password and sign in with your email and password." : had ? "Choose a new password for " : "Set a password for "}${o.offer ? "" : `<b>${esc(session.user.email || "")}</b>. Next time, sign in with your email and this password. Email codes still work too.`}</p>`}
       <form id="ll-setpw" novalidate><input type="email" name="u" autocomplete="username" value="${esc(session.user.email || "")}" hidden>
       <div class="field"><label for="ll-np">New password</label><input type="password" id="ll-np" name="np" required minlength="8" autocomplete="new-password"><span class="hint">At least 8 characters, with letters and numbers. Don't reuse a password from another site.</span></div>
       <div class="field"><label for="ll-np2">Type it again</label><input type="password" id="ll-np2" name="np2" required minlength="8" autocomplete="new-password"></div>
@@ -389,11 +391,11 @@
       <div class="field" id="ll-nonce-f" hidden><label for="ll-nonce">Code from your email</label><input type="text" id="ll-nonce" name="nonce" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="123456"><span class="hint">To keep your account safe, we emailed you a code. Type it here.</span></div>
       <p class="formerr" id="ll-err" hidden></p>
       <button class="btn btn-primary btn-big" type="submit" id="ll-go">Save password</button></form>
-      <div class="row"><button class="btn btn-ghost btn-sm" type="button" id="ll-skip">${o.offer ? "Not now" : "Cancel"}</button></div>`);
+      <div class="row"><button class="btn btn-ghost btn-sm" type="button" id="ll-skip">${o.required ? "Sign out" : o.offer ? "Not now" : "Cancel"}</button></div>${o.required ? `<p class="small muted">If you ever forget it, tap \u201cEmail me a code\u201d on the sign-in page and set a new one from your account.</p>` : ""}`);
     const f = el.querySelector("form"), err = el.querySelector("#ll-err"), btn = el.querySelector("#ll-go");
     setTimeout(() => f.np.focus(), 50);
     el.querySelector("#ll-show").onchange = e => { f.np.type = f.np2.type = e.target.checked ? "text" : "password"; };
-    el.querySelector("#ll-skip").onclick = () => { if (o.offer) LS.set("ll-pw-offer-" + session.user.id, String(Date.now())); closeGate(); };
+    el.querySelector("#ll-skip").onclick = () => { if (o.required) { window.LL_signOut(); return; } if (o.offer) LS.set("ll-pw-offer-" + session.user.id, String(Date.now())); closeGate(); };
     const show = m => { err.textContent = m; err.hidden = false; };
     f.addEventListener("submit", async e => {
       e.preventDefault(); err.hidden = true;
