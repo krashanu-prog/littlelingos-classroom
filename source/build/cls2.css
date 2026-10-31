@@ -1,4 +1,4 @@
-.kpick{display:flex;flex-direction:column;gap:8px}.kpick .kpq{gap:6px;flex-wrap:wrap}.kpick .kpn{color:var(--leaf);font-weight:700;margin:0}
+.kpick{display:flex;flex-direction:column;gap:8px}.kpick .kps{min-height:44px;border-radius:999px;padding:8px 18px;border:2px solid var(--line);font:inherit;max-width:420px}.kpick .chips{display:flex;flex-wrap:wrap;gap:8px}.kpick .kpdiv{flex-basis:100%;margin:6px 0 0;font-size:.78rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--leaf)}.kpick .kpq{gap:6px;flex-wrap:wrap}.kpick .kpn{color:var(--leaf);font-weight:700;margin:0}
 .hwf2 .sheetpick{display:flex;flex-direction:column;gap:8px;border:2px dashed var(--line);border-radius:16px;padding:12px}
 .hwf2 .sheetcur{gap:8px;background:var(--leafSoft);border-radius:12px;padding:8px 12px}
 .hwf2 .hwbank{border:2px solid var(--line);border-radius:20px;padding:4px 16px;background:#fff}

@@ -8,25 +8,30 @@ function kidPicker(name,chosen,pool,byCourse,c0){
   const ids=new Set(chosen||[]);const extra=[...ids].filter(id=>D.learners[id]&&!pool.some(L=>L.id===id)).map(learner);
   const all=[...pool,...extra].sort((a,b)=>String(a.name||"").localeCompare(String(b.name||"")));
   if(!all.length)return `<p class="small muted">No learners are assigned to you yet. Ask the admin to assign learners to you.</p>`;
-  const hide=L=>byCourse&&c0&&!(L.courses||[]).includes(c0)&&!ids.has(L.id);
+  const inC=L=>!byCourse||!c0||(L.courses||[]).includes(c0);const split=byCourse&&!!c0&&all.some(L=>!inC(L));
   const bs=pickBatches();
   return `<div class="kpick" data-kpick="${esc(name)}" ${byCourse?'data-kpcourse="1"':""}>
     <div class="row kpq"><button type="button" class="btn btn-ghost btn-sm" data-kp="all">${byCourse?"Everyone in this course":"All my learners"}</button>${bs.map(b=>`<button type="button" class="btn btn-ghost btn-sm" data-kp="b:${esc(b.id)}" data-bc="${esc(b.courseId||"")}" ${byCourse&&c0&&b.courseId&&b.courseId!==c0?"hidden":""}>${ic("users")}${esc(b.name||"Batch")}</button>`).join("")}<button type="button" class="btn btn-ghost btn-sm" data-kp="none">Clear</button></div>
-    <div class="chips">${all.map(L=>`<label class="chip" ${hide(L)?"hidden":""}><input type="checkbox" name="${esc(name)}" value="${esc(L.id)}" data-c="${esc((L.courses||[]).join(" "))}" ${ids.has(L.id)?"checked":""}><span>${esc(L.name)}${L.stage?` <i>${esc(L.stage)}</i>`:""}</span></label>`).join("")}</div>
+    ${all.length>10?`<input type="search" class="kps" placeholder="Search learners by name" aria-label="Search learners" autocomplete="off">`:""}
+    <div class="chips">${byCourse?`<p class="kpdiv" data-kpd="in" style="order:0" ${split?"":"hidden"}>In this course</p><p class="kpdiv" data-kpd="out" style="order:2" ${split?"":"hidden"}>Other learners</p>`:""}${all.map(L=>`<label class="chip" data-in="${inC(L)?1:0}" style="order:${inC(L)?1:3}"><input type="checkbox" name="${esc(name)}" value="${esc(L.id)}" data-c="${esc((L.courses||[]).join(" "))}" ${ids.has(L.id)?"checked":""}><span>${esc(L.name)}${L.stage?` <i>${esc(L.stage)}</i>`:""}</span></label>`).join("")}</div>
     <p class="small kpn" aria-live="polite">${kpCount(ids.size)}</p></div>`;
 }
 const kpCount=n=>n?`${n} learner${n===1?"":"s"} picked.`:`No one picked yet.`;
 function kpSync(box){const n=box.querySelectorAll('input[type=checkbox]:checked').length;const p=box.querySelector(".kpn");if(p)p.textContent=kpCount(n);}
 function kpFilter(form){const box=form&&form.querySelector(".kpick[data-kpcourse]");if(!box)return;const sel=form.querySelector('select[name="course"]');const c=sel?sel.value:"";
-  box.querySelectorAll("label.chip").forEach(l=>{const i=l.querySelector("input");l.hidden=!!c&&!i.checked&&!(" "+i.dataset.c+" ").includes(" "+c+" ");});
+  let outs=0,ins=0;box.querySelectorAll("label.chip").forEach(l=>{const i=l.querySelector("input");const inn=!c||(" "+i.dataset.c+" ").includes(" "+c+" ");l.dataset.in=inn?"1":"0";l.style.order=inn?"1":"3";if(inn)ins++;else outs++;});
+  const split=!!c&&outs>0;box.querySelectorAll(".kpdiv").forEach(d=>{d.hidden=!split||(d.dataset.kpd==="in"&&!ins);});
   box.querySelectorAll("[data-bc]").forEach(b=>{b.hidden=!!c&&!!b.dataset.bc&&b.dataset.bc!==c;});}
 if(!window.__kpWired){window.__kpWired=true;
   document.addEventListener("click",e=>{const b=e.target.closest&&e.target.closest("[data-kp]");if(!b)return;e.preventDefault();const box=b.closest(".kpick");if(!box)return;const k=b.dataset.kp;
     const boxes=[...box.querySelectorAll('label.chip input[type=checkbox]')];
     if(k==="none")boxes.forEach(i=>{i.checked=false});
-    else if(k==="all")boxes.forEach(i=>{if(!i.closest("label").hidden)i.checked=true});
+    else if(k==="all")boxes.forEach(i=>{const l=i.closest("label");if(!l.hidden&&l.dataset.in!=="0")i.checked=true});
     else if(k.startsWith("b:")){const bt=D.batches&&D.batches[k.slice(2)];const set=new Set((bt&&bt.learners)||[]);boxes.forEach(i=>{if(set.has(i.value)){i.checked=true;i.closest("label").hidden=false;}});}
     kpSync(box);},true);
+  document.addEventListener("input",e=>{const t=e.target;if(!t||!t.classList||!t.classList.contains("kps"))return;const box=t.closest(".kpick");const q=t.value.trim().toLowerCase();
+    box.querySelectorAll("label.chip").forEach(l=>{const i=l.querySelector("input");l.hidden=!!q&&!i.checked&&!l.textContent.toLowerCase().includes(q);});},true);
+  document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target&&e.target.classList&&e.target.classList.contains("kps"))e.preventDefault();},true);
   document.addEventListener("change",e=>{const t=e.target;if(!t||!t.closest)return;const box=t.closest(".kpick");if(box){kpSync(box);return;}
     if(t.name==="course"&&t.form)kpFilter(t.form);},true);
 }
