@@ -17,9 +17,10 @@ def session(uid, email):
             'user': {'id': uid, 'email': email, 'aud': 'authenticated', 'role': 'authenticated', 'app_metadata': {}, 'user_metadata': ({} if NOPW.get(email) else {'pw_set': True})}}
 NOPW = {}
 errors = []; bodies = {}
+TZID = {}
 def open_as(b, who, w=1280, h=900):
     uid, email = users[who]
-    ctx = b.new_context(viewport={'width': w, 'height': h})
+    ctx = b.new_context(viewport={'width': w, 'height': h}, timezone_id=TZID.get(who, 'Asia/Kolkata'))
     ctx.add_init_script("localStorage.setItem('sb-127-auth-token', %s);" % json.dumps(json.dumps(session(uid, email))))
     ctx.route('**/fonts.googleapis.com/**', lambda r: r.abort())
     p = ctx.new_page(); bodies[who] = []

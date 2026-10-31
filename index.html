@@ -1100,6 +1100,7 @@ body.st-on{overflow:hidden}
 .actrow{display:flex;align-items:center;gap:12px;padding:8px 10px;border-radius:14px;background:var(--ground,#F5FAEE)}.actrow .acte{font-size:1.4rem;width:32px;text-align:center;flex:none}
 .actrow .grow{display:flex;flex-direction:column;min-width:0}.actrow .grow b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.actrow .grow span{font-size:.82rem;color:var(--muted,#5C4F45)}
 .actsum{margin:0}.prevnote{margin-bottom:12px}
+.tzprev{margin:0;line-height:1.5;background:var(--skySoft,#BFE3FA);border-radius:12px;padding:8px 12px}
 .iconbtn{width:44px;height:44px;min-height:44px}
 select.inline{min-height:44px}
 .nm,.linkbtn{position:relative}
@@ -1646,7 +1647,7 @@ function sessionRow(s,opts={}){
   const url=safeUrl(s.joinUrl);
   const who=s.trainerId&&D.trainers[s.trainerId]?trainerName(s.trainerId):courseTeacher(c);
   return `<div class="item"><div class="when"><span>${esc(WD.format(d))}</span><b class="num">${esc(DNUM.format(d))}</b></div>
-    <div class="grow"><div class="t">${esc(s.title||"Live class")}</div><div class="s">${esc(fmtTime(d))}–${esc(fmtTime(end))} · ${esc(c?c.title:"Course removed")} · ${esc(who)}${s.notes?` · ${esc(s.notes)}`:""}</div></div>
+    <div class="grow"><div class="t">${esc(s.title||"Live class")}</div><div class="s">${esc(fmtTime(d))}–${esc(fmtTime(end))}${esc(istRange(d,end))} · ${esc(c?c.title:"Course removed")} · ${esc(who)}${s.notes?` · ${esc(s.notes)}`:""}</div></div>
     ${opts.tag?`<span class="pill p-sun">${esc(opts.tag)}</span>`:""}${live?`<span class="pill p-good">Live now</span>`:""}
     ${opts.attend?attendCell(s):""}
     ${!past&&!opts.noJoin?(url?`<a class="btn ${live?"btn-primary":"btn-ghost"} btn-sm" href="${esc(url)}" target="_blank" rel="noopener">${ic("video")}Join</a>`:(opts.attend?"":`<span class="pill p-mute">Link soon</span>`)):(past&&!opts.attend?kidDonePill(s):"")}
@@ -1983,7 +1984,7 @@ function parentHome(){
     <div class="row"><h2>${esc(L.name)}</h2><span class="spacer"></span>${ratePill(s.a.rate)}</div>
     <div style="background:var(--leafSoft);border-radius:18px 18px 18px 4px;padding:12px 14px"><p class="small" style="font-weight:700;color:var(--leaf)">This week</p><p>${weekLine(L,s)}</p></div>
     <div class="stats" style="grid-template-columns:repeat(3,1fr)"><div class="stat f" style="background:var(--sunSoft)"><b class="num">${flowers(s.uid)}</b><span>Flowers</span></div><div class="stat f" style="background:var(--skySoft)"><b class="num">${s.a.t?`${s.a.p+s.a.l}/${s.a.t}`:"–"}</b><span>Classes attended</span></div><div class="stat f" style="background:var(--petalSoft)"><b class="num">${hwFor(L).filter(h=>!answerOf(L,h)).length}</b><span>Homework to do</span></div></div>
-    ${lastClassLine(L)}<p class="small muted">${s.next?`Next class: ${esc(fmtDay(new Date(s.next.startsAt)))}, ${esc(fmtTime(new Date(s.next.startsAt)))}`:"No classes booked"}${L.trainerId?` · Teacher: ${esc(trainerName(L.trainerId))}`:""}</p>
+    ${lastClassLine(L)}<p class="small muted">${s.next?`Next class: ${esc(fmtDay(new Date(s.next.startsAt)))}, ${esc(fmtTime(new Date(s.next.startsAt)))}${esc(istShort(new Date(s.next.startsAt)))}`:"No classes booked"}${L.trainerId?` · Teacher: ${esc(trainerName(L.trainerId))}`:""}</p>
   </article>`}).join("")}</div>`;
 }
 function childView(lid){
@@ -2489,8 +2490,9 @@ function sessionForm(s={},cid){
   <div class="field"><label for="s-trainer">Trainer</label><select id="s-trainer" name="trainer">${admin?opt("","Course's trainer",!tdef)+activeTrainers().map(t=>opt(t.id,t.name,t.id===tdef)).join(""):activeTrainers().filter(t=>t.id===tdef||t.id===myTid()).map(t=>opt(t.id,t.name,t.id===tdef)).join("")||opt("","Course's trainer",true)}</select>${admin?"":`<span class="hint">The admin assigns trainers to classes and learners.</span>`}</div></div>
   ${sessPickHTML(s,cid)}
   <div class="field"><label for="s-title">Class title</label><input type="text" id="s-title" name="title" maxlength="100" value="${esc(s.title||"")}" placeholder="e.g. Hello song circle"></div>
-  <div class="two"><div class="field"><label for="s-start">Starts</label><input type="datetime-local" id="s-start" name="start" required data-label="Start time" value="${esc(toLocalInput(d))}"></div>
+  <div class="two"><div class="field"><label for="s-start">Starts</label><input type="datetime-local" id="s-start" name="start" required data-label="Start time" value="${esc(sameAsIST(d)?toLocalInput(d):toZonedInput(d,IST_TZ))}"></div>
   <div class="field"><label for="s-dur">Length (minutes)</label><input type="number" id="s-dur" name="dur" min="10" max="240" step="5" value="${esc(s.durationMin||45)}"></div></div>
+  ${startTzField(d)}
   <div class="field"><label for="s-url">Meeting link</label><input type="url" id="s-url" name="url" data-label="Meeting link" value="${esc(s.joinUrl||"")}" placeholder="https://meet.google.com/… or https://zoom.us/j/…"><span class="hint">Learners get a Join button. After saving you can send the link to families on WhatsApp or email. Leave empty for classes held at the centre.</span></div>
   <div class="field"><span class="lbl">Topic picture</span><div class="iconpick"><label><input type="radio" name="icon" value="" ${!s.icon?"checked":""}><span>Auto</span></label>${ICON_OPTS.map(e=>`<label><input type="radio" name="icon" value="${e}" ${s.icon===e?"checked":""}><span>${e}</span></label>`).join("")}</div><span class="hint">Learners see this picture on their timetable.</span></div>
   <div class="field"><label for="s-topic">Topic (optional)</label><input type="text" id="s-topic" name="topic" maxlength="120" value="${esc(s.topic||"")}" placeholder="e.g. Farm animals and their sounds"></div>
@@ -2501,7 +2503,7 @@ function sessionForm(s={},cid){
   <div class="field"><label for="s-rec">Recording link (optional)</label><input type="url" id="s-rec" name="rec" data-label="Recording link" value="${esc(s.recordingUrl||"")}" placeholder="https://drive.google.com/… or YouTube (unlisted)"><span class="hint">Add after the class so families can watch it again.</span></div>
   <div class="field"><label for="s-notes">Note for learners (optional)</label><input type="text" id="s-notes" name="notes" maxlength="140" value="${esc(s.notes||"")}" placeholder="Bring a soft toy"></div>`;
 }
-const sessData=f=>{const _fl=sessKids(f);const u=f.url.value.trim();if(u&&!safeUrl(u))throw userErr("The meeting link must start with https://");const d=new Date(f.start.value);if(isNaN(d))throw userErr("Pick a start time.");return {forLids:_fl,courseId:f.course.value,trainerId:f.trainer.value||null,title:f.title.value.trim(),startsAt:d.toISOString(),durationMin:+f.dur.value||45,joinUrl:safeUrl(u),notes:f.notes.value.trim(),icon:(f.icon&&f.icon.value)||"",plan:f.plan.value.trim(),vocab:f.voc.value.trim(),libIds:[...document.querySelectorAll('#modal-root input[name="lib"]:checked')].map(x=>x.value),topic:f.topic.value.trim(),objectives:f.obj.value.trim(),recordingUrl:(()=>{const r=f.rec.value.trim();if(r&&!safeUrl(r))throw userErr("The recording link must start with https://");return safeUrl(r)})()}};
+const sessData=f=>{const _fl=sessKids(f);const u=f.url.value.trim();if(u&&!safeUrl(u))throw userErr("The meeting link must start with https://");const d=startFromForm(f);if(isNaN(d))throw userErr("Pick a start time.");return {forLids:_fl,courseId:f.course.value,trainerId:f.trainer.value||null,title:f.title.value.trim(),startsAt:d.toISOString(),durationMin:+f.dur.value||45,joinUrl:safeUrl(u),notes:f.notes.value.trim(),icon:(f.icon&&f.icon.value)||"",plan:f.plan.value.trim(),vocab:f.voc.value.trim(),libIds:[...document.querySelectorAll('#modal-root input[name="lib"]:checked')].map(x=>x.value),topic:f.topic.value.trim(),objectives:f.obj.value.trim(),recordingUrl:(()=>{const r=f.rec.value.trim();if(r&&!safeUrl(r))throw userErr("The recording link must start with https://");return safeUrl(r)})()}};
 A.newSession=cid=>{if(!courseList().length){toast("Create a course first.",true);return}openModal("Schedule a class",sessionForm({},cid),{wide:true,submitLabel:"Schedule class",done:"Class scheduled",onSubmit:async f=>{const ref=S.db.collection("sessions").doc();const d={...sessData(f),createdBy:S.uid,createdAt:Date.now()};await ref.set(d);newSid=[ref.id,d]},after:()=>{if(newSid){const [id,d]=newSid;newSid=null;D.sessions[id]=D.sessions[id]||d;A.shareSession(id,null,true)}}});};
 let newSid=null;
 A.editSession=(id,fromList)=>openModal("Edit class",sessionForm(D.sessions[id]),{wide:true,done:"Class saved",after:()=>{if(fromList===true)setTimeout(()=>{if(noKidsUpcoming().length)A.noKidsList();},300);},footerExtra:`<button type="button" class="btn btn-ghost" data-mact="del">${ic("trash")}Cancel class</button>`,actions:{del:()=>{closeModal();A.delSession(id)}},onSubmit:async f=>{await S.db.doc("sessions/"+id).update(sessData(f))}});
@@ -2637,7 +2639,7 @@ const byWho=uid=>trainerByUid(uid)?.name||(uid===D.config.ownerUid?"Little Lingo
 function kidAlerts(L){
   const out=[];const now=Date.now();
   const live=kidSessions(L).find(s=>{const t=new Date(s.startsAt).getTime();return now>=t-30*6e4&&now<=sessEnd(s);});
-  if(live){const url=safeUrl(live.joinUrl);out.push(`<section class="alert a-sky"><b>${now>=new Date(live.startsAt).getTime()-15*6e4?"Class is starting":"Class starts soon"}:</b> ${esc(live.title||"Live class")} at ${esc(fmtTime(new Date(live.startsAt)))}<span class="spacer"></span>${url?`<a class="btn btn-primary btn-sm" href="${esc(url)}" target="_blank" rel="noopener">${ic("video")}Join</a>`:""}</section>`);}
+  if(live){const url=safeUrl(live.joinUrl);out.push(`<section class="alert a-sky"><b>${now>=new Date(live.startsAt).getTime()-15*6e4?"Class is starting":"Class starts soon"}:</b> ${esc(live.title||"Live class")} at ${esc(fmtTime(new Date(live.startsAt)))}${esc(istShort(new Date(live.startsAt)))}<span class="spacer"></span>${url?`<a class="btn btn-primary btn-sm" href="${esc(url)}" target="_blank" rel="noopener">${ic("video")}Join</a>`:""}</section>`);}
   const hs=hwFor(L);const late=hs.filter(h=>hwState(L,h).k==="late");const soon=hs.filter(h=>{const st=hwState(L,h);const d=hwDue(h);return st.k==="open"&&d&&d-new Date()<2*864e5;});
   if(late.length)out.push(`<section class="alert a-bad"><b>${late.length} homework task${late.length===1?" is":"s are"} overdue</b><span class="small">${esc(late.slice(0,2).map(h=>h.title).join(", "))}</span><span class="spacer"></span><button class="btn btn-ghost btn-sm" data-go="homework">See homework</button></section>`);
   if(soon.length)out.push(`<section class="alert a-sun"><b>${soon.length} homework task${soon.length===1?"":"s"} due soon</b><span class="small">${esc(soon.slice(0,2).map(h=>`${h.title} (${relDue(hwDue(h)).toLowerCase()})`).join(", "))}</span><span class="spacer"></span><button class="btn btn-ghost btn-sm" data-go="homework">See homework</button></section>`);
@@ -2739,7 +2741,7 @@ function classDetail(s,h,L){
   const d=new Date(s.startsAt),end=new Date(sessEnd(s)),c=D.courses[s.courseId],url=safeUrl(s.joinUrl),past=Date.now()>sessEnd(s),live=Date.now()>=d.getTime()-15*6e4&&!past;
   const rated=myPP().some(x=>x.kind==="rating"&&x.sid===s.id&&x.lid===L.id);
   const pendingReq=myPP().find(x=>x.kind==="req"&&x.sid===s.id&&x.status==="open");
-  return `<article class="classbox"><div class="row"><b>${esc(fmtTime(d))}–${esc(fmtTime(end))}</b><span class="pill p-mute">${esc(c?c.title:"")}</span>${live?`<span class="pill p-good">Live now</span>`:""}${h?attPill(h.st):past&&s.doneAt?`<span class="pill p-good">Completed</span>`:""}</div>
+  return `<article class="classbox"><div class="row"><b>${esc(fmtTime(d))}–${esc(fmtTime(end))}</b>${istRange(d,end)?`<span class="pill p-info">${esc(istRange(d,end).replace(/^ \S* · /,""))}</span>`:""}<span class="pill p-mute">${esc(c?c.title:"")}</span>${live?`<span class="pill p-good">Live now</span>`:""}${h?attPill(h.st):past&&s.doneAt?`<span class="pill p-good">Completed</span>`:""}</div>
     <h3>${esc(s.title||"Live class")}</h3>
     ${s.topic?`<p><b>Topic:</b> ${esc(s.topic)}</p>`:""}
     ${s.objectives?`<div class="small"><b>Learning objectives</b><ul class="obj">${String(s.objectives).split("\n").map(x=>x.trim()).filter(Boolean).map(x=>`<li>${esc(x.replace(/^[-•*]\s*/,""))}</li>`).join("")}</ul></div>`:""}
@@ -3345,7 +3347,7 @@ function kidClasses(){
   <div class="row"><div class="monthnav"><button class="iconbtn" data-act="wkShift" data-id="-1" aria-label="Last week">${ic("back")}</button><b>${wk===0?"This week":wk===1?"Next week":wk===-1?"Last week":esc(fmtDay(days[0]))}</b><button class="iconbtn" data-act="wkShift" data-id="1" aria-label="Next week">${ic("fwd")}</button></div></div>
   <div class="tt">${days.map(d=>{const k=dayKey(d),ss=(byDay[k]||[]).sort((a,b)=>String(a.startsAt).localeCompare(String(b.startsAt)));
     return `<div class="ttday ${k===today?"today":""}"><div class="ttd"><span>${esc(WD.format(d))}</span><b class="num">${esc(DNUM.format(d))}</b></div>${ss.length?ss.map(s=>{const t=new Date(s.startsAt),past=sessEnd(s)<Date.now(),live=!past&&Date.now()>=t.getTime()-15*6e4,url=safeUrl(s.joinUrl),h=hist[s.id];
-      return `<div class="ttc ${live?"live":""} ${past?"past":""}"><span class="ticon sm">${topicIcon(s)}</span><b>${esc(s.title||"Live class")}</b><span class="small">${esc(fmtTime(t))}${s.topic?` · ${esc(s.topic)}`:""}</span>${live&&url?`<a class="btn btn-primary btn-sm" href="${esc(url)}" target="_blank" rel="noopener">${ic("video")}Join!</a>`:""}${materialsHTML(s)}${h?`<span>${attPill(h.st)}</span>`:""}${past&&safeUrl(s.recordingUrl)?`<a class="btn btn-ghost btn-sm" href="${esc(safeUrl(s.recordingUrl))}" target="_blank" rel="noopener">${ic("play")}Watch again</a>`:""}</div>`}).join(""):`<span class="ttnone">No class</span>`}</div>`}).join("")}</div>
+      return `<div class="ttc ${live?"live":""} ${past?"past":""}"><span class="ticon sm">${topicIcon(s)}</span><b>${esc(s.title||"Live class")}</b><span class="small">${esc(fmtTime(t))}${esc(istShort(t))}${s.topic?` · ${esc(s.topic)}`:""}</span>${live&&url?`<a class="btn btn-primary btn-sm" href="${esc(url)}" target="_blank" rel="noopener">${ic("video")}Join!</a>`:""}${materialsHTML(s)}${h?`<span>${attPill(h.st)}</span>`:""}${past&&safeUrl(s.recordingUrl)?`<a class="btn btn-ghost btn-sm" href="${esc(safeUrl(s.recordingUrl))}" target="_blank" rel="noopener">${ic("play")}Watch again</a>`:""}</div>`}).join(""):`<span class="ttnone">No class</span>`}</div>`}).join("")}</div>
   <section class="card panel"><h2>Class replays</h2>${replays.length?`<div class="list">${replays.map(s=>`<div class="item"><span class="ticon sm">${topicIcon(s)}</span><div class="grow"><div class="t">${esc(s.title||"Class")}</div><div class="s">${esc(fmtDay(new Date(s.startsAt)))}${s.topic?` · ${esc(s.topic)}`:""}</div></div><a class="btn btn-ghost btn-sm" href="${esc(safeUrl(s.recordingUrl))}" target="_blank" rel="noopener">${ic("play")}Watch again</a></div>`).join("")}</div>`:`<p class="muted">When your teacher adds a recording, you can watch the class again here.</p>`}</section>`;
 }
 A.wkShift=k=>{S.wk=(S.wk||0)+(+k);render(true);};
@@ -6417,6 +6419,36 @@ const CH_LOGGED=new WeakSet();
   actLog("chess",two?"Chess with a friend":`Chess with Pip · ${CH.mode==="hard"?"hard":CH.mode==="medium"?"medium":"easy"}`,two?null:g.in_checkmate()?(g.turn()!==CH.me?1:0):0.5);}}catch(e){}return h;};}
 /* learner preview note above every learner page */
 for(const v of Object.keys(VIEWS)){const f=VIEWS[v];VIEWS[v]=function(){return previewNoteHTML()+f.apply(this,arguments);};}
+
+/* ================= India time (IST) beside every class time ================= */
+const IST_TZ="Asia/Kolkata";
+const ISTT=new Intl.DateTimeFormat("en-IN",{timeZone:IST_TZ,hour:"numeric",minute:"2-digit"});
+const ISTD=new Intl.DateTimeFormat("en-IN",{timeZone:IST_TZ,weekday:"short",day:"numeric",month:"short"});
+const ISTK=new Intl.DateTimeFormat("en-CA",{timeZone:IST_TZ,year:"numeric",month:"2-digit",day:"2-digit"});
+/* the time zone this person sees times in: a parent's chosen zone, else the device's */
+function viewerTz(){const p=realRole()==="parent"?((D.profiles[S.uid]||{}).tz||""):"";if(p)return p;try{return Intl.DateTimeFormat().resolvedOptions().timeZone||""}catch{return ""}}
+function tzOffset(tz,d){try{return (new Intl.DateTimeFormat("en-US",{timeZone:tz,timeZoneName:"longOffset"}).formatToParts(d||new Date()).find(p=>p.type==="timeZoneName")||{}).value||tz}catch{return tz}}
+const sameAsIST=d=>{const v=viewerTz();return !v||v===IST_TZ||v==="Asia/Calcutta"||tzOffset(v,d)===tzOffset(IST_TZ,d);};
+const myZone=d=>{const v=viewerTz();try{return (new Intl.DateTimeFormat("en-US",{timeZone:v||undefined,timeZoneName:"short"}).formatToParts(d||new Date()).find(p=>p.type==="timeZoneName")||{}).value||""}catch{return ""}};
+/* " · 6:00–6:45 pm IST" (with the IST day when it differs), or "" for people already on IST */
+function istRange(d,end){if(!okDate(d)||sameAsIST(d))return "";const dayDiff=ISTK.format(d)!==DKEY.format(d);
+  return ` ${myZone(d)} · ${ISTT.format(d)}${end&&okDate(end)?"–"+ISTT.format(end):""} IST${dayDiff?" ("+ISTD.format(d)+")":""}`;}
+const istShort=d=>istRange(d,null);
+/* scheduling: enter the start in India time or your own time, and always see both */
+function toZonedInput(d,tz){if(!tz)return toLocalInput(d);try{const p=Object.fromEntries(new Intl.DateTimeFormat("en-US",{timeZone:tz,hourCycle:"h23",year:"numeric",month:"2-digit",day:"2-digit",hour:"2-digit",minute:"2-digit"}).formatToParts(d).map(x=>[x.type,x.value]));return `${p.year}-${p.month}-${p.day}T${pad((+p.hour)%24)}:${p.minute}`;}catch{return toLocalInput(d)}}
+function fromZonedInput(v,tz){if(!v)return new Date(NaN);if(!tz)return new Date(v);const [ds,ts]=v.split("T");return zonedDate(ds,ts||"00:00",tz);}
+function startTzField(d){if(sameAsIST(d||new Date()))return "";const z=myZone(d||new Date());
+  return `<div class="two"><div class="field"><label for="s-tz">Start time is in</label><select id="s-tz" name="startz" data-prev="${IST_TZ}">${opt(IST_TZ,"India time (IST)",true)}${opt("","My time ("+(z||"this device")+")",false)}</select></div>
+    <div class="field"><span class="lbl">Check the time</span><p class="small tzprev" id="s-tzp" aria-live="polite">${d&&okDate(d)?`<b>India (IST):</b> ${esc(ISTD.format(d))}, ${esc(ISTT.format(d))}<br><b>Your time (${esc(z)}):</b> ${esc(fmtDay(d))}, ${esc(fmtTime(d))}`:""}</p></div></div>`;}
+function tzPreview(form){const p=form&&form.querySelector("#s-tzp");if(!p)return;const z=form.querySelector('select[name="startz"]'),i=form.querySelector('input[name="start"]');
+  const d=fromZonedInput(i&&i.value,z?z.value:"");if(!okDate(d)){p.textContent="Pick a start time.";return}
+  p.innerHTML=`<b>India (IST):</b> ${esc(ISTD.format(d))}, ${esc(ISTT.format(d))}<br><b>Your time (${esc(myZone(d))}):</b> ${esc(fmtDay(d))}, ${esc(fmtTime(d))}`;}
+const startFromForm=f=>fromZonedInput(f.start.value,f.startz?f.startz.value:"");
+if(!window.__tzWired){window.__tzWired=true;
+  document.addEventListener("change",e=>{const t=e.target;if(!t||t.name!=="startz")return;const form=t.closest("form");const i=form&&form.querySelector('input[name="start"]');
+    if(i&&i.value){const d=fromZonedInput(i.value,t.dataset.prev||"");if(okDate(d))i.value=toZonedInput(d,t.value);}t.dataset.prev=t.value;tzPreview(form);},true);
+  document.addEventListener("input",e=>{const t=e.target;if(t&&t.name==="start"&&t.form&&t.form.querySelector("#s-tzp"))tzPreview(t.form);},true);
+}
 
 /* ================= events ================= */
 document.addEventListener("click",e=>{
