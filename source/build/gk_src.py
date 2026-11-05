@@ -61,6 +61,9 @@ for k,v in _m["GK_MORE"].items():
     have={q for q,_,_ in GK[k]}
     GK[k]+= [x for x in v if x[0] not in have]
 EN=_m["EN"]
+exec(open(__file__.rsplit("/",1)[0]+"/gk_more2.py" if "/" in __file__ else "gk_more2.py").read(),{"GK":GK,"EN":EN})
+for k in GK:
+    qs=[q for q,_,_ in GK[k]]; assert len(qs)==len(set(qs)), [q for q in qs if qs.count(q)>1]
 for k,v in list(GK.items())+list(EN.items()):
     for q,a,o in v: assert len(o)==3 and a not in o, q
 open("site/gk.js","w").write("/* Little Lingos GK quiz: original questions by age group. Free to use and adapt. */\nwindow.LL_GK = "+json.dumps({k:[{"q":q,"a":a,"o":o} for q,a,o in v] for k,v in GK.items()},ensure_ascii=False,separators=(",",":"))+";\nwindow.LL_EN = "+json.dumps({k:[{"q":q,"a":a,"o":o} for q,a,o in v] for k,v in EN.items()},ensure_ascii=False,separators=(",",":"))+";\n")

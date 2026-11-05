@@ -115,12 +115,13 @@ head = '''<!doctype html>
 <script src="supabase.js"></script>
 <script src="adapter.js?v=ADAPTER_V"></script>
 <script src="bank.js"></script>
-<script src="gk.js"></script>
+<script src="gk.js?v=GK_V"></script>
 </head>
 <body>
 '''
 os.makedirs(W + 'site/vendor', exist_ok=True)
 import hashlib as _hl
+head = head.replace('GK_V', _hl.sha256(open(W + 'site/gk.js','rb').read()).hexdigest()[:10])
 head = head.replace('ADAPTER_V', _hl.sha256(open(W + 'site/adapter.js','rb').read()).hexdigest()[:10])
 open(W + 'site/index.html', 'w').write(head + s + '\n</body>\n</html>\n')
 shutil.copy(W + 'package/dist/umd/supabase.js', W + 'site/supabase.js')

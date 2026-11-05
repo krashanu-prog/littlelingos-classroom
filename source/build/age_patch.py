@@ -1,10 +1,10 @@
 # ---- Age groups: stage-matched lessons and words, harder games for older children ----
 R('function gamePool(L){const mine=wordsWithMeaning(L.uid);return mine.length>=4?mine:courseVocab(L);}','function gamePool0(L){const mine=wordsWithMeaning(L.uid);return mine.length>=4?mine:courseVocab(L);}')
 R('function buildQs(pool,n,r,kinds){','function buildQs0(pool,n,r,kinds){')
-R('/* ================= events ================= */',open(W+'age_block.js').read()+'\n/* ================= events ================= */')
+R('/* ================= events ================= */',open(W+'words_block.js').read()+open(W+'age_block.js').read()+'\n/* ================= events ================= */')
 R('buildQs(pool,5,r,["mean","listen"])','buildQs(pool,lvN("daily"),r,lvKinds("daily"))')
 R('buildQs(pool,8,Math.random,type==="listen"?["listen"]:["mean"])','buildQs(pool,lvN(type),Math.random,lvKinds(type))')
-R('const ws=shuffle(pool.slice()).slice(0,6)','const ws=shuffle(pool.slice()).slice(0,myLv().mem)')
+R('const ws=shuffle(pool.slice()).slice(0,6)','const ws=freshFirst(pool).slice(0,myLv().mem);noteAsked(ws.map(x=>String(x.w).toLowerCase()))')
 R('canSpeak()?`<button class="iconbtn big" data-act="sayQ" aria-label="Hear the word"','q.k!=="rev"&&canSpeak()?`<button class="iconbtn big" data-act="sayQ" aria-label="Hear the word"')
 R('<div class="gamegrid">','${levelBanner(L)}\n  <div class="gamegrid">')
 # a child's lessons, path, words and practice come from courses for their own stage

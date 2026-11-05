@@ -25,7 +25,8 @@ const pMean=x=>{const m=meanFor(x.w,x.m),t=mt(x.w);return t&&m!==t?`${m} · ${t}
 const canSpell=w=>/^[a-z]{4,}$/i.test(String(w||""));
 function buildQs(pool,n,r,kinds){const qs=[],o=Math.max(2,myLv().opts)-1;
   const k0=Math.floor(r()*kinds.length);let qi=0;
-  for(const x of shuffle(pool.slice(),r).slice(0,Math.min(n,pool.length))){const others=shuffle(pool.filter(y=>y.m!==x.m&&y.w!==x.w),r).slice(0,o);let k=kinds[(k0+qi++)%kinds.length];
+  const pick=freshFirst(pool,r).slice(0,Math.min(n,pool.length));noteAsked(pick.map(x=>String(x.w).toLowerCase()));
+  for(const x of pick){const others=shuffle(pool.filter(y=>y.m!==x.m&&y.w!==x.w),r).slice(0,o);let k=kinds[(k0+qi++)%kinds.length];
     if(k==="spell"&&!canSpell(x.w))k=kinds.includes("rev")?"rev":"mean";
     if(k==="listen")qs.push({k,say:x.w,lang:x.lang,prompt:"Listen! Which word did Pip say?",opts:shuffle([x,...others],r).map(y=>y.w),ans:x.w});
     else if(k==="rev")qs.push({k,say:x.w,lang:x.lang,prompt:`Which word means “${pMean(x)}”?`,opts:shuffle([x,...others],r).map(y=>y.w),ans:x.w});
@@ -34,10 +35,17 @@ function buildQs(pool,n,r,kinds){const qs=[],o=Math.max(2,myLv().opts)-1;
     else qs.push({k:"mean",say:x.w,lang:x.lang,prompt:`What does “${x.w}” mean?`,...mQ(shuffle([x,...others],r),x)});}
   return qs;}
 function levelBanner(L){const v=lvOf(L);return `<p class="lvband"><span class="pill p-good">${esc(stageLabel(L.stage||"Sprouts"))}</span><span class="small">${esc(v.note)}</span></p>`;}
-/* game words: what the child has learned for their own stage, topped up with their stage's lesson words */
+/* game words: what the child has learned for their stage first, then their stage's lesson words, then the built-in bank (100+ per stage) */
 function gamePool(L){const lc=w=>String(w||"").toLowerCase().trim();
   const stageW=courseVocab(L), have=new Set(stageW.map(x=>lc(x.w))), other=new Set();
   for(const cid of learnerCourses(L))if(!learnCourses(L).includes(cid))for(const l of lessonsOf(cid))for(const [w] of parseVocab(l.vocab))if(!have.has(lc(w)))other.add(lc(w));
-  const out=wordsWithMeaning(L.uid).filter(x=>!other.has(lc(x.w))), seen=new Set(out.map(x=>lc(x.w))), need=Math.max(8,lvOf(L).quiz);
-  for(const x of stageW){if(out.length>=need)break;if(!seen.has(lc(x.w))&&x.m){seen.add(lc(x.w));out.push(x);}}
+  const out=wordsWithMeaning(L.uid).filter(x=>!other.has(lc(x.w))), seen=new Set(out.map(x=>lc(x.w)));
+  const add=x=>{if(x.m&&!seen.has(lc(x.w))){seen.add(lc(x.w));out.push(x);}};
+  stageW.forEach(add);(WORDBANK[L.stage]||WORDBANK.Sprouts).forEach(([w,m])=>add({w,m,lang:"en",bank:1}));
   return out;}
+/* variety: words asked recently go to the back of the queue, so rounds keep bringing new words */
+const recentKey=()=>"ll-recentq-"+(S.uid||"");
+function recentWords(){try{return JSON.parse(localStorage.getItem(recentKey())||"[]")}catch{return []}}
+function noteAsked(ws){try{const r=recentWords().filter(w=>!ws.includes(w));localStorage.setItem(recentKey(),JSON.stringify([...ws,...r].slice(0,250)));}catch{}}
+function freshFirst(pool,r){const rec=recentWords(),pos=new Map(rec.map((w,i)=>[w,i]));const lc=x=>String(x.w).toLowerCase();
+  return shuffle(pool.slice(),r).sort((a,b)=>(pos.has(lc(a))?1e4-pos.get(lc(a)):0)-(pos.has(lc(b))?1e4-pos.get(lc(b)):0));}
