@@ -1112,6 +1112,8 @@ body.st-on{overflow:hidden}
 .l2btn b{font-size:1.35rem;line-height:1.2}.l2btn span{font-size:.85rem;color:var(--muted)}.l2btn:hover,.l2btn:focus-visible{border-color:var(--leaf)}.l2btn.en{background:var(--ground)}
 .trtab td,.trtab th{white-space:nowrap}
 @media (max-width:520px){.l2grid{grid-template-columns:1fr}}
+.l2chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:6px 14px;border-radius:999px;border:2px solid var(--line);background:#fff;font:inherit;font-weight:700;color:var(--leaf);cursor:pointer}.l2chip:hover,.l2chip:focus-visible{border-color:var(--leaf)}
+@media (max-width:520px){.l2chip{padding:6px 10px}.l2chip span{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
 .iconbtn{width:44px;height:44px;min-height:44px}
 select.inline{min-height:44px}
 .nm,.linkbtn{position:relative}
@@ -1514,6 +1516,7 @@ function topHTML(){
     const ini=myName().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
     const un=unreadCount();
     right=`${r==="admin"?`<div class="viewas"><label for="viewas">View as</label><select id="viewas">${["admin","teacher","student","parent"].map(x=>opt(x,ROLE_LABEL[x],x===cur)).join("")}</select></div>`:`<span class="rolechip">${esc(ROLE_LABEL[cur]||"")}</span>`}
+      ${l2Chip()}
       ${clockChip(cur)}
       ${bellHTML()}
       <button class="me" data-act="profile" aria-label="Edit your profile">${cur==="student"&&!S.viewAs?avatarHTML(S.uid,44):`<span class="av">${esc(ini)}</span>`}<span class="nm">${esc(myName())}</span></button>`;
@@ -6544,6 +6547,10 @@ A.trEdit=w=>openModal(w?`Meanings of “${w}”`:"Add a word",`${w?"":`<div clas
 document.addEventListener("input",e=>{if(e.target&&e.target.id==="trq"){S.trq=e.target.value;clearTimeout(window.__trqT);window.__trqT=setTimeout(()=>{const pos=e.target.selectionStart;render(true);const i=document.getElementById("trq");if(i){i.focus();try{i.setSelectionRange(pos,pos)}catch{}}},250);}},true);
 document.addEventListener("change",e=>{if(e.target&&e.target.id==="trmiss"){S.trMiss=e.target.checked;render(true);}},true);
 VIEWS.trans=function(){return hubTabs("trans")+transView();};
+/* top bar: one tap to change the home language from any page */
+ICON.globe='<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>';
+function l2Chip(){const r=realRole();if((r!=="student"&&r!=="parent")||S.viewAs)return "";const c=myL2(),x=L2.find(y=>y[0]===c);
+  return `<button type="button" class="l2chip" data-act="changeL2" aria-label="Home language: ${esc(l2Name(c))}. Tap to change">${ic("globe",18)}<span lang="${c||"en"}">${esc(x?x[1]:"English")}</span></button>`;}
 
 /* ================= events ================= */
 document.addEventListener("click",e=>{

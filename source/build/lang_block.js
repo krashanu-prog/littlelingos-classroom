@@ -40,3 +40,7 @@ A.trEdit=w=>openModal(w?`Meanings of “${w}”`:"Add a word",`${w?"":`<div clas
 document.addEventListener("input",e=>{if(e.target&&e.target.id==="trq"){S.trq=e.target.value;clearTimeout(window.__trqT);window.__trqT=setTimeout(()=>{const pos=e.target.selectionStart;render(true);const i=document.getElementById("trq");if(i){i.focus();try{i.setSelectionRange(pos,pos)}catch{}}},250);}},true);
 document.addEventListener("change",e=>{if(e.target&&e.target.id==="trmiss"){S.trMiss=e.target.checked;render(true);}},true);
 VIEWS.trans=function(){return hubTabs("trans")+transView();};
+/* top bar: one tap to change the home language from any page */
+ICON.globe='<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>';
+function l2Chip(){const r=realRole();if((r!=="student"&&r!=="parent")||S.viewAs)return "";const c=myL2(),x=L2.find(y=>y[0]===c);
+  return `<button type="button" class="l2chip" data-act="changeL2" aria-label="Home language: ${esc(l2Name(c))}. Tap to change">${ic("globe",18)}<span lang="${c||"en"}">${esc(x?x[1]:"English")}</span></button>`;}
