@@ -24,5 +24,5 @@ R('''      ${clockChip(cur)}
       ${clockChip(cur)}
       ${bellHTML()}''')
 R('@media (prefers-reduced-motion:reduce)','''.l2chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:6px 14px;border-radius:999px;border:2px solid var(--line);background:#fff;font:inherit;font-weight:700;color:var(--leaf);cursor:pointer}.l2chip:hover,.l2chip:focus-visible{border-color:var(--leaf)}
-@media (max-width:520px){.l2chip{padding:6px 10px}.l2chip span{max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}}
+@media (max-width:600px){.l2chip{width:44px;padding:0;justify-content:center;flex:none}.l2chip span{display:none}}
 @media (prefers-reduced-motion:reduce)''')
