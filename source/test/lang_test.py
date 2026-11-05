@@ -1,0 +1,38 @@
+exec(open('/tmp/claude-0/-home-claude/e46c440f-a2dc-5219-9a0e-fc980d1e0e9c/scratchpad/web/test/e2e_real.py').read().split("\ntry:")[0])
+import psycopg2
+c=psycopg2.connect(host='127.0.0.1',user='postgres',password='pw',dbname='e2e'); cur=c.cursor()
+cur.execute("update public.docs set data = data - 'lang2' where path in (%s,%s)",('profiles/'+U('d1'),'profiles/'+U('c1'))); c.commit()
+try:
+    with sync_playwright() as pw:
+        b = pw.chromium.launch(executable_path='/opt/pw-browsers/chromium-1194/chrome-linux/chrome')
+        ctx, p = open_as(b, 'K1'); p.wait_for_timeout(800)
+        print('kid sees picker:', h1(p), '| buttons:', p.locator('.l2btn').all_inner_texts()[:7])
+        p.screenshot(path=T+'r_l2_pick.png')
+        p.locator('.l2btn[data-id="ta"]').click(); p.wait_for_timeout(1200)
+        print('after pick h1:', h1(p))
+        cur.execute("select data->>'lang2' from public.docs where path=%s",('profiles/'+U('d1'),)); print('saved lang2:', cur.fetchone())
+        # word of the day + words
+        t=p.locator('#main').inner_text(); print('home has tamil:', any('஀'<=ch<='௿' for ch in t))
+        nav(p,'Words'); p.wait_for_timeout(600)
+        if p.locator('.fcard').count():
+            p.locator('.fcard').click(); p.wait_for_timeout(300); print('flashcard:', p.locator('.fcard').inner_text().replace('\n',' | '))
+        nav(p,'Explore'); p.wait_for_timeout(500)
+        if p.locator('[data-act="packOpen"]').count():
+            p.locator('[data-act="packOpen"]').first.click(); p.wait_for_timeout(500); print('pack:', p.locator('.pword').first.inner_text().replace('\n',' | '))
+        nav(p,'Me'); p.wait_for_timeout(500); print('me row:', p.locator('.row', has_text='Home language').first.inner_text().replace('\n',' | '))
+        p.locator('[data-act="changeL2"]').click(); p.wait_for_timeout(400); print('modal open:', p.locator('form.modal').count(), p.locator('form.modal .l2btn').count()); p.locator('form.modal .l2btn[data-id="ar"]').click(); p.wait_for_timeout(1000)
+        cur.execute("select data->>'lang2' from public.docs where path=%s",('profiles/'+U('d1'),)); print('after change lang2:', cur.fetchone(), '| modal still open:', p.locator('form.modal').count()); p.screenshot(path=T+'r_l2_after.png')
+        nav(p,'Explore'); p.wait_for_timeout(400)
+        print('pack open already:', p.locator('.pword').count())
+        if p.locator('[data-act="packOpen"]').count(): p.locator('[data-act="packOpen"]').first.click(); p.wait_for_timeout(500)
+        if p.locator('.pword').count(): print('pack arabic:', p.locator('.pword').first.inner_text().replace('\n',' | ')); p.locator('.pword').first.screenshot(path=T+'r_l2_pack.png')
+        ctx.close()
+        ctx, p = open_as(b, 'P1'); p.wait_for_timeout(800); print('parent sees:', h1(p)); p.locator('.l2btn[data-id="te"]').click(); p.wait_for_timeout(900); print('parent after:', h1(p)); ctx.close()
+        ctx, p = open_as(b, 'A'); p.wait_for_timeout(500); print('admin not asked:', h1(p))
+        nav(p,'Content'); p.wait_for_timeout(400); p.evaluate("document.querySelector('[data-go=\"trans\"]').click()"); p.wait_for_timeout(800)
+        print('trans page:', h1(p), '| stats:', p.locator('.stats').first.inner_text().replace('\n',' ')[:200])
+        print('rows:', p.locator('.trtab tbody tr').count(), '| first:', p.locator('.trtab tbody tr').first.inner_text().replace('\t',' | ')[:160])
+        p.locator('[data-act="trEdit"][data-id="cat"]').click(); p.wait_for_timeout(400); p.fill('#tr-ta','பூனைக்குட்டி'); p.locator('form.modal button[type=submit]').click(); p.wait_for_timeout(1000)
+        cur.execute("select data->'tr'->'cat' from public.docs where path='config/app'"); print('override saved:', cur.fetchone())
+        print('errors:', errors[:4]); b.close()
+finally: srv.terminate()
