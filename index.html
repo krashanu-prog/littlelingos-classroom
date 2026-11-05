@@ -2077,7 +2077,7 @@ const A={};
 A.monthShift=k=>{const n=shiftMonth(S.month,+k);if(n<=thisMonth()){S.month=n;render(true);}};
 A.copyCode=code=>copyText(code,"Code");
 A.pipCheer=(_,btn)=>{const g=btn.closest(".pipguide"),sv=btn.querySelector("svg"),t=g&&g.querySelector(".pip-t");if(sv){sv.classList.remove("jump");void sv.getBoundingClientRect();sv.classList.add("jump")}if(t)t.textContent=PIP_CHEERS[Math.floor(Math.random()*PIP_CHEERS.length)];};
-A.flip=(_,btn)=>{const on=btn.classList.toggle("on");const w=btn.dataset.w,m=btn.dataset.m;btn.innerHTML=on?`<b>${esc(m)}</b>${mtHTML(w)}<span>${esc(w)}</span>`:`<b>${esc(w)}</b><span>tap to flip</span>`;btn.setAttribute("aria-label",on?`${w}: ${m}`:`${w}. Tap to see the meaning`);};
+A.flip=(_,btn)=>{const on=btn.classList.toggle("on");const w=btn.dataset.w,m=btn.dataset.m;btn.innerHTML=on?`<b>${esc(meanFor(w,m))}</b>${mtExtra(w,m)}<span>${esc(w)}</span>`:`<b>${esc(w)}</b><span>tap to flip</span>`;btn.setAttribute("aria-label",on?`${w}: ${m}`:`${w}. Tap to see the meaning`);};
 A.signOut=()=>{if(window.LL_signOut)LL_signOut();};
 A.setPassword=()=>{closeModal&&closeModal();if(window.LL_security)LL_security();else if(window.LL_setPassword)LL_setPassword();};
 A.security=A.setPassword;
@@ -3263,7 +3263,7 @@ function wordsView(){
   if(!ws.length)return `<div class="head"><div><h1>My words</h1></div></div>${wodPastHTML(L)}${emptyBox("No words yet","Finish a lesson with word cards and the words come here.",`<button class="btn btn-primary" data-go="path">Go to my path</button>`,"pip")}`;
   const i=Math.min(S.fc||0,ws.length-1), x=ws[i], flipped=!!S.fcFlip;
   return `<div class="head"><div><h1>My words</h1><p class="lede">${ws.length} word${ws.length===1?"":"s"} in your garden · ${Object.keys(known).filter(k=>known[k]).length} you know by heart</p></div><div class="row"><button class="btn btn-primary" data-act="drill">🎤 Repeat after me</button><button class="btn btn-ghost btn-sm" data-act="printWords">${ic("doc")}Printable sheet</button></div></div>
-  <section class="fcwrap"><button class="fcard ${flipped?"on":""}" data-act="fcFlip" aria-label="${esc(flipped?`${x.w}: ${x.m}`:`${x.w}. Tap to see the meaning`)}"><b>${esc(flipped?x.m:x.w)}</b>${flipped?mtHTML(x.w):""}<span>${flipped?esc(x.w):"tap to flip"}</span>${known[x.w.toLowerCase()]?`<i class="known">⭐ I know it</i>`:""}</button>
+  <section class="fcwrap"><button class="fcard ${flipped?"on":""}" data-act="fcFlip" aria-label="${esc(flipped?`${x.w}: ${meanFor(x.w,x.m)}`:`${x.w}. Tap to see the meaning`)}"><b>${esc(flipped?meanFor(x.w,x.m):x.w)}</b>${flipped?mtExtra(x.w,x.m):""}<span>${flipped?esc(x.w):"tap to flip"}</span>${known[x.w.toLowerCase()]?`<i class="known">⭐ I know it</i>`:""}</button>
     <div class="fcbar"><button class="iconbtn big" data-act="fcMove" data-id="-1" aria-label="Previous word" ${i===0?"disabled":""}>${ic("back")}</button>${sp?`<button class="iconbtn big" data-act="say" data-w="${esc(x.w)}" data-l="${esc(x.lang)}" aria-label="Hear ${esc(x.w)}">${ic("sound")}</button>`:""}<button class="btn ${known[x.w.toLowerCase()]?"btn-ghost":"btn-sun"} btn-sm" data-act="fcKnow" data-id="${esc(x.w.toLowerCase())}">${known[x.w.toLowerCase()]?"Practise again":"⭐ I know it"}</button><button class="iconbtn big" data-act="fcMove" data-id="1" aria-label="Next word" ${i>=ws.length-1?"disabled":""}>${ic("fwd")}</button></div></section>
   ${wodPastHTML(L)}
   `;
@@ -3273,7 +3273,7 @@ A.fcMove=k=>{S.fc=Math.max(0,(S.fc||0)+(+k));S.fcFlip=false;render(true);};
 A.fcKnow=k=>{const cur=!!(progOf(S.uid).known||{})[k];save(()=>earn({known:{[k]:cur?null:Date.now()}}),cur?null:"⭐ Nice!");};
 A.printWords=()=>{const L=myLearner();const ws=wordsWithMeaning(L.uid);
   const html=`<div class="printdoc"><div class="pd-head"><div><b class="pd-brand">Little Lingos</b><div>${esc(L.name)}'s word sheet</div></div><div class="pd-meta">${esc(fmtDay(new Date()))}</div></div>
-  <table class="pd-table ws"><thead><tr><th>Word</th><th>Meaning</th><th>Write it 3 times</th></tr></thead><tbody>${ws.map(w=>`<tr><td><b>${esc(w.w)}</b></td><td>${esc(w.m)}${mt(w.w)?` · ${mtHTML(w.w)}`:""}</td><td class="lines"></td></tr>`).join("")}</tbody></table><p class="small">Say each word out loud, then draw a picture of your favourite word on the back!</p></div>`;
+  <table class="pd-table ws"><thead><tr><th>Word</th><th>Meaning</th><th>Write it 3 times</th></tr></thead><tbody>${ws.map(w=>`<tr><td><b>${esc(w.w)}</b></td><td>${esc(meanFor(w.w,w.m))}${mtExtra(w.w,w.m)}</td><td class="lines"></td></tr>`).join("")}</tbody></table><p class="small">Say each word out loud, then draw a picture of your favourite word on the back!</p></div>`;
   printOrDownload("My word sheet",html,`words-${firstOf(L.name).toLowerCase()}.html`);};
 function printOrDownload(title,html,fname){openModal(title,`<div class="billwrap">${html}</div>`,{wide:true,noFocus:true,footerExtra:`<button type="button" class="btn btn-ghost" data-mact="dl">${ic("down")}Download</button><button type="button" class="btn btn-ghost" data-mact="print">${ic("doc")}Print</button>`,
   actions:{print:()=>{try{window.print()}catch{toast("Printing isn't available here. Use Download instead.",true)}},dl:async()=>{try{const dl=await window.claude.use("downloads");if(!dl){toast("Downloads aren't available here. Use Print instead.",true);return}await dl.save({filename:fname,data:`<!doctype html><html><head><meta charset="utf-8"><title>${esc(title)}</title><style>${PRINTCSS}.ws td.lines{border-bottom:1px solid #999;min-width:200px;height:34px}</style></head><body>${html}</body></html>`});}catch(e){if(e&&e.code!=="declined")toast("Couldn't download. Use Print instead.",true);}}}});}
@@ -3281,12 +3281,12 @@ function printOrDownload(title,html,fname){openModal(title,`<div class="billwrap
 /* ---------- Games, quizzes, daily challenge ---------- */
 function buildQs(pool,n,r,kinds){const qs=[];for(const x of shuffle(pool.slice(),r).slice(0,Math.min(n,pool.length))){const others=shuffle(pool.filter(y=>y.m!==x.m&&y.w!==x.w),r).slice(0,3);const k=kinds[Math.floor(r()*kinds.length)];
   if(k==="listen")qs.push({k,say:x.w,lang:x.lang,prompt:"Listen! Which word did Pip say?",opts:shuffle([x,...others],r).map(o=>o.w),ans:x.w});
-  else qs.push({k:"mean",say:x.w,lang:x.lang,prompt:`What does “${x.w}” mean?`,opts:shuffle([x,...others],r).map(o=>o.m),ans:x.m});}return qs;}
+  else qs.push({k:"mean",say:x.w,lang:x.lang,prompt:`What does “${x.w}” mean?`,...mQ(shuffle([x,...others],r),x)});}return qs;}
 A.startGame=type=>{const L=myLearner();if(!L)return;const pool=gamePool(L);
   if(type==="revise"){const qs=reviseGame(L);if(!qs){toast("Nothing to practise right now. Lovely work!");return}S.game={type,qs,i:0,score:0,pick:null};if(S.view!=="play")go("play");else render(true);if(qs[0].k==="listen")setTimeout(()=>say(qs[0].say,qs[0].lang),400);return;}
   if(pool.length<4){toast("Learn a few more words first! You need 4.",true);return}
   if(type==="daily"){if((progOf(S.uid).daily||{})[ymd(new Date())]!=null){toast("You've done today's challenge! 🎉");return}const r=rng(ymd(new Date())+S.uid);S.game={type,qs:buildQs(pool,5,r,["mean","listen"]),i:0,score:0,pick:null};}
-  else if(type==="memory"){const ws=shuffle(pool.slice()).slice(0,6);const cards=shuffle(ws.flatMap((x,i)=>[{t:x.w,k:i,w:1},{t:x.m,k:i}]));S.game={type,cards,open:[],done:new Set(),moves:0};}
+  else if(type==="memory"){const ws=shuffle(pool.slice()).slice(0,6);const cards=shuffle(ws.flatMap((x,i)=>[{t:x.w,k:i,w:1},{t:meanFor(x.w,x.m),k:i}]));S.game={type,cards,open:[],done:new Set(),moves:0};}
   else S.game={type,qs:buildQs(pool,8,Math.random,type==="listen"?["listen"]:["mean"]),i:0,score:0,pick:null};
   if(S.view!=="play")go("play");else render(true);
   const q=S.game.qs&&S.game.qs[0];if(q&&q.k==="listen")setTimeout(()=>say(q.say,q.lang),400);};
@@ -3310,7 +3310,7 @@ function playView(){
     return `<div class="head"><div><h1>${g.type==="daily"?"Daily challenge":g.type==="listen"?"Listen and pick":"Word quiz"}</h1><p class="lede">⭐ ${g.score} right</p></div><button class="btn btn-ghost btn-sm" data-act="endGame">Stop</button></div>
     <section class="quiz"><h2>${esc(q.prompt)}</h2>${q.k==="listen"?`<button class="btn btn-sun btn-big" data-act="sayQ" style="align-self:center">${ic("sound",24)}Hear it again</button>`:canSpeak()?`<button class="iconbtn big" data-act="sayQ" aria-label="Hear the word" style="align-self:center">${ic("sound")}</button>`:""}
       <div class="qopts">${q.opts.map((o,i)=>`<button class="qopt ${g.pick!=null?(i===ansI?"right":i===g.pick?"wrong":""):""}" data-act="answer" data-id="${i}" ${g.pick!=null?"disabled":""}>${esc(o)}</button>`).join("")}</div>
-      ${g.pick!=null?`<div class="qfb ${g.pick===ansI?"ok":""}">${g.pick===ansI?"🎉 Yes! Well done!":`The answer is “${esc(q.ans)}”.`}${mt(q.say)?` <span class="mtline">“${esc(q.say)}” = ${mtHTML(q.say)}</span>`:""}<button class="btn btn-primary" data-act="nextQ">${g.i<g.qs.length-1?"Next":"Finish"} ${ic("fwd")}</button></div>`:""}</section>`;}
+      ${g.pick!=null?`<div class="qfb ${g.pick===ansI?"ok":""}">${g.pick===ansI?"🎉 Yes! Well done!":`The answer is “${esc(q.ans)}”.`}${q.k!=="mean"&&mt(q.say)?` <span class="mtline">“${esc(q.say)}” = ${mtHTML(q.say)}</span>`:""}<button class="btn btn-primary" data-act="nextQ">${g.i<g.qs.length-1?"Next":"Finish"} ${ic("fwd")}</button></div>`:""}</section>`;}
   const dDone=(progOf(L.uid).daily||{})[ymd(new Date())]!=null, n=gamePool(L).length;
   return `<div class="head"><div><h1>Games</h1><p class="lede">Play with your words and win stars. ⭐ ${starsOf(L)} so far!</p></div></div>
   ${n<4?`<section class="alert a-sun"><b>Finish a lesson with word cards to unlock the games.</b></section>`:""}
@@ -4856,7 +4856,7 @@ A.reviseSay=()=>{const L=myLearner();if(!L)return;const a=adaptFor(L);const ws=a
 function reviseGame(L){const a=adaptFor(L), pool=gamePool(L), focus=a.words.filter(x=>x.m);
   if(!focus.length||pool.length<4)return null;const qs=[];const n=Math.min(6,Math.max(4,focus.length*2));
   for(let i=0;i<n;i++){const x=focus[i%focus.length];const others=shuffle(pool.filter(y=>wkKey(y.w)!==wkKey(x.w)&&y.m!==x.m)).slice(0,3);if(others.length<3)continue;
-    if(i%2===0)qs.push({k:"mean",say:x.w,lang:x.lang,prompt:`What does “${x.w}” mean?`,opts:shuffle([x,...others]).map(o=>o.m),ans:x.m});
+    if(i%2===0)qs.push({k:"mean",say:x.w,lang:x.lang,prompt:`What does “${x.w}” mean?`,...mQ(shuffle([x,...others]),x)});
     else qs.push({k:"listen",say:x.w,lang:x.lang,prompt:"Listen! Which word did Pip say?",opts:shuffle([x,...others]).map(o=>o.w),ans:x.w});}
   return qs.length?qs:null;}
 
@@ -6551,6 +6551,13 @@ VIEWS.trans=function(){return hubTabs("trans")+transView();};
 ICON.globe='<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>';
 function l2Chip(){const r=realRole();if((r!=="student"&&r!=="parent")||S.viewAs)return "";const c=myL2(),x=L2.find(y=>y[0]===c);
   return `<button type="button" class="l2chip" data-act="changeL2" aria-label="Home language: ${esc(l2Name(c))}. Tap to change">${ic("globe",18)}<span lang="${c||"en"}">${esc(x?x[1]:"English")}</span></button>`;}
+/* meanings typed by trainers (e.g. "careful = सावधान"): if written in another script, show the home-language
+   meaning instead; if it's an English explanation, keep it and add the home-language word below it */
+const nonLatin=s=>/[֐-ࣿऀ-෿฀-࿿　-鿿]/.test(String(s||""));
+function meanFor(w,m){const t=mt(w);if(!t)return m||"";if(!m||nonLatin(m))return t;return m;}
+const mtExtra=(w,m)=>m&&!nonLatin(m)?mtHTML(w):"";
+/* quiz options: all in the home language when every option has one, so no option stands out */
+function mQ(arr,x){const all=!!myL2()&&arr.every(o=>mt(o.w));const o=arr.map(y=>all?mt(y.w):meanFor(y.w,y.m));return {opts:o,ans:o[arr.indexOf(x)]};}
 
 /* ================= events ================= */
 document.addEventListener("click",e=>{

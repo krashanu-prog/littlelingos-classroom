@@ -44,3 +44,10 @@ VIEWS.trans=function(){return hubTabs("trans")+transView();};
 ICON.globe='<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 3.8 5.6 3.8 9s-1.3 6.4-3.8 9c-2.5-2.6-3.8-5.6-3.8-9S9.5 5.6 12 3z"/>';
 function l2Chip(){const r=realRole();if((r!=="student"&&r!=="parent")||S.viewAs)return "";const c=myL2(),x=L2.find(y=>y[0]===c);
   return `<button type="button" class="l2chip" data-act="changeL2" aria-label="Home language: ${esc(l2Name(c))}. Tap to change">${ic("globe",18)}<span lang="${c||"en"}">${esc(x?x[1]:"English")}</span></button>`;}
+/* meanings typed by trainers (e.g. "careful = सावधान"): if written in another script, show the home-language
+   meaning instead; if it's an English explanation, keep it and add the home-language word below it */
+const nonLatin=s=>/[֐-ࣿऀ-෿฀-࿿　-鿿]/.test(String(s||""));
+function meanFor(w,m){const t=mt(w);if(!t)return m||"";if(!m||nonLatin(m))return t;return m;}
+const mtExtra=(w,m)=>m&&!nonLatin(m)?mtHTML(w):"";
+/* quiz options: all in the home language when every option has one, so no option stands out */
+function mQ(arr,x){const all=!!myL2()&&arr.every(o=>mt(o.w));const o=arr.map(y=>all?mt(y.w):meanFor(y.w,y.m));return {opts:o,ans:o[arr.indexOf(x)]};}

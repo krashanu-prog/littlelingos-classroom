@@ -26,3 +26,12 @@ R('''      ${clockChip(cur)}
 R('@media (prefers-reduced-motion:reduce)','''.l2chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:6px 14px;border-radius:999px;border:2px solid var(--line);background:#fff;font:inherit;font-weight:700;color:var(--leaf);cursor:pointer}.l2chip:hover,.l2chip:focus-visible{border-color:var(--leaf)}
 @media (max-width:600px){.l2chip{width:44px;padding:0;justify-content:center;flex:none}.l2chip span{display:none}}
 @media (prefers-reduced-motion:reduce)''')
+# games, flashcards, word cards and sheets use the home-language meaning
+R('opts:shuffle([x,...others],r).map(o=>o.m),ans:x.m','...mQ(shuffle([x,...others],r),x)')
+R('opts:shuffle([x,...others]).map(o=>o.m),ans:x.m','...mQ(shuffle([x,...others]),x)')
+R('[{t:x.w,k:i,w:1},{t:x.m,k:i}]','[{t:x.w,k:i,w:1},{t:meanFor(x.w,x.m),k:i}]')
+R('<b>${esc(flipped?x.m:x.w)}</b>${flipped?mtHTML(x.w):""}','<b>${esc(flipped?meanFor(x.w,x.m):x.w)}</b>${flipped?mtExtra(x.w,x.m):""}')
+R('aria-label="${esc(flipped?`${x.w}: ${x.m}`','aria-label="${esc(flipped?`${x.w}: ${meanFor(x.w,x.m)}`')
+R('btn.innerHTML=on?`<b>${esc(m)}</b>${mtHTML(w)}<span>${esc(w)}</span>`','btn.innerHTML=on?`<b>${esc(meanFor(w,m))}</b>${mtExtra(w,m)}<span>${esc(w)}</span>`')
+R('<td>${esc(w.m)}${mt(w.w)?` · ${mtHTML(w.w)}`:""}</td>','<td>${esc(meanFor(w.w,w.m))}${mtExtra(w.w,w.m)}</td>')
+R('${mt(q.say)?` <span class="mtline">','${q.k!=="mean"&&mt(q.say)?` <span class="mtline">')
