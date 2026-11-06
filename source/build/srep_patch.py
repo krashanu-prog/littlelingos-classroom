@@ -11,3 +11,6 @@ R('@media (prefers-reduced-motion:reduce)','''.srep{display:grid;grid-template-c
 .srepreq{background:var(--sunSoft);border-radius:12px;padding:8px 12px}
 .srepban{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
 @media (prefers-reduced-motion:reduce)''')
+# ---- Words: only the child's own age group (lesson words from their stage's courses; class words stay) ----
+R('function wordsWithMeaning0(uid){const out=[],seen=new Set();if(!uid)return out;for(const x of doneList(uid)){const l=D.lessons[x.lid];if(!l)continue;const c=D.courses[l.courseId];',
+  'function wordsWithMeaning0(uid){const out=[],seen=new Set();if(!uid)return out;const LS=learnerByUid(uid)||(uid===S.uid?myLearner():null);if(LS&&LS.preview)return courseVocab(LS).filter(x=>x.m).map(x=>({...x,ts:0}));const okC=LS?new Set(learnCourses(LS)):null;for(const x of doneList(uid)){const l=D.lessons[x.lid];if(!l)continue;if(okC&&!okC.has(l.courseId))continue;const c=D.courses[l.courseId];')
