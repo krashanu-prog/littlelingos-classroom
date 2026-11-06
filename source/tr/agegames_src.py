@@ -136,10 +136,17 @@ FIX = [
  ("The children were laughing loudly.",["The childrens were laughing loudly.","The children was laughing loudly.","The children were laughing loud."]),
  ("Have you ever been to Jaipur?",["Have you ever went to Jaipur?","Did you ever been to Jaipur?","Have you ever be to Jaipur?"]),
 ]
-AG = {"pic": PIC, "sounds": SOUNDS, "colours": COLOURS, "nums": NUMS, "things": COUNT_THINGS,
-      "sent": [x.strip() for x in SENT.strip().splitlines()], "odd": ODD, "oddLabel": ODD_LABEL,
+exec(open("tr/agegames_more.py").read())
+AG = {"facts": FACTS, "homes": HOMES, "homeQ": HOME_Q, "legs": LEGS, "objc": OBJ_COLOUR, "mix": MIX, "pic": PIC, "sounds": SOUNDS, "colours": COLOURS, "nums": NUMS, "things": COUNT_THINGS,
+      "sent": [x.strip() for x in SENT.strip().splitlines() if x.strip()], "odd": ODD, "oddLabel": ODD_LABEL,
       "cloze": [x.split("|", 1) for x in CLOZE.strip().splitlines()], "fix": FIX}
 for w, s in AG["cloze"]: assert w.lower() in s.lower(), w
-for a, b in FIX: assert a not in b and len(set(b)) == 3, a
+for a, b in FIX: assert a not in b and len(set(b)) == 3 and len(b) == 3, (a, b)
+for q, an in FACTS: assert an in PIC, an
+for k, v in HOMES.items(): assert all(x in PIC for x in v), k
+assert all(x in PIC for x in LEGS)
+assert len(set(x for x, _ in FIX)) == len(FIX), "dup fix"
+_ss=AG["sent"]; assert len(set(_ss)) == len(_ss) and all(_ss), [x for x in _ss if _ss.count(x) > 1]
+assert len(set(w for w, _ in AG["cloze"])) == len(AG["cloze"]), "dup cloze"
 open("agegames_data.js", "w").write("/* Data for the age-group games (tr/agegames_src.py) */\nconst AG=" + json.dumps(AG, ensure_ascii=False, separators=(",", ":")) + ";\n")
 print({k: len(v) for k, v in AG.items()})

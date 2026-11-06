@@ -62,6 +62,7 @@ for k,v in _m["GK_MORE"].items():
     GK[k]+= [x for x in v if x[0] not in have]
 EN=_m["EN"]
 exec(open(__file__.rsplit("/",1)[0]+"/gk_more2.py" if "/" in __file__ else "gk_more2.py").read(),{"GK":GK,"EN":EN})
+exec(open(__file__.rsplit("/",1)[0]+"/gk_more3.py" if "/" in __file__ else "gk_more3.py").read(),{"GK":GK,"EN":EN})
 for k in GK:
     qs=[q for q,_,_ in GK[k]]; assert len(qs)==len(set(qs)), [q for q in qs if qs.count(q)>1]
 for k,v in list(GK.items())+list(EN.items()):

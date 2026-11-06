@@ -3,16 +3,34 @@
    Blooms (11–15): thinking, typing and speed. All use the same game engine (S.game). */
 const agStage=()=>{const L=myLearner();return (L&&L.stage)||"Seeds";};
 const pickN=(arr,n,r)=>shuffle(arr.slice(),r).slice(0,n);
-const AG_TITLE={pic:"Picture hunt",sound:"Animal sounds",colour:"Colour pop",count:"Count with Pip",build:"Sentence builder",miss:"Missing letter",
+const AG_TITLE={pic:"Picture hunt",sound:"Animal friends",colour:"Colour pop",count:"Count with Pip",build:"Sentence builder",miss:"Missing letter",
   odd:"Odd one out",cloze:"Fill the gap",fix:"Fix the sentence",bee:"Spelling bee",speed:"Speed round",daily:"Daily challenge",quiz:"Word quiz",listen:"Listen and pick",revise:"Practise again"};
 /* ---------- Seeds ---------- */
 function qPic(r){const ws=Object.keys(AG.pic),w=ws[Math.floor(r()*ws.length)],o=pickN(ws.filter(x=>x!==w),2,r);
   const opts=shuffle([w,...o],r).map(x=>AG.pic[x]);return {k:"pic",say:`Find the ${w}`,wk:w,auto:1,big:1,prompt:`Find the ${w}!`,opts,ans:AG.pic[w]};}
-function qSound(r){const [a,snd]=AG.sounds[Math.floor(r()*AG.sounds.length)],o=pickN(AG.sounds.filter(x=>x[0]!==a),2,r).map(x=>x[0]);
-  return {k:"sound",say:`Who says ${snd}?`,wk:a,auto:1,big:1,prompt:`Who says “${snd}”?`,opts:shuffle([a,...o],r).map(x=>AG.pic[x]),ans:AG.pic[a]};}
-function qColour(r){const [c,hex]=AG.colours[Math.floor(r()*AG.colours.length)],o=pickN(AG.colours.filter(x=>x[0]!==c),2,r).map(x=>x[0]);
-  return {k:"colour",say:"What colour is this?",wk:c,auto:1,prompt:"What colour is this?",vis:`<div class="agswatch" style="background:${hex}" role="img" aria-label="A colour"></div>`,opts:shuffle([c,...o],r),ans:c};}
-function qCount(r){const n=1+Math.floor(r()*(agStage()==="Seeds"?6:10)),t=AG.things[Math.floor(r()*AG.things.length)];
+function qSound(r){const pick=r();const em=w=>AG.pic[w];
+  if(pick<0.22){const [a,snd]=AG.sounds[Math.floor(r()*AG.sounds.length)],o=pickN(AG.sounds.filter(x=>x[0]!==a),2,r).map(x=>x[0]);
+    return {k:"sound",say:`Who says ${snd}?`,wk:a,auto:1,big:1,prompt:`Who says “${snd}”?`,opts:shuffle([a,...o],r).map(em),ans:em(a)};}
+  if(pick<0.4){const [a,snd]=AG.sounds[Math.floor(r()*AG.sounds.length)],o=pickN(AG.sounds.filter(x=>x[0]!==a),2,r).map(x=>x[1]);
+    return {k:"sound",say:`What does the ${a} say?`,wk:a,auto:1,prompt:`What does the ${a} say? ${em(a)}`,opts:shuffle([snd,...o],r),ans:snd};}
+  if(pick<0.68){const [q,a]=AG.facts[Math.floor(r()*AG.facts.length)],o=pickN(AG.facts.map(x=>x[1]).filter(x=>x!==a),2,r);
+    return {k:"sound",say:q,wk:a,auto:1,big:1,prompt:q,opts:shuffle([a,...o],r).map(em),ans:em(a)};}
+  if(pick<0.84){const hs=Object.keys(AG.homes),h=hs[Math.floor(r()*hs.length)],a=AG.homes[h][Math.floor(r()*AG.homes[h].length)];
+    const others=hs.filter(x=>x!==h).flatMap(x=>AG.homes[x]).filter(x=>!AG.homes[h].includes(x)&&!(h==="sky"&&["duck","hen"].includes(x)));
+    return {k:"sound",say:AG.homeQ[h],wk:a,auto:1,big:1,prompt:AG.homeQ[h],opts:shuffle([a,...pickN(others,2,r)],r).map(em),ans:em(a)};}
+  const ks=Object.keys(AG.legs),a=ks[Math.floor(r()*ks.length)],n=AG.legs[a],word=n?AG.nums[n-1]:"none",pool=["none","two","four","six","eight"].filter(x=>x!==word);
+  return {k:"sound",say:`How many legs does a ${a} have?`,wk:a,auto:1,prompt:`How many legs does a ${a} have? ${em(a)}`,opts:shuffle([word,...pickN(pool,2,r)],r),ans:word};}
+function qColour(r){const pick=r(),cw=AG.colours.map(x=>x[0]);
+  if(pick<0.25){const [c,hex]=AG.colours[Math.floor(r()*AG.colours.length)],o=pickN(cw.filter(x=>x!==c),2,r);
+    return {k:"colour",say:"What colour is this?",wk:c,auto:1,prompt:"What colour is this?",vis:`<div class="agswatch" style="background:${hex}" role="img" aria-label="A colour"></div>`,opts:shuffle([c,...o],r),ans:c};}
+  const objs=Object.entries(AG.objc);
+  if(pick<0.6){const [e,c]=objs[Math.floor(r()*objs.length)],o=pickN(cw.filter(x=>x!==c),2,r);
+    return {k:"colour",say:"What colour is this?",wk:c,auto:1,prompt:"What colour is this?",vis:`<div class="agcount" role="img" aria-label="A picture">${e}</div>`,opts:shuffle([c,...o],r),ans:c};}
+  if(pick<0.93){const [e,c]=objs[Math.floor(r()*objs.length)],o=pickN(objs.filter(x=>x[1]!==c).map(x=>x[0]),2,r);
+    return {k:"colour",say:`Which one is ${c}?`,wk:c,auto:1,big:1,prompt:`Which one is ${c}?`,opts:shuffle([e,...o],r),ans:e};}
+  const [a,b,c]=AG.mix[Math.floor(r()*AG.mix.length)],o=pickN(cw.filter(x=>x!==c&&x!==a&&x!==b),2,r);
+  return {k:"colour",say:`Mix ${a} and ${b}. What colour do you get?`,wk:c,auto:1,prompt:`Mix ${a} and ${b}. What colour do you get?`,opts:shuffle([c,...o],r),ans:c};}
+function qCount(r){const n=1+Math.floor(r()*10),t=AG.things[Math.floor(r()*AG.things.length)];
   const near=shuffle([n-2,n-1,n+1,n+2].filter(x=>x>=1&&x<=10),r).slice(0,2);
   return {k:"count",say:"How many can you count?",wk:AG.nums[n-1],auto:1,prompt:"How many can you count?",vis:`<div class="agcount" role="img" aria-label="Some pictures to count">${t.repeat(n)}</div>`,opts:shuffle([n,...near],r).map(x=>AG.nums[x-1]),ans:AG.nums[n-1]};}
 /* ---------- Sprouts ---------- */
@@ -20,7 +38,7 @@ const agSentences=()=>[...AG.sent,...(typeof PACKS!=="undefined"?PACKS.flatMap(p
 function qBuild(r){const all=agSentences(),s=all[Math.floor(r()*all.length)],words=s.split(" ");let tiles=shuffle(words.map((w,i)=>({w,i})),r);
   if(tiles.every((t,i)=>t.i===i))tiles=tiles.reverse();
   return {k:"build",say:s,wk:"",prompt:"Tap the words in the right order.",tiles,ans:s,opts:[s,"__"],chosen:[],nospeak:1};}
-function qMiss(pool,r){const ws=pool.filter(x=>/^[a-z]{4,9}$/i.test(x.w));if(!ws.length)return null;const x=ws[Math.floor(r()*ws.length)],w=x.w.toLowerCase();
+function qMiss(pool,r){const ws=pool.filter(x=>/^[a-z]{3,12}$/i.test(x.w));if(!ws.length)return null;const x=ws[Math.floor(r()*ws.length)],w=x.w.toLowerCase();
   const i=1+Math.floor(r()*(w.length-2)),c=w[i],L="aeiourstlnmbcdgp".split("").filter(y=>y!==c),o=pickN(L,2,r);
   return {k:"miss",say:w,wk:w,prompt:`Which letter is missing? (${meanFor(x.w,x.m)})`,vis:`<p class="agword">${esc(w.slice(0,i))}<span class="agblank">_</span>${esc(w.slice(i+1))}</p>`,opts:shuffle([c,...o],r),ans:c,big:1,nospeak:1};}
 function qOdd(r){const cats=Object.keys(AG.odd),a=cats[Math.floor(r()*cats.length)];let b=a;while(b===a)b=cats[Math.floor(r()*cats.length)];
@@ -32,11 +50,11 @@ function qCloze(r){const all=agCloze(),[w,s]=all[Math.floor(r()*all.length)],re=
   const o=pickN([...new Set(all.map(x=>x[0]).filter(y=>y.toLowerCase()!==w.toLowerCase()))],3,r);
   return {k:"cloze",say:w,wk:w,prompt:"Choose the word that fits the gap.",vis:`<p class="agsent">${esc(s.replace(re,"_____"))}</p>`,opts:shuffle([w,...o],r),ans:w,nospeak:1,full:s};}
 function qFix(r){const [ok,bad]=AG.fix[Math.floor(r()*AG.fix.length)];return {k:"fix",say:ok,wk:"",prompt:"Which sentence is correct?",opts:shuffle([ok,...bad],r),ans:ok,nospeak:1,long:1};}
-function qBee(pool,r){const ws=pool.filter(x=>/^[a-z]{5,14}$/i.test(x.w));if(!ws.length)return null;const x=ws[Math.floor(r()*ws.length)];
+function qBee(pool,r){const ws=pool.filter(x=>/^[a-z]{4,15}$/i.test(x.w));if(!ws.length)return null;const x=ws[Math.floor(r()*ws.length)];
   return {k:"bee",say:x.w,wk:x.w,auto:1,prompt:`Spell the word that means “${pMean(x)}”.`,ans:x.w.toLowerCase(),opts:[x.w.toLowerCase(),"__"],typed:""};}
 /* ---------- which games each age group gets ---------- */
 const AG_GAMES={
-  Seeds:[["daily","🎯","Daily challenge","5 picture questions"],["pic","🔍","Picture hunt","Hear a word, find the picture"],["sound","🐮","Animal sounds","Who says moo?"],["colour","🎨","Colour pop","Name the colour"],["count","🔢","Count with Pip","How many can you see?"],["memory","🃏","Picture memory","Match pictures and words"],["drill","🎤","Repeat after me","Listen, say it, hear yourself"]],
+  Seeds:[["daily","🎯","Daily challenge","5 picture questions"],["pic","🔍","Picture hunt","Hear a word, find the picture"],["sound","🐮","Animal friends","Sounds, homes and fun facts"],["colour","🎨","Colour pop","Name the colour"],["count","🔢","Count with Pip","How many can you see?"],["memory","🃏","Picture memory","Match pictures and words"],["drill","🎤","Repeat after me","Listen, say it, hear yourself"]],
   Sprouts:[["daily","🎯","Daily challenge","5 mixed questions"],["build","🧱","Sentence builder","Put the words in order"],["miss","🔡","Missing letter","Find the letter that's gone"],["odd","🕵️","Odd one out","Which word doesn't belong?"],["quiz","❓","Word quiz","Meanings, both ways"],["listen","👂","Listen and pick","Hear a word, find it"],["memory","🃏","Memory pairs","Match words and meanings"],["drill","🎤","Repeat after me","Listen, say it, hear yourself"]],
   Blooms:[["daily","🎯","Daily challenge","5 tough questions"],["speed","⚡","Speed round","60 seconds. How many can you get?"],["bee","🐝","Spelling bee","Hear it, type it"],["cloze","🧩","Fill the gap","Pick the word that fits"],["fix","🛠️","Fix the sentence","Spot the correct grammar"],["quiz","❓","Word quiz","Meanings, synonyms, spelling"],["memory","🃏","Memory pairs","8 pairs: words and meanings"],["drill","🎤","Repeat after me","Listen, say it, hear yourself"]]};
 const AG_N={pic:6,sound:6,colour:6,count:6,build:5,miss:8,odd:8,cloze:8,fix:8,bee:8};
