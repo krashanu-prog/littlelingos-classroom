@@ -45,7 +45,8 @@ function qOdd(r){const cats=Object.keys(AG.odd),a=cats[Math.floor(r()*cats.lengt
   const three=pickN(AG.odd[a],3,r),odd=AG.odd[b][Math.floor(r()*AG.odd[b].length)];
   return {k:"odd",say:odd,wk:odd,prompt:"Which word does not belong?",opts:shuffle([...three,odd],r),ans:odd,why:`The others are all ${AG.oddLabel[a]}.`,nospeak:1};}
 /* ---------- Blooms ---------- */
-const agCloze=()=>[...AG.cloze,...(typeof PACKS!=="undefined"?PACKS.flatMap(p=>p.w.filter(x=>x[3]===3&&x[2].toLowerCase().includes(x[1].toLowerCase())).map(x=>[x[1],x[2]])):[])];
+const agWholeWord=(w,s)=>new RegExp("(^|[^a-z])"+String(w).replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"([^a-z]|$)","i").test(s);
+const agCloze=()=>[...AG.cloze,...(typeof PACKS!=="undefined"?PACKS.flatMap(p=>p.w.filter(x=>x[3]===3).map(x=>[x[1],x[2]])):[])].filter(([w,s])=>agWholeWord(w,s));
 function qCloze(r){const all=agCloze(),[w,s]=all[Math.floor(r()*all.length)],re=new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i");
   const o=pickN([...new Set(all.map(x=>x[0]).filter(y=>y.toLowerCase()!==w.toLowerCase()))],3,r);
   return {k:"cloze",say:w,wk:w,prompt:"Choose the word that fits the gap.",vis:`<p class="agsent">${esc(s.replace(re,"_____"))}</p>`,opts:shuffle([w,...o],r),ans:w,nospeak:1,full:s};}
@@ -69,8 +70,11 @@ function agDaily(L,pool,r){const k={Seeds:["pic","count","colour","sound","pic"]
 const speedBestKey=()=>"ll-speedbest-"+(S.uid||"");
 const speedBest=()=>{try{return +localStorage.getItem(speedBestKey())||0}catch{return 0}};
 function agStart(type){const L=myLearner();if(!L)return false;const pool=gamePool(L);
-  if(type==="daily"){if((progOf(S.uid).daily||{})[ymd(new Date())]!=null){toast("You've done today's challenge! 🎉");return true;}
-    S.game={type,qs:agDaily(L,pool,rng(ymd(new Date())+S.uid)),i:0,score:0,pick:null};}
+  if(type==="daily"&&(progOf(S.uid).daily||{})[ymd(new Date())]!=null){toast("You've done today's challenge! 🎉");return true;}
+  if(typeof AD_TYPES!=="undefined"&&AD_TYPES.has(type)){const ad=adStartGame(type,pool,type==="daily"?rng(ymd(new Date())+S.uid):Math.random);
+    if(ad){S.game={type,qs:[],i:0,score:0,pick:null,ad};if(type==="speed"){S.game.end=Date.now()+60000;}S.game.qs.push(adNext(S.game));if(type==="speed")agTick();
+      if(S.view!=="play")go("play");else render(true);agAuto();return true;}}
+  if(type==="daily"){S.game={type,qs:agDaily(L,pool,rng(ymd(new Date())+S.uid)),i:0,score:0,pick:null};}
   else if(type==="memory"&&(L.stage||"Seeds")==="Seeds"){const ws=pickN(Object.keys(AG.pic),4,Math.random);
     S.game={type,cards:shuffle(ws.flatMap((w,i)=>[{t:AG.pic[w],k:i},{t:w,k:i,w:1}])),open:[],done:new Set(),moves:0};}
   else if(type==="speed"){S.game={type,qs:agBuild("speed",pool,Math.random,60),i:0,score:0,pick:null,end:Date.now()+60000};agTick();}
@@ -95,12 +99,12 @@ function agQuestionHTML(g,q){
   if(q.k==="build"){const done=g.pick!=null,ok=done&&g.pick===0;
     return `<section class="quiz"><h2>${esc(q.prompt)}</h2><div class="agline" aria-live="polite">${q.chosen.length?q.chosen.map(i=>`<button class="agtile on" data-act="agTile" data-id="${i}" ${done?"disabled":""}>${esc(q.tiles[i].w)}</button>`).join(""):`<span class="muted small">Tap the words below…</span>`}</div>
       <div class="agbank">${q.tiles.map((t,i)=>q.chosen.includes(i)?"":`<button class="agtile" data-act="agTile" data-id="${i}" ${done?"disabled":""}>${esc(t.w)}</button>`).join("")}</div>
-      ${done?`<div class="qfb ${ok?"ok":""}">${ok?"🎉 Perfect sentence!":`The sentence is: “${esc(q.ans)}”`}<button class="btn btn-primary" data-act="nextQ">${g.i<g.qs.length-1?"Next":"Finish"} ${ic("fwd")}</button></div>`
+      ${done?`<div class="qfb ${ok?"ok":""}">${ok?"🎉 Perfect sentence!":`The sentence is: “${esc(q.ans)}”`}${adFbHTML(g)}<button class="btn btn-primary" data-act="nextQ">${agMore(g)?"Next":"Finish"} ${ic("fwd")}</button></div>`
       :`<div class="row"><button class="btn btn-ghost" data-act="agClear">Start again</button><button class="btn btn-primary" data-act="agCheck" ${q.chosen.length===q.tiles.length?"":"disabled"}>Check</button></div>`}</section>`;}
   if(q.k==="bee"){const done=g.pick!=null,ok=done&&g.pick===0;
     return `<section class="quiz"><h2>${esc(q.prompt)}</h2>${canSpeak()?`<button class="btn btn-sun btn-big" data-act="sayQ" style="align-self:center">${ic("sound",24)}Hear the word</button>`:""}
       <div class="field"><label for="agtype">Type the spelling</label><input id="agtype" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="30" value="${esc(q.typed||"")}" ${done?"disabled":""} data-enter="agCheck"></div>
-      ${done?`<div class="qfb ${ok?"ok":""}">${ok?"🎉 Spot on!":`It's spelled “${esc(q.ans)}”.`}${mt(q.wk)?` <span class="mtline">“${esc(q.wk)}” = ${mtHTML(q.wk)}</span>`:""}<button class="btn btn-primary" data-act="nextQ">${g.i<g.qs.length-1?"Next":"Finish"} ${ic("fwd")}</button></div>`
+      ${done?`<div class="qfb ${ok?"ok":""}">${ok?"🎉 Spot on!":`It's spelled “${esc(q.ans)}”.`}${adFbHTML(g)}${mt(q.wk)?` <span class="mtline">“${esc(q.wk)}” = ${mtHTML(q.wk)}</span>`:""}<button class="btn btn-primary" data-act="nextQ">${agMore(g)?"Next":"Finish"} ${ic("fwd")}</button></div>`
       :`<button class="btn btn-primary" data-act="agCheck">Check</button>`}</section>`;}
   return "";}
 /* the Games page grid for this child's age group */

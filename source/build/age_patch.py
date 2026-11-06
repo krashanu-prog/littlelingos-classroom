@@ -61,4 +61,12 @@ R('@media (prefers-reduced-motion:reduce)','''.qopt.qbig{font-size:2.6rem;min-he
 .pvages{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px;width:100%}
 @media (prefers-reduced-motion:reduce)''')
 
-R('/* ================= events ================= */',open(W+'agegames_data.js').read()+open(W+'agegames_block.js').read()+'\n/* ================= events ================= */')
+R('/* ================= events ================= */',open(W+'agegames_data.js').read()+open(W+'agegames_block.js').read()+open(W+'adgame_block.js').read()+'\n/* ================= events ================= */')
+# ---- adaptive levels: header, feedback, Next/Finish, daily stars, quizzes ----
+R('${g.type!=="speed"?` · ${g.i+1} of ${g.qs.length}`:""}','${g.ad?adLede(g):g.type!=="speed"?` · ${g.i+1} of ${g.qs.length}`:""}')
+R('${q.why?` <span class="mtline">${esc(q.why)}</span>`:""}','${q.why?` <span class="mtline">${esc(q.why)}</span>`:""}${adFbHTML(g)}')
+R('${g.i<g.qs.length-1?"Next":"Finish"} ${ic("fwd")}</button></div>`:""}</section>`}`;}','${agMore(g)?"Next":"Finish"} ${ic("fwd")}</button></div>`:""}</section>`}`;}')
+R('const stars=g.type==="daily"?g.score:','const stars=g.type==="daily"?Math.min(5,g.ad?g.ad.ft:g.score):')
+R('<p class="qzscore" aria-live="polite">⭐ ${st.score} right${st.streak>=3?` · 🔥 ${st.streak} in a row!`:""}</p>','<p class="qzscore" aria-live="polite">⭐ ${st.score} right${st.streak>=3?` · 🔥 ${st.streak} in a row!`:""}${qzAdHTML(st)}</p>${st.deck[st.i]&&st.deck[st.i].again?`<p class="small adnote">💪 Practice: let\'s try this one again.</p>`:""}')
+R('<button class="btn btn-primary" data-act="qzNext" data-id="${kind}">Next question</button>','${qzFbHTML(st)}<button class="btn btn-primary" data-act="qzNext" data-id="${kind}">Next question</button>')
+R('@media (prefers-reduced-motion:reduce)','.adnote{color:var(--leaf);font-weight:700}\n@media (prefers-reduced-motion:reduce)')
