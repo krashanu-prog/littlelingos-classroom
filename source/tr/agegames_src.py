@@ -1,0 +1,145 @@
+# Data for the age-group games. Writes agegames_data.js (const AG=...).
+import json
+# ---- Seeds: picture words (word -> emoji) ----
+PIC = {
+ "cat":"🐱","dog":"🐶","cow":"🐮","duck":"🦆","hen":"🐔","lion":"🦁","tiger":"🐯","monkey":"🐵","elephant":"🐘","horse":"🐴",
+ "goat":"🐐","sheep":"🐑","pig":"🐷","rabbit":"🐰","fish":"🐟","bird":"🐦","frog":"🐸","bee":"🐝","butterfly":"🦋","ant":"🐜",
+ "owl":"🦉","parrot":"🦜","bear":"🐻","mouse":"🐭","apple":"🍎","banana":"🍌","mango":"🥭","grapes":"🍇","orange":"🍊","milk":"🥛",
+ "water":"💧","bread":"🍞","rice":"🍚","egg":"🥚","cake":"🎂","juice":"🧃","carrot":"🥕","tomato":"🍅","potato":"🥔","nose":"👃",
+ "eyes":"👀","ears":"👂","mouth":"👄","feet":"🦶","hand":"✋","teeth":"🦷","legs":"🦵","baby":"👶","grandma":"👵","grandpa":"👴",
+ "teacher":"🧑‍🏫","ball":"⚽","doll":"🪆","book":"📖","bag":"🎒","chair":"🪑","bed":"🛏️","cup":"☕","spoon":"🥄","door":"🚪",
+ "window":"🪟","car":"🚗","bus":"🚌","train":"🚂","kite":"🪁","clock":"⏰","sun":"☀️","moon":"🌙","star":"⭐","tree":"🌳",
+ "flower":"🌸","rain":"🌧️","cloud":"☁️","run":"🏃","sleep":"😴","sing":"🎤","dance":"💃","swim":"🏊","read":"📚","happy":"😊",
+ "sad":"😢","hot":"🔥","cold":"🥶","clap":"👏","eat":"🍽️","walk":"🚶",
+}
+SOUNDS = [("cow","moo"),("dog","woof woof"),("cat","meow"),("duck","quack quack"),("hen","cluck cluck"),("lion","roar"),("sheep","baa"),
+ ("goat","maa"),("pig","oink oink"),("horse","neigh"),("frog","ribbit"),("bee","buzz"),("owl","hoo hoo"),("mouse","squeak"),("bird","tweet tweet")]
+COLOURS = [("red","#E8492F"),("blue","#4BA3E3"),("green","#2F8F46"),("yellow","#FFC94A"),("pink","#F7A8C4"),("black","#2E2219"),
+ ("white","#FFFFFF"),("purple","#8E5CC4"),("brown","#8B5A2B"),("orange","#F28C28")]
+NUMS = ["one","two","three","four","five","six","seven","eight","nine","ten"]
+COUNT_THINGS = ["🍎","🐟","⭐","🌸","🎈","🐞","🍌","🚗","🐥","🍪"]
+# ---- Sprouts: sentence builder and odd one out ----
+SENT = """The cat is sleeping on the mat.
+I can see a big red bus.
+My sister likes to read books.
+We play cricket after school.
+The bird is singing in the tree.
+Please close the door.
+It is raining outside today.
+My grandpa tells funny stories.
+The farmer grows rice and wheat.
+I brush my teeth every morning.
+The train is going very fast.
+She drinks a glass of milk.
+We went to the market yesterday.
+The doctor helps sick people.
+My best friend is very kind.
+The sun is shining in the sky.
+I am proud of my drawing.
+The library is full of books.
+He caught the ball with one hand.
+We wear warm clothes in winter.
+The pilot flies the plane.
+I feel excited about the trip.
+The river flows to the sea.
+Can I borrow your pencil, please?
+The puppy is under the table.
+They built a sandcastle on the beach.
+My mother cooks tasty food.
+The bus stop is near my house.
+I always say thank you.
+The monkey climbed up the tree."""
+ODD = {
+ "feelings":["happy","sad","angry","proud","worried","excited","scared","bored"],
+ "weather":["sunny","cloudy","windy","foggy","stormy","rainy","snowy"],
+ "places":["library","hospital","station","market","village","city","school"],
+ "jobs":["doctor","farmer","pilot","chef","dentist","artist","teacher","scientist"],
+ "animals":["tiger","rabbit","parrot","elephant","monkey","horse","frog"],
+ "food":["rice","bread","mango","carrot","samosa","biscuit","banana"],
+ "past":["ran","swam","ate","wrote","caught","began","flew","sang"],
+ "colours":["red","blue","green","yellow","purple","brown","pink"],
+ "body":["head","hand","nose","knee","elbow","shoulder","ankle"],
+ "transport":["bus","train","auto","cycle","plane","boat","metro"],
+}
+ODD_LABEL = {"feelings":"feelings","weather":"weather words","places":"places","jobs":"jobs","animals":"animals","food":"foods",
+ "past":"past-tense verbs","colours":"colours","body":"body parts","transport":"ways to travel"}
+# ---- Blooms: fill the gap (word|sentence with the word) and fix the sentence ----
+CLOZE = """persuade|She tried to persuade her parents to adopt a puppy.
+resilient|The resilient team came back to win after a bad start.
+perspective|Reading the diary gave me a new perspective on the war.
+empathy|Good leaders show empathy for the people they lead.
+ambitious|Riya is ambitious and wants to become a surgeon.
+diligent|A diligent student revises a little every day.
+collaborate|The two schools will collaborate on a science fair.
+analyse|Scientists analyse data before drawing conclusions.
+evidence|The detective found evidence under the window.
+hypothesis|Our hypothesis was that plants grow faster in sunlight.
+predict|Meteorologists predict rain for the weekend.
+experiment|We did an experiment with vinegar and baking soda.
+democracy|In a democracy, citizens vote for their leaders.
+constitution|The Indian constitution came into force in 1950.
+responsibility|Keeping the classroom clean is everyone's responsibility.
+fragile|Handle the glass vase carefully; it is fragile.
+reluctant|He was reluctant to jump into the cold pool.
+generous|Our generous neighbour shared mangoes with everyone.
+optimistic|She stayed optimistic even after losing the first match.
+obvious|The answer was obvious once we drew a diagram.
+crucial|Sleep is crucial for a healthy brain.
+temporary|The road is closed, but it is only temporary.
+permanent|The tattoo is permanent, so think before you get one.
+scarce|Water becomes scarce in the desert during summer.
+abundant|Fruit is abundant in the market during the monsoon.
+compromise|After a long debate, both teams agreed to a compromise.
+negotiate|The captain will negotiate the rules with the other team.
+anticipate|We did not anticipate such heavy traffic.
+justify|You must justify your answer with two reasons.
+interpret|Different readers interpret the poem in different ways.
+sustainable|Solar power is a sustainable source of energy.
+consequence|Missing the bus had one consequence: I was late.
+pollution|Plastic waste adds to pollution in our rivers.
+integrity|A person of integrity tells the truth even when it is hard.
+curiosity|Her curiosity led her to ask the guide many questions.
+protagonist|The protagonist of the novel is a brave young girl.
+efficient|LED bulbs are more efficient than old bulbs.
+frequent|Power cuts are frequent in our area in summer.
+acknowledge|He was quick to acknowledge his mistake.
+influence|Friends can have a strong influence on our choices."""
+FIX = [
+ ("She doesn't like spinach.",["She don't like spinach.","She doesn't likes spinach.","She not like spinach."]),
+ ("They were playing in the park.",["They was playing in the park.","They were play in the park.","They is playing in the park."]),
+ ("I have finished my homework.",["I have finish my homework.","I has finished my homework.","I finished have my homework."]),
+ ("He is taller than his brother.",["He is more taller than his brother.","He is tall than his brother.","He is tallest than his brother."]),
+ ("Neither of the answers is correct.",["Neither of the answers are correct.","Neither of the answer is correct.","Neither of the answers be correct."]),
+ ("If I were you, I would apologise.",["If I was you, I will apologise.","If I am you, I would apologise.","If I were you, I apologise."]),
+ ("We have lived here since 2015.",["We have lived here for 2015.","We live here since 2015.","We are living here since 2015."]),
+ ("The book that I borrowed is on the desk.",["The book who I borrowed is on the desk.","The book what I borrowed is on the desk.","The book I borrowed it is on the desk."]),
+ ("Each of the students has a laptop.",["Each of the students have a laptop.","Each of the student have a laptop.","Each students has a laptop."]),
+ ("I look forward to meeting you.",["I look forward to meet you.","I am look forward to meeting you.","I look forward meeting you."]),
+ ("She speaks English fluently.",["She speaks fluently English.","She speak English fluently.","She speaks English fluent."]),
+ ("There are fewer cars on Sundays.",["There are less cars on Sundays.","There is fewer cars on Sundays.","There are fewest cars on Sundays."]),
+ ("My friend and I went to the museum.",["Me and my friend went to the museum.","My friend and me went to the museum.","I and my friend goes to the museum."]),
+ ("It's raining, so take your umbrella.",["Its raining, so take your umbrella.","It's raining, so take you're umbrella.","Its' raining, so take your umbrella."]),
+ ("The team has won the trophy.",["The team have win the trophy.","The team has winned the trophy.","The team has won trophy the."]),
+ ("He has been studying for three hours.",["He has been studying since three hours.","He is studying for three hours.","He have been studying for three hours."]),
+ ("Could you tell me where the station is?",["Could you tell me where is the station?","Could you tell me where the station is.","Could you tell me where station is?"]),
+ ("The film was so boring that I fell asleep.",["The film was so bored that I fell asleep.","The film was such boring that I fell asleep.","The film was too boring that I fell asleep."]),
+ ("Whose bag is this?",["Who's bag is this?","Whom bag is this?","Whose bag this is?"]),
+ ("By the time we arrived, the show had started.",["By the time we arrived, the show has started.","By the time we arrive, the show had started.","By the time we arrived, the show starts."]),
+ ("She is good at solving puzzles.",["She is good in solving puzzles.","She is good at solve puzzles.","She good at solving puzzles."]),
+ ("Their house is bigger than ours.",["There house is bigger than ours.","They're house is bigger than ours.","Their house is bigger than our's."]),
+ ("I wish I had studied harder.",["I wish I have studied harder.","I wish I studied hardly.","I wish I had study harder."]),
+ ("The news is good today.",["The news are good today.","The news were good today.","The new is good today."]),
+ ("He gave the prize to Meera and me.",["He gave the prize to Meera and I.","He gave the prize to I and Meera.","He gave the prize Meera and me to."]),
+ ("Despite the rain, we played outside.",["Despite of the rain, we played outside.","Despite the rain, we play outside yesterday.","Although the rain, we played outside."]),
+ ("I would rather walk than take the bus.",["I would rather walk than taking the bus.","I would rather to walk than take the bus.","I rather would walk than take the bus."]),
+ ("Everyone must bring their own lunch.",["Everyone must brings their own lunch.","Everyone must bring there own lunch.","Everyone must to bring their own lunch."]),
+ ("The children were laughing loudly.",["The childrens were laughing loudly.","The children was laughing loudly.","The children were laughing loud."]),
+ ("Have you ever been to Jaipur?",["Have you ever went to Jaipur?","Did you ever been to Jaipur?","Have you ever be to Jaipur?"]),
+]
+AG = {"pic": PIC, "sounds": SOUNDS, "colours": COLOURS, "nums": NUMS, "things": COUNT_THINGS,
+      "sent": [x.strip() for x in SENT.strip().splitlines()], "odd": ODD, "oddLabel": ODD_LABEL,
+      "cloze": [x.split("|", 1) for x in CLOZE.strip().splitlines()], "fix": FIX}
+for w, s in AG["cloze"]: assert w.lower() in s.lower(), w
+for a, b in FIX: assert a not in b and len(set(b)) == 3, a
+open("agegames_data.js", "w").write("/* Data for the age-group games (tr/agegames_src.py) */\nconst AG=" + json.dumps(AG, ensure_ascii=False, separators=(",", ":")) + ";\n")
+print({k: len(v) for k, v in AG.items()})

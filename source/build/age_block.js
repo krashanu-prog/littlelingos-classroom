@@ -5,9 +5,9 @@ const stageOK=(c,L)=>!c||!L||!L.stage||!c.level||!STAGES.some(s=>s.v===c.level)|
 function learnCourses(L){const all=learnerCourses(L);const m=all.filter(cid=>stageOK(D.courses[cid],L));return m.length?m:all;}
 /* how hard each game is, by stage */
 const LEVELS={
-  Seeds:{opts:3,quiz:5,listen:5,mem:4,daily:["listen","mean"],quizK:["mean"],listenK:["listen"],note:"Easy games: 3 choices, short rounds"},
-  Sprouts:{opts:4,quiz:8,listen:8,mem:6,daily:["mean","listen","rev"],quizK:["mean","rev"],listenK:["listen"],note:"4 choices, longer rounds, find the word from its meaning"},
-  Blooms:{opts:4,quiz:10,listen:10,mem:8,daily:["rev","spell","listen","mean"],quizK:["mean","rev","spell"],listenK:["listen","spell"],note:"Hardest: spelling, reverse meanings, 10-question rounds"}};
+  Seeds:{opts:3,quiz:5,listen:5,mem:4,daily:["listen","mean"],quizK:["mean"],listenK:["listen"],note:"Picture and sound games, read aloud to you. 3 big choices."},
+  Sprouts:{opts:4,quiz:8,listen:8,mem:6,daily:["mean","listen","rev"],quizK:["mean","rev"],listenK:["listen"],note:"Reading and word-building games: sentences, letters and word detective."},
+  Blooms:{opts:4,quiz:10,listen:10,mem:8,daily:["rev","spell","listen","mean"],quizK:["mean","rev","spell"],listenK:["listen","spell"],note:"Toughest: typing, grammar, fill-the-gap and a 60-second speed round."}};
 const lvOf=L=>LEVELS[(L&&L.stage)||""]||LEVELS.Sprouts;
 const myLv=()=>lvOf(myLearner());
 const lvN=type=>type==="daily"?5:(myLv()[type]||8);

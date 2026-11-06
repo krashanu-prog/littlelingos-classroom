@@ -23,3 +23,42 @@ R('const ls=learnerCourses(L).flatMap(cid=>lessonsOf(cid).map(','const ls=learnC
 R('const nx=nextLesson(uid,learnerCourses(L));if(nx)recent.push(nx);','const nx=nextLesson(uid,learnCourses(L));if(nx)recent.push(nx);')
 R('@media (prefers-reduced-motion:reduce)','''.lvband{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px}
 @media (prefers-reduced-motion:reduce)''')
+# ---- games for each age group, admin age preview, homework/notices by age ----
+i=s.index('<div class="gamegrid">',s.index('${levelBanner(L)}')); j=s.index('<i>Listen, say it, hear yourself</i></button>\n  </div>`;\n}',i)+len('<i>Listen, say it, hear yourself</i></button>\n  </div>')
+s=s[:i]+'${stageGamesHTML(L,n,dDone)}'+s[j:]
+R('<h1>${g.type==="daily"?"Daily challenge":g.type==="listen"?"Listen and pick":"Word quiz"}</h1><p class="lede">⭐ ${g.score} right</p>','<h1>${esc(AG_TITLE[g.type]||"Word quiz")}</h1><p class="lede">⭐ ${g.score} right${g.type==="speed"?` · ⏱️ <span id="agclock">${Math.max(0,Math.ceil((g.end-Date.now())/1000))}s</span>`:""}${g.type!=="speed"?` · ${g.i+1} of ${g.qs.length}`:""}</p>')
+R('<section class="quiz"><h2>${esc(q.prompt)}</h2>','${agQuestionHTML(g,q)||`<section class="quiz"><h2>${esc(q.prompt)}</h2>${q.vis||""}')
+R('${ic("fwd")}</button></div>`:""}</section>`;}','${ic("fwd")}</button></div>`:""}</section>`}`;}')
+R('q.k!=="rev"&&canSpeak()','q.k!=="rev"&&!q.nospeak&&canSpeak()')
+R('class="qopt ${g.pick!=null?','class="qopt${q.big?" qbig":""}${q.long?" qlong":""} ${g.pick!=null?')
+R('${q.k!=="mean"&&mt(q.say)?` <span class="mtline">“${esc(q.say)}” = ${mtHTML(q.say)}</span>`:""}','${q.k!=="mean"&&mt(q.wk||q.say)?` <span class="mtline">“${esc(q.wk||q.say)}” = ${mtHTML(q.wk||q.say)}</span>`:""}${q.why?` <span class="mtline">${esc(q.why)}</span>`:""}')
+R('wkLog(q.say,q.opts[+v]===q.ans);render(true);};','wkLog(q.wk!=null?q.wk:q.say,q.opts[+v]===q.ans);render(true);if(g.type==="speed")setTimeout(()=>{if(S.game===g&&!g.over&&g.pick!=null)A.nextQ();},700);};')
+R('if(q.k==="listen")setTimeout(()=>say(q.say,q.lang),300);};','if(q.k==="listen"||q.auto)setTimeout(()=>say(q.say,q.lang),300);};')
+R('const stars=g.type==="daily"?g.score:Math.round(g.score/g.qs.length*3);','const stars=g.type==="daily"?g.score:g.type==="speed"?(g.score>=15?3:g.score>=9?2:g.score>=4?1:0):Math.round(g.score/g.qs.length*3);if(g.type==="speed"){try{if(g.score>speedBest())localStorage.setItem(speedBestKey(),String(g.score));}catch{}}')
+R('{daily:"Daily challenge",quiz:"Word quiz",listen:"Listen and pick",revise:"Practise again"}[g.type]','AG_TITLE[g.type]')
+# admin learner preview by age
+R('stage:"Seeds",preview:true}','stage:S.previewStage||"Seeds",preview:true}')
+R('${["admin","teacher","student","parent"].map(x=>opt(x,ROLE_LABEL[x],x===cur)).join("")}','${viewAsOpts(cur)}')
+R('S.viewAs=v.value==="admin"?null:v.value;','{const [a,b]=v.value.split(":");S.viewAs=a==="admin"?null:a;if(b)setPvStage(b,true);S.game=null;}')
+R("To see a child's work, open <b>Learners</b> and tap the child.</span></section>`;}","To see a child's work, open <b>Learners</b> and tap the child.</span>${pvStageChips()}</section>`;}")
+# course homework and course notices reach only children of that course's age group
+R('(h.courseId?learnersInCourse(h.courseId).filter(L=>hwForLearner(h,L)):[])','(h.courseId?learnersInCourse(h.courseId).filter(L=>hwForLearner(h,L)&&learnCourses(L).includes(h.courseId)):[])')
+R('function noteLearners(n){if(n.audience==="course")return learnersInCourse(n.courseId);','function noteLearners(n){if(n.audience==="course")return learnersInCourse(n.courseId).filter(L=>learnCourses(L).includes(n.courseId));')
+R('<span class="hint">Everyone in this course gets the homework.</span>','<span class="hint">Everyone in this course whose age group matches the course gets the homework.</span>')
+R('@media (prefers-reduced-motion:reduce)','''.qopt.qbig{font-size:2.6rem;min-height:96px;line-height:1}
+.qopts:has(.qbig){grid-template-columns:repeat(3,minmax(0,1fr))}
+.qopt.qlong{font-family:var(--body);font-weight:700;font-size:1.05rem;text-align:left}
+.agswatch{width:120px;height:120px;border-radius:50%;margin:4px auto;border:4px solid var(--line)}
+.agcount{font-size:2.4rem;line-height:1.3;text-align:center;letter-spacing:4px;word-break:break-all}
+.agword{font-family:var(--display);font-size:2.4rem;font-weight:800;letter-spacing:6px;text-align:center;margin:0}
+.agblank{color:var(--tomato,#E8492F);text-decoration:underline}
+.agsent{font-size:1.25rem;line-height:1.6;background:var(--soft);border-radius:16px;padding:14px 16px;margin:0}
+.agline,.agbank{display:flex;flex-wrap:wrap;gap:8px;min-height:56px;padding:10px;border-radius:16px}
+.agline{background:var(--soft);border:2px dashed var(--line)}
+.agtile{min-height:48px;padding:8px 14px;border-radius:14px;border:2px solid var(--line);background:var(--card);font:inherit;font-weight:700;font-size:1.1rem;color:var(--soil);cursor:pointer}
+.agtile.on{background:var(--sprout);border-color:var(--leafMid)}
+#agtype{font-size:1.4rem;letter-spacing:2px}
+.pvages{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px;width:100%}
+@media (prefers-reduced-motion:reduce)''')
+
+R('/* ================= events ================= */',open(W+'agegames_data.js').read()+open(W+'agegames_block.js').read()+'\n/* ================= events ================= */')

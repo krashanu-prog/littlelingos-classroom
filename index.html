@@ -1115,15 +1115,20 @@ body.st-on{overflow:hidden}
 .l2chip{display:inline-flex;align-items:center;gap:6px;min-height:44px;padding:6px 14px;border-radius:999px;border:2px solid var(--line);background:#fff;font:inherit;font-weight:700;color:var(--leaf);cursor:pointer}.l2chip:hover,.l2chip:focus-visible{border-color:var(--leaf)}
 @media (max-width:600px){.l2chip{width:44px;padding:0;justify-content:center;flex:none}.l2chip span{display:none}}
 .lvband{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin:0 0 12px}
-.kidtile.t8{background:var(--sunSoft);flex-direction:row;align-items:center;gap:10px;min-height:72px;grid-column:1/-1}
-.pgw .pgw-bubble{align-self:center;max-width:420px;font-size:1.2rem}
-.pgw-starter{margin:0;background:var(--leafSoft);border-radius:999px;padding:8px 16px;font-size:1rem}
-.pgw-heard{display:flex;flex-direction:column;gap:4px;width:100%;max-width:420px;background:var(--soft);border-radius:18px;padding:12px 16px;text-align:left;box-sizing:border-box}
-.pgw-lab{font-weight:700;font-size:.8rem;letter-spacing:2px;text-transform:uppercase;color:var(--muted)}
-#pgw-live{font-size:1.1rem;line-height:1.45;min-height:1.45em}
-.pgw-ticks{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
-.pgw-tick{padding:6px 12px;border-radius:999px;background:var(--soft);color:var(--muted);font-weight:700}
-.pgw-tick.on{background:var(--leafSoft);color:var(--leaf)}
+.qopt.qbig{font-size:2.6rem;min-height:96px;line-height:1}
+.qopts:has(.qbig){grid-template-columns:repeat(3,minmax(0,1fr))}
+.qopt.qlong{font-family:var(--body);font-weight:700;font-size:1.05rem;text-align:left}
+.agswatch{width:120px;height:120px;border-radius:50%;margin:4px auto;border:4px solid var(--line)}
+.agcount{font-size:2.4rem;line-height:1.3;text-align:center;letter-spacing:4px;word-break:break-all}
+.agword{font-family:var(--display);font-size:2.4rem;font-weight:800;letter-spacing:6px;text-align:center;margin:0}
+.agblank{color:var(--tomato,#E8492F);text-decoration:underline}
+.agsent{font-size:1.25rem;line-height:1.6;background:var(--soft);border-radius:16px;padding:14px 16px;margin:0}
+.agline,.agbank{display:flex;flex-wrap:wrap;gap:8px;min-height:56px;padding:10px;border-radius:16px}
+.agline{background:var(--soft);border:2px dashed var(--line)}
+.agtile{min-height:48px;padding:8px 14px;border-radius:14px;border:2px solid var(--line);background:var(--card);font:inherit;font-weight:700;font-size:1.1rem;color:var(--soil);cursor:pointer}
+.agtile.on{background:var(--sprout);border-color:var(--leafMid)}
+#agtype{font-size:1.4rem;letter-spacing:2px}
+.pvages{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px;width:100%}
 .iconbtn{width:44px;height:44px;min-height:44px}
 select.inline{min-height:44px}
 .nm,.linkbtn{position:relative}
@@ -1299,7 +1304,7 @@ const isStaff=()=>["teacher","admin"].includes(role());
 const scopeAll=()=>role()==="admin"||!myTid();
 function myLearner(){
   const L=learnerByUid(S.uid); if(L)return L;
-  if(S.isOwner)return {id:"_preview",name:myName(),courses:Object.keys(D.courses),uid:S.uid,stage:"Seeds",preview:true};
+  if(S.isOwner)return {id:"_preview",name:myName(),courses:Object.keys(D.courses),uid:S.uid,stage:S.previewStage||"Seeds",preview:true};
   return null;
 }
 function scopedLearners(){
@@ -1411,7 +1416,7 @@ const teamNotices=()=>entries(D.notices).map(n=>({...n,src:"team",key:"team~"+n.
 function trainerNotes(){const out=[];for(const [uid,docs] of Object.entries(D.tn))for(const [id,n] of Object.entries(docs||{}))if(n&&n.title)out.push({...n,id,uid,src:"trainer",key:uid+"~"+id});return out;}
 function teacherLearners(tid){if(!tid)return [];const bl=new Set();for(const b of Object.values(D.batches||{}))if(b&&b.tid===tid)for(const id of b.learners||[])bl.add(id);return activeLearners().filter(L=>L.trainerId===tid||bl.has(L.id));}
 const assignPatch=(L,tid)=>{tid=tid||null;return (L&&(L.trainerId||null)===tid)?{}:{trainerId:tid,assignedAt:tid?Date.now():null,prevTrainerId:(L&&L.trainerId)||null};};
-function noteLearners(n){if(n.audience==="course")return learnersInCourse(n.courseId);const t=trainerByUid(n.uid);return t?teacherLearners(t.id):[];}
+function noteLearners(n){if(n.audience==="course")return learnersInCourse(n.courseId).filter(L=>learnCourses(L).includes(n.courseId));const t=trainerByUid(n.uid);return t?teacherLearners(t.id):[];}
 function myKids(){const r=role();if(r==="student"){const L=myLearner();return L&&!L.preview?[L]:[];}if(r==="parent")return childrenOf(S.uid).map(learner);return [];}
 function noticesFor(r){
   const team=teamNotices(), tr=trainerNotes(); let list;
@@ -1428,7 +1433,7 @@ const unreadCount=()=>unreadList().length;
 /* ================= homework ================= */
 function allHw(){const out=[];for(const [uid,docs] of Object.entries(D.hw))for(const [id,h] of Object.entries(docs||{}))if(h&&h.title)out.push({...h,id,uid,key:uid+"~"+id});
   return out.sort((a,b)=>String(a.due||"9999").localeCompare(String(b.due||"9999"))||(b.at||0)-(a.at||0));}
-function hwLearners(h){const ids=(h.learnerIds||[]).filter(id=>D.learners[id]);return (ids.length?ids.map(learner):(h.courseId?learnersInCourse(h.courseId).filter(L=>hwForLearner(h,L)):[])).filter(l=>l.active!==false);}
+function hwLearners(h){const ids=(h.learnerIds||[]).filter(id=>D.learners[id]);return (ids.length?ids.map(learner):(h.courseId?learnersInCourse(h.courseId).filter(L=>hwForLearner(h,L)&&learnCourses(L).includes(h.courseId)):[])).filter(l=>l.active!==false);}
 const hwFor=L=>L?allHw().filter(h=>hwLearners(h).some(x=>x.id===L.id)):[];
 const hwByKey=k=>allHw().find(h=>h.key===k)||null;
 const answerOf=(L,h)=>{const a=L&&L.uid&&D.answers[L.uid]?.items?.[h.key];return a&&a.text?a:null};
@@ -1525,7 +1530,7 @@ function topHTML(){
   if(S.status==="ready"&&r&&r!=="pending"){
     const ini=myName().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
     const un=unreadCount();
-    right=`${r==="admin"?`<div class="viewas"><label for="viewas">View as</label><select id="viewas">${["admin","teacher","student","parent"].map(x=>opt(x,ROLE_LABEL[x],x===cur)).join("")}</select></div>`:`<span class="rolechip">${esc(ROLE_LABEL[cur]||"")}</span>`}
+    right=`${r==="admin"?`<div class="viewas"><label for="viewas">View as</label><select id="viewas">${viewAsOpts(cur)}</select></div>`:`<span class="rolechip">${esc(ROLE_LABEL[cur]||"")}</span>`}
       ${l2Chip()}
       ${clockChip(cur)}
       ${bellHTML()}
@@ -1539,7 +1544,7 @@ function clockChip(cur){
   if(x.open){const base=doneMsToday(tid);return `<button class="clockchip on" data-act="clockOut" data-id="${esc(x.open.id)}" aria-label="Working now. Clock out"><span class="num" data-since="${esc(x.open.startAt)}" data-base="${base}">${fmtDur(base+Date.now()-new Date(x.open.startAt).getTime())}</span><span class="lbl">· Clock out</span></button>`;}
   return `<button class="clockchip" data-act="clockIn" aria-label="Clock in">${ic("clock")}<span class="lbl">Clock in</span></button>`;
 }
-function bindTop(){const v=document.getElementById("viewas");if(v)v.addEventListener("change",()=>{S.viewAs=v.value==="admin"?null:v.value;v.blur();go("home");});}
+function bindTop(){const v=document.getElementById("viewas");if(v)v.addEventListener("change",()=>{{const [a,b]=v.value.split(":");S.viewAs=a==="admin"?null:a;if(b)setPvStage(b,true);S.game=null;}v.blur();go("home");});}
 function navItems(){
   const r=role();
   if(r==="student")return [["home","My garden","leaf"],["path","Path","map"],["words","Words","cards"],["play","Games","star"],["fun","Fun corner","sunny"],["wall","Garden wall","wall"],["india","My India","map"],["homework","Homework","pencil"],["schedule","Classes","cal"],["stories","Stories","book"],["me","Me","user"],["notices","Messages","bell"]];
@@ -2329,7 +2334,7 @@ function hwForm(h={},pre={}){
   <section class="hwstep"><h3><span class="num">1</span>Who is it for?</h3>
     ${twoWays?`<div class="seg" role="radiogroup" aria-label="Who is it for"><label><input type="radio" name="who" value="learners" ${wasCourse?"":"checked"}>Chosen learners</label><label><input type="radio" name="who" value="course" ${wasCourse?"checked":""}>A whole course</label></div>`:`<input type="hidden" name="who" value="learners">`}
     <div class="hw-learners">${kidPicker("hwl",h.learnerIds||[],ls,false)}</div>
-    ${twoWays?`<div class="hw-course field"><label for="hw-course">Course</label><select id="hw-course" name="course">${cs.map(c=>opt(c.id,c.title,c.id===defC)).join("")}</select><span class="hint">Everyone in this course gets the homework.</span></div>`:""}
+    ${twoWays?`<div class="hw-course field"><label for="hw-course">Course</label><select id="hw-course" name="course">${cs.map(c=>opt(c.id,c.title,c.id===defC)).join("")}</select><span class="hint">Everyone in this course whose age group matches the course gets the homework.</span></div>`:""}
   </section>
   <section class="hwstep"><h3><span class="num">2</span>The task</h3>
     <div class="field"><label for="hw-title">Title</label><input type="text" id="hw-title" name="title" required maxlength="100" data-label="Title" value="${esc(h.title||"")}" placeholder="e.g. Farm animals worksheet"></div>
@@ -3234,7 +3239,7 @@ function studentHome(){
       <section class="daily ${dDone?"done":""}"><span class="dicon" aria-hidden="true">${dDone?"✅":"🎯"}</span><div class="grow"><b>Word quiz</b><span>${dDone?`Done today! You got ${progOf(uid).daily[ymd(new Date())]} of 5. Come back tomorrow.`:"5 quick questions, just for fun."}</span></div>${dDone?"":`<button class="btn btn-sun" data-act="startGame" data-id="daily">Play</button>`}</section>
       <div class="kidtiles">
         <button class="kidtile t1" data-go="path"><span>🗺️</span>Lesson path</button><button class="kidtile t2" data-go="words"><span>🃏</span>My words</button>
-        <button class="kidtile t3" data-go="play"><span>🎲</span>Games</button><button class="kidtile t4" data-go="me"><span>🏅</span>My stars</button><button class="kidtile t5" data-go="wall"><span>🖼️</span>Garden wall</button><button class="kidtile t6" data-act="teachPip"><span>🎓</span>Teach Pip</button><button class="kidtile t7" data-go="sounds"><span>👂</span>Sound pairs</button>${pgwShow(L)?`<button class="kidtile t8" data-act="pipWrong"><span>🗣️</span>Pip Gets It Wrong</button>`:""}
+        <button class="kidtile t3" data-go="play"><span>🎲</span>Games</button><button class="kidtile t4" data-go="me"><span>🏅</span>My stars</button><button class="kidtile t5" data-go="wall"><span>🖼️</span>Garden wall</button><button class="kidtile t6" data-act="teachPip"><span>🎓</span>Teach Pip</button><button class="kidtile t7" data-go="sounds"><span>👂</span>Sound pairs</button>
       </div>
       ${stk.length?`<section class="card panel"><h2>From your teacher</h2>${stk.map(x=>`<div class="stickerrow"><span class="bigsticker">${esc(x.s)}</span><div><b>${esc(x.text||"Well done!")}</b><div class="small muted">${esc(x.who)} · ${esc(fmtDay(new Date(x.at)))}</div></div></div>`).join("")}</section>`:""}
       ${kidHwCard(L)}
@@ -3300,11 +3305,11 @@ A.startGame=type=>{const L=myLearner();if(!L)return;const pool=gamePool(L);
   else S.game={type,qs:buildQs(pool,lvN(type),Math.random,lvKinds(type)),i:0,score:0,pick:null};
   if(S.view!=="play")go("play");else render(true);
   const q=S.game.qs&&S.game.qs[0];if(q&&q.k==="listen")setTimeout(()=>say(q.say,q.lang),400);};
-A.answer=v=>{const g=S.game;if(!g||g.pick!=null)return;const q=g.qs[g.i];g.pick=+v;if(q.opts[+v]===q.ans){g.score++;}wkLog(q.say,q.opts[+v]===q.ans);render(true);};
+A.answer=v=>{const g=S.game;if(!g||g.pick!=null)return;const q=g.qs[g.i];g.pick=+v;if(q.opts[+v]===q.ans){g.score++;}wkLog(q.wk!=null?q.wk:q.say,q.opts[+v]===q.ans);render(true);if(g.type==="speed")setTimeout(()=>{if(S.game===g&&!g.over&&g.pick!=null)A.nextQ();},700);};
 A.nextQ=async()=>{const g=S.game;if(!g)return;g.i++;g.pick=null;
-  if(g.i>=g.qs.length){g.over=true;render(true);const perfect=g.score===g.qs.length;const stars=g.type==="daily"?g.score:Math.round(g.score/g.qs.length*3);
-    const extra=g.type==="daily"?{daily:{[ymd(new Date())]:g.score}}:{pts:{["g"+Date.now().toString(36)]:stars}};if(perfect)extra.perfect=true;actLog(g.type,{daily:"Daily challenge",quiz:"Word quiz",listen:"Listen and pick",revise:"Practise again"}[g.type]||"Word game",g.score,g.qs.length);await save(()=>earn(extra));g.stars=stars;render(true);return}
-  render(true);const q=g.qs[g.i];if(q.k==="listen")setTimeout(()=>say(q.say,q.lang),300);};
+  if(g.i>=g.qs.length){g.over=true;render(true);const perfect=g.score===g.qs.length;const stars=g.type==="daily"?g.score:g.type==="speed"?(g.score>=15?3:g.score>=9?2:g.score>=4?1:0):Math.round(g.score/g.qs.length*3);if(g.type==="speed"){try{if(g.score>speedBest())localStorage.setItem(speedBestKey(),String(g.score));}catch{}}
+    const extra=g.type==="daily"?{daily:{[ymd(new Date())]:g.score}}:{pts:{["g"+Date.now().toString(36)]:stars}};if(perfect)extra.perfect=true;actLog(g.type,AG_TITLE[g.type]||"Word game",g.score,g.qs.length);await save(()=>earn(extra));g.stars=stars;render(true);return}
+  render(true);const q=g.qs[g.i];if(q.k==="listen"||q.auto)setTimeout(()=>say(q.say,q.lang),300);};
 A.memTap=v=>{const g=S.game;if(!g||g.type!=="memory"||g.lock)return;const i=+v;if(g.done.has(i)||g.open.includes(i))return;g.open.push(i);
   if(g.open.length===2){g.moves++;const [a,b]=g.open;if(g.cards[a].k===g.cards[b].k){g.done.add(a);g.done.add(b);g.open=[];if(g.done.size===g.cards.length){g.over=true;const pairs=g.cards.length/2;g.stars=g.moves<=pairs+2?3:g.moves<=pairs+5?2:1;actLog("memory","Memory pairs",g.stars);save(()=>earn({pts:{["m"+Date.now().toString(36)]:g.stars},...(g.moves===pairs?{perfect:true}:{})}));}}
     else{g.lock=true;setTimeout(()=>{g.open=[];g.lock=false;render(true)},900);}}
@@ -3317,23 +3322,15 @@ function playView(){
   if(g&&g.type==="memory")return `<div class="head"><div><h1>Memory pairs</h1><p class="lede">Find each word and its meaning. Moves: ${g.moves}</p></div><button class="btn btn-ghost btn-sm" data-act="endGame">Stop</button></div>
     <div class="memgrid">${g.cards.map((c,i)=>{const open=g.done.has(i)||g.open.includes(i);return `<button class="mem ${open?"open":""} ${g.done.has(i)?"done":""} ${c.w?"isw":""}" data-act="memTap" data-id="${i}" aria-label="${open?esc(c.t):"Hidden card"}">${open?esc(c.t):"🌱"}</button>`}).join("")}</div>`;
   if(g&&g.qs){const q=g.qs[g.i];const ansI=q.opts.indexOf(q.ans);
-    return `<div class="head"><div><h1>${g.type==="daily"?"Daily challenge":g.type==="listen"?"Listen and pick":"Word quiz"}</h1><p class="lede">⭐ ${g.score} right</p></div><button class="btn btn-ghost btn-sm" data-act="endGame">Stop</button></div>
-    <section class="quiz"><h2>${esc(q.prompt)}</h2>${q.k==="listen"?`<button class="btn btn-sun btn-big" data-act="sayQ" style="align-self:center">${ic("sound",24)}Hear it again</button>`:q.k!=="rev"&&canSpeak()?`<button class="iconbtn big" data-act="sayQ" aria-label="Hear the word" style="align-self:center">${ic("sound")}</button>`:""}
-      <div class="qopts">${q.opts.map((o,i)=>`<button class="qopt ${g.pick!=null?(i===ansI?"right":i===g.pick?"wrong":""):""}" data-act="answer" data-id="${i}" ${g.pick!=null?"disabled":""}>${esc(o)}</button>`).join("")}</div>
-      ${g.pick!=null?`<div class="qfb ${g.pick===ansI?"ok":""}">${g.pick===ansI?"🎉 Yes! Well done!":`The answer is “${esc(q.ans)}”.`}${q.k!=="mean"&&mt(q.say)?` <span class="mtline">“${esc(q.say)}” = ${mtHTML(q.say)}</span>`:""}<button class="btn btn-primary" data-act="nextQ">${g.i<g.qs.length-1?"Next":"Finish"} ${ic("fwd")}</button></div>`:""}</section>`;}
+    return `<div class="head"><div><h1>${esc(AG_TITLE[g.type]||"Word quiz")}</h1><p class="lede">⭐ ${g.score} right${g.type==="speed"?` · ⏱️ <span id="agclock">${Math.max(0,Math.ceil((g.end-Date.now())/1000))}s</span>`:""}${g.type!=="speed"?` · ${g.i+1} of ${g.qs.length}`:""}</p></div><button class="btn btn-ghost btn-sm" data-act="endGame">Stop</button></div>
+    ${agQuestionHTML(g,q)||`<section class="quiz"><h2>${esc(q.prompt)}</h2>${q.vis||""}${q.k==="listen"?`<button class="btn btn-sun btn-big" data-act="sayQ" style="align-self:center">${ic("sound",24)}Hear it again</button>`:q.k!=="rev"&&!q.nospeak&&canSpeak()?`<button class="iconbtn big" data-act="sayQ" aria-label="Hear the word" style="align-self:center">${ic("sound")}</button>`:""}
+      <div class="qopts">${q.opts.map((o,i)=>`<button class="qopt${q.big?" qbig":""}${q.long?" qlong":""} ${g.pick!=null?(i===ansI?"right":i===g.pick?"wrong":""):""}" data-act="answer" data-id="${i}" ${g.pick!=null?"disabled":""}>${esc(o)}</button>`).join("")}</div>
+      ${g.pick!=null?`<div class="qfb ${g.pick===ansI?"ok":""}">${g.pick===ansI?"🎉 Yes! Well done!":`The answer is “${esc(q.ans)}”.`}${q.k!=="mean"&&mt(q.wk||q.say)?` <span class="mtline">“${esc(q.wk||q.say)}” = ${mtHTML(q.wk||q.say)}</span>`:""}${q.why?` <span class="mtline">${esc(q.why)}</span>`:""}<button class="btn btn-primary" data-act="nextQ">${g.i<g.qs.length-1?"Next":"Finish"} ${ic("fwd")}</button></div>`:""}</section>`}`;}
   const dDone=(progOf(L.uid).daily||{})[ymd(new Date())]!=null, n=gamePool(L).length;
   return `<div class="head"><div><h1>Games</h1><p class="lede">Play with your words and win stars. ⭐ ${starsOf(L)} so far!</p></div></div>
   ${n<4?`<section class="alert a-sun"><b>Finish a lesson with word cards to unlock the games.</b></section>`:""}
   ${levelBanner(L)}
-  <div class="gamegrid">
-    <button class="gamecard g0" data-act="startGame" data-id="daily" ${n<4?"disabled":""}><span>${dDone?"✅":"🎯"}</span><b>Daily challenge</b><i>${dDone?"Done today!":"5 questions · up to 5 stars"}</i></button>
-    <button class="gamecard g1" data-act="startGame" data-id="quiz" ${n<4?"disabled":""}><span>❓</span><b>Word quiz</b><i>What does it mean?</i></button>
-    <button class="gamecard g2" data-act="startGame" data-id="listen" ${n<4||!canSpeak()?"disabled":""}><span>👂</span><b>Listen and pick</b><i>Hear a word, find it</i></button>
-    <button class="gamecard g3" data-act="startGame" data-id="memory" ${n<4?"disabled":""}><span>🃏</span><b>Memory pairs</b><i>Match words and meanings</i></button>
-    <button class="gamecard g1" data-act="goQuiz" data-id="en"><span>🔤</span><b>Word power</b><i>English quiz, always open</i></button>
-    <button class="gamecard g2" data-act="goQuiz" data-id="gk"><span>🌍</span><b>GK quiz</b><i>Questions about our world</i></button>
-    <button class="gamecard g4" data-act="drill" ${n<1?"disabled":""}><span>🎤</span><b>Repeat after me</b><i>Listen, say it, hear yourself</i></button>
-  </div>`;
+  ${stageGamesHTML(L,n,dDone)}`;
 }
 
 /* ---------- Homework (with stars, stickers, voice notes, print) ---------- */
@@ -6427,7 +6424,7 @@ function actCardHTML(L,own){if(!L||!L.uid)return "";const xs=actsOf(L.uid);const
 A.actMore=k=>{S.actAll=S.actAll===k?null:k;render();};
 /* admin "View as learner": say clearly where the work goes */
 function previewNoteHTML(){if(!(realRole()==="admin"&&S.viewAs==="student"))return "";
-  return `<section class="alert a-sun prevnote"><span>👀 <b>Learner preview.</b> You're playing as a sample learner, so your activities save to this preview only, not to a child's portfolio. To see a child's work, open <b>Learners</b> and tap the child.</span></section>`;}
+  return `<section class="alert a-sun prevnote"><span>👀 <b>Learner preview.</b> You're playing as a sample learner, so your activities save to this preview only, not to a child's portfolio. To see a child's work, open <b>Learners</b> and tap the child.</span>${pvStageChips()}</section>`;}
 /* chess: one line when a game ends (win, loss or draw) */
 const CH_LOGGED=new WeakSet();
 {const f=chessHTML;chessHTML=function(){const h=f.apply(this,arguments);try{const g=CH.g;if(g&&g.game_over()&&!CH_LOGGED.has(g)&&g.history().length>2){CH_LOGGED.add(g);const two=CH.mode==="two";
@@ -6566,9 +6563,9 @@ const stageOK=(c,L)=>!c||!L||!L.stage||!c.level||!STAGES.some(s=>s.v===c.level)|
 function learnCourses(L){const all=learnerCourses(L);const m=all.filter(cid=>stageOK(D.courses[cid],L));return m.length?m:all;}
 /* how hard each game is, by stage */
 const LEVELS={
-  Seeds:{opts:3,quiz:5,listen:5,mem:4,daily:["listen","mean"],quizK:["mean"],listenK:["listen"],note:"Easy games: 3 choices, short rounds"},
-  Sprouts:{opts:4,quiz:8,listen:8,mem:6,daily:["mean","listen","rev"],quizK:["mean","rev"],listenK:["listen"],note:"4 choices, longer rounds, find the word from its meaning"},
-  Blooms:{opts:4,quiz:10,listen:10,mem:8,daily:["rev","spell","listen","mean"],quizK:["mean","rev","spell"],listenK:["listen","spell"],note:"Hardest: spelling, reverse meanings, 10-question rounds"}};
+  Seeds:{opts:3,quiz:5,listen:5,mem:4,daily:["listen","mean"],quizK:["mean"],listenK:["listen"],note:"Picture and sound games, read aloud to you. 3 big choices."},
+  Sprouts:{opts:4,quiz:8,listen:8,mem:6,daily:["mean","listen","rev"],quizK:["mean","rev"],listenK:["listen"],note:"Reading and word-building games: sentences, letters and word detective."},
+  Blooms:{opts:4,quiz:10,listen:10,mem:8,daily:["rev","spell","listen","mean"],quizK:["mean","rev","spell"],listenK:["listen","spell"],note:"Toughest: typing, grammar, fill-the-gap and a 60-second speed round."}};
 const lvOf=L=>LEVELS[(L&&L.stage)||""]||LEVELS.Sprouts;
 const myLv=()=>lvOf(myLearner());
 const lvN=type=>type==="daily"?5:(myLv()[type]||8);
@@ -6611,165 +6608,115 @@ function noteAsked(ws){try{const r=recentWords().filter(w=>!ws.includes(w));loca
 function freshFirst(pool,r){const rec=recentWords(),pos=new Map(rec.map((w,i)=>[w,i]));const lc=x=>String(x.w).toLowerCase();
   return shuffle(pool.slice(),r).sort((a,b)=>(pos.has(lc(a))?1e4-pos.get(lc(a)):0)-(pos.has(lc(b))?1e4-pos.get(lc(b)):0));}
 
-/* ================= Speak Up with Pip: "Pip Gets It Wrong" (Sprouts, ages 7 to 10) ================= */
-/* Pip says something silly with total confidence. The child corrects Pip out loud and says why.
-   Goal: move children from one-word answers to "No, Pip! ... because ...".
-   - Listening uses the browser's speech recognition. No audio and no words are saved; only counts
-     (turns, talking seconds, words, reasons) go into progress/<uid>.spk for the parent and teacher.
-   - Three levels inside Sprouts. Everyone starts at level 1; after 3 good sessions in a row the level
-     goes up, and after 2 mostly silent sessions it quietly goes back down (scaffolds return).
-   - Pip never wins and nobody fails: a missing reason gets a gentle "why?" (up to 2 nudges), then praise. */
-const PGW_BANK={
-  1:[
-    {c:"Fish live in trees!",e:"🐟",k:["water","sea","river","pond","ocean","swim","lake","tank"],a:"Then where do fish live?",f:"Ohh! Fish live in water. Thank you for teaching me!"},
-    {c:"Cows say quack quack!",e:"🐄",k:["moo","duck","ducks"],a:"Then what do cows say?",f:"Moo! Cows say moo. You're so smart!"},
-    {c:"The sun comes out at night!",e:"☀️",k:["day","morning","daytime","moon","afternoon"],a:"Then when does the sun come out?",f:"Oh! The sun comes out in the day. Thank you!"},
-    {c:"Ice cream is very hot!",e:"🍦",k:["cold","cool","freez","fridge","ice","melt"],a:"Then is ice cream hot or cold?",f:"Brrr! Ice cream is cold. I learned something new!"},
-    {c:"Cats can fly like birds!",e:"🐱",k:["wing","wings","walk","run","jump","climb","legs","bird","birds"],a:"Then what can cats do?",f:"Oh! Cats walk and jump. They can't fly. Thanks!"},
-    {c:"We wear shoes on our hands!",e:"👟",k:["feet","foot","leg","legs","gloves","walk"],a:"Then where do we wear shoes?",f:"On our feet! Silly me. Thank you!"},
-    {c:"Bananas are bright blue!",e:"🍌",k:["yellow","green","brown"],a:"Then what colour are bananas?",f:"Yellow! Bananas are yellow. You're a great teacher!"},
-    {c:"Elephants are tiny, like ants!",e:"🐘",k:["big","huge","large","giant","heavy","tall"],a:"Then are elephants big or small?",f:"Elephants are huge! Thank you for telling me!"},
-    {c:"Rain falls up into the sky!",e:"🌧️",k:["down","ground","fall","falls","clouds","cloud","gravity"],a:"Then which way does rain fall?",f:"Rain falls down! Now I know. Thank you!"},
-    {c:"We eat soup with a fork!",e:"🥣",k:["spoon","spoons","drink","bowl","fall"],a:"Then what do we eat soup with?",f:"A spoon! Of course. Thank you!"},
-    {c:"Snow is hot and red!",e:"❄️",k:["cold","white","ice","freez","winter"],a:"Then what is snow like?",f:"Snow is cold and white! You know so much!"},
-    {c:"Dogs have two legs, just like me!",e:"🐶",k:["four","4"],a:"Then how many legs do dogs have?",f:"Four legs! Thank you for counting for me!"},
-    {c:"We read books with our ears!",e:"📚",k:["eye","eyes","see","look","read"],a:"Then how do we read books?",f:"With our eyes! Thanks, teacher!"},
-    {c:"Milk comes from fish!",e:"🥛",k:["cow","cows","buffalo","goat","goats","animal"],a:"Then where does milk come from?",f:"From cows and buffaloes! I didn't know. Thank you!"},
-    {c:"Chairs are for eating!",e:"🪑",k:["sit","sitting","seat","chair"],a:"Then what are chairs for?",f:"Chairs are for sitting! You're so clever!"},
-    {c:"A week has three days!",e:"📅",k:["seven","7","monday","sunday"],a:"Then how many days are in a week?",f:"Seven days! Thank you for teaching me!"},
-    {c:"Trees grow in the sky!",e:"🌳",k:["ground","soil","earth","land","garden","roots","mud"],a:"Then where do trees grow?",f:"In the ground! Now I understand. Thank you!"},
-    {c:"We sleep in the bathroom!",e:"🛏️",k:["bed","bedroom","room","pillow"],a:"Then where do we sleep?",f:"In a bed! Of course. Thank you!"}
-  ],
-  2:[
-    {c:"Plants don't need water at all!",e:"🌱",k:["water","die","dry","grow","need","thirsty","drink"],a:"Then what do plants need?",f:"Plants need water to grow! Thank you for explaining!"},
-    {c:"We only need to brush our teeth once a year!",e:"🪥",k:["day","daily","twice","morning","night","germ","germs","cavit","clean","dirty"],a:"Then how often should we brush?",f:"Every day! You gave me a great reason. Thank you!"},
-    {c:"Reading books is boring!",e:"📖",k:["fun","story","stories","learn","interesting","exciting","words","imagin"],a:"Then what is good about reading?",f:"Reading is full of stories! You changed my mind!"},
-    {c:"Vegetables make you weak!",e:"🥕",k:["strong","healthy","health","vitamin","vitamins","good","energy","grow"],a:"Then what do vegetables do for us?",f:"Vegetables make us strong! Thank you for teaching me!"},
-    {c:"Sleeping is a waste of time!",e:"😴",k:["rest","tired","energy","grow","healthy","brain","sleepy","body"],a:"Then why do we need sleep?",f:"Sleep gives us energy! What a good reason!"},
-    {c:"It's fine to cross the road without looking!",e:"🚦",k:["car","cars","danger","dangerous","safe","look","hurt","accident","traffic","bike"],a:"Then what should we do before we cross?",f:"Look both ways! You're keeping me safe. Thank you!"},
-    {c:"Winter is the hottest time of the year!",e:"⛄",k:["cold","summer","cool","sweater","jacket"],a:"Then which season is hottest?",f:"Summer is hottest! Thank you for telling me!"},
-    {c:"You don't need any friends!",e:"🤝",k:["play","fun","help","share","happy","lonely","sad","talk"],a:"Then why are friends important?",f:"Friends make us happy! You're right!"},
-    {c:"Saying sorry makes things worse!",e:"🙏",k:["better","friend","friends","feel","happy","mistake","kind","hurt"],a:"Then what does saying sorry do?",f:"Sorry makes things better! Thank you for teaching me!"},
-    {c:"Cars run on orange juice!",e:"🚗",k:["petrol","diesel","fuel","electric","electricity","gas","cng","battery"],a:"Then what do cars run on?",f:"Petrol or electricity! Thank you!"},
-    {c:"Throwing rubbish on the road is okay!",e:"🗑️",k:["dustbin","bin","dirty","clean","sick","germs","animals","smell"],a:"Then where should rubbish go?",f:"In the dustbin! You made a great point!"},
-    {c:"Homework doesn't help anyone!",e:"✏️",k:["learn","practice","practise","remember","school","better","brain"],a:"Then how does homework help?",f:"Homework helps us practise! You convinced me!"}
-  ],
-  3:[
-    {c:"Only the fastest runner should get a prize. Nobody else!",e:"🏃",k:["try","tried","effort","fair","everyone","practice","practise","hard","feel","sad"],a:"Then who should get a prize?",f:"Everyone who tries hard matters! You convinced me!"},
-    {c:"Only grown-ups have good ideas!",e:"💡",k:["kid","kids","children","child","anyone","everyone","idea","ideas","young","me"],a:"Then who can have good ideas?",f:"Anyone can have a good idea! Great argument!"},
-    {c:"It's okay to cheat if nobody sees!",e:"🙈",k:["wrong","honest","unfair","fair","learn","truth","lie","bad"],a:"Then why is cheating not okay?",f:"Being honest matters, even when nobody sees. Thank you!"},
-    {c:"We don't need to save water!",e:"💧",k:["waste","save","less","drink","future","people","everyone","finish","run out"],a:"Then why should we save water?",f:"Water can run out, so we save it! You convinced me!"},
-    {c:"Animals don't have feelings!",e:"🐕",k:["feel","feelings","happy","sad","pain","hurt","love","scared","cry"],a:"Then how do animals feel?",f:"Animals feel happy and sad too! Great point!"},
-    {c:"Phones are always better than playing outside!",e:"📱",k:["outside","play","friends","health","healthy","exercise","fresh","eyes","run","sun"],a:"Then what is good about playing outside?",f:"Playing outside keeps us healthy! You changed my mind!"},
-    {c:"If you make a mistake, you're bad at it forever!",e:"🧩",k:["learn","try","practice","practise","better","improve","again","mistake"],a:"Then what do mistakes help us do?",f:"Mistakes help us learn! What a wise answer!"},
-    {c:"Trees are not useful for anything!",e:"🌳",k:["oxygen","air","shade","fruit","fruits","bird","birds","home","breathe","wood","rain"],a:"Then how are trees useful?",f:"Trees give us air and shade! Thank you!"},
-    {c:"We should close all the libraries!",e:"🏛️",k:["book","books","read","learn","free","quiet","study","everyone"],a:"Then why do we need libraries?",f:"Libraries share books with everyone! You convinced me!"},
-    {c:"Being kind is a waste of time!",e:"💛",k:["happy","friend","friends","help","feel","nice","good","smile"],a:"Then why should we be kind?",f:"Kindness makes everyone happier! Great argument!"},
-    {c:"In a group, only one person should ever talk!",e:"🗣️",k:["everyone","turn","turns","share","idea","ideas","listen","fair","team"],a:"Then who should talk in a group?",f:"Everyone gets a turn! Well argued!"},
-    {c:"The Earth is flat, like a roti!",e:"🌍",k:["round","sphere","ball","globe","space","photo","photos"],a:"Then what shape is the Earth?",f:"The Earth is round! Thank you for teaching me!"}
-  ]};
-/* per level: the target answer, the starter, when it shows, and the longest turn in seconds */
-const PGW_LV={
-  1:{name:"Level 1",target:"one full sentence with “because”",start:["No, Pip! … because …","I think … because …"],starterAt:0,cap:30,need:x=>x.reason&&x.words>=5},
-  2:{name:"Level 2",target:"what's right, a reason and an example",start:["No, Pip! … because … For example, …"],starterAt:5,cap:45,need:x=>x.reason&&x.words>=9},
-  3:{name:"Level 3",target:"two reasons, and an answer when Pip argues back",start:["I disagree, because … Also, …"],starterAt:-1,cap:90,need:x=>x.reason&&x.words>=12}};
-const PGW_TURNS=5,PGW_SILENT_END=2500,PGW_FIRST_WAIT=9000;
-const pgwWords=t=>String(t||"").toLowerCase().replace(/[^a-z0-9' ]+/g," ").split(/\s+/).filter(Boolean);
-/* the checks from the spec: spoke, full sentence (5+ words), gave a reason, on topic */
-function pgwCheck(text,claim){const w=pgwWords(text),txt=" "+w.join(" ")+" ";
-  const reason=/ (because|becoz|bcoz|cause|cuz|coz|cos|since|so) /.test(txt)||/ that's why | thats why /.test(txt);
-  const topic=claim.k.some(k=>k.includes(" ")?txt.includes(" "+k+" "):w.some(x=>x===k||x.startsWith(k)));
-  const two=(txt.match(/ (because|becoz|bcoz|cause|cuz|coz|cos|since|also|and another) /g)||[]).length>=2;
-  return {spoke:w.length>0,full:w.length>=5,reason,topic,two,words:w.length};}
-const pgwSeeds=x=>(x.spoke?1:0)+(x.full?1:0)+(x.reason?1:0)+(x.topic?1:0);
-const pgwLevel=uid=>{const g=progOf(uid).pgw||{};return [1,2,3].includes(+g.lv)?+g.lv:1;};
-const pgwShow=L=>!!L&&(L.stage||"")==="Sprouts";
-function pgwPick(lv){const bank=PGW_BANK[lv]||PGW_BANK[1],seen=(S.pgwSeen||[]);
-  const fresh=bank.filter(x=>!seen.includes(x.c)),pool=(fresh.length>=PGW_TURNS?fresh:bank).slice();
-  for(let i=pool.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pool[i],pool[j]]=[pool[j],pool[i]];}
-  const out=pool.slice(0,PGW_TURNS);S.pgwSeen=[...seen,...out.map(x=>x.c)].slice(-30);return out;}
-
-A.pipWrong=()=>{const L=myLearner();if(!L)return;if(timeUp()){render();return}
-  const lv=pgwLevel(S.uid),cfg=PGW_LV[lv],sr=!!SR;
-  const g={lv,claims:pgwPick(lv),i:0,phase:"intro",said:"",nudge:0,pushed:false,silent:0,turns:[],sec:0,live:"",starter:cfg.starterAt===0,listening:false,rec:null,tick:null,err:""};
-  const cur=()=>g.claims[g.i];
-  const alive=()=>!!document.getElementById("pgw");
-  const stop=()=>{if(g.tick){clearInterval(g.tick);g.tick=null;}if(g.rec){try{g.rec.onend=null;g.rec.stop();}catch(e){}g.rec=null;}g.listening=false;};
-  const talk=async t=>{if(!alive())return;try{await pipSpeak(t);}catch(e){}};
-  const bubble=t=>`<div class="bubble static pgw-bubble">${esc(t)}</div>`;
-  const starterHTML=()=>g.starter&&cfg.start.length?`<p class="pgw-starter"><b>Try:</b> ${esc(cfg.start[(g.nudge+g.i)%cfg.start.length])}</p>`:"";
-  const draw=()=>{const x=cur();let body="",foot="",title="Pip Gets It Wrong";
-    if(g.phase==="intro"){
-      body=`${art("pip",110,"Pip")}${bubble("I know everything! Well… I think I do. Can you check?")}
-        <p class="lede" style="margin:0">Pip will say ${PGW_TURNS} silly things. Tell Pip what's really true, and say <b>why</b>.</p>
-        <span class="pill p-info">${esc(cfg.name)} · aim for ${esc(cfg.target)}</span>
-        ${sr?"":`<p class="small">Pip can't listen for words on this browser, so say your answers out loud and tap “I told Pip”. Chrome on a phone or computer works best.</p>`}`;
-      foot=`<button type="button" class="btn btn-primary btn-big" data-mact="go">Let's go!</button>`;}
-    else if(g.phase==="turn"){
-      const ask=g.nudge===0?(g.pushed?"Hmm, are you sure? Give me one more reason!":x.c):g.nudge===1&&!g.lastTopic?x.a:"Ooh! Why do you think that?";
-      body=`<span class="pill p-mute">${g.i+1} of ${PGW_TURNS}</span>${art(g.silent?"drizzle":"pip",96,g.silent?"Drizzle":"Pip")}
-        ${g.silent?bubble("Take your time. Let's try again together."):bubble(ask)}
-        ${g.nudge===0&&!g.pushed?`<span class="dtemo" aria-hidden="true" style="font-size:3.2rem">${x.e}</span>`:""}
-        <div id="pgw-start">${starterHTML()}</div>
-        ${sr?`<div class="pgw-heard" aria-live="polite"><span class="pgw-lab">${g.listening?"Pip hears":"Your turn"}</span><span id="pgw-live">${g.listening?(esc(g.live)||"…"):"Tap the button and tell Pip."}</span></div>
-          <button type="button" class="btn ${g.listening?"btn-danger":"btn-primary"} btn-big" data-mact="mic">${g.listening?"■ I'm done":"🎤 Tell Pip"}</button>`
-          :`<button type="button" class="btn btn-primary btn-big" data-mact="told">I told Pip</button>`}
-        ${g.err?`<p class="small" style="margin:0">${esc(g.err)}</p>`:""}
-        ${g.silent>=2&&!g.listening?`<button type="button" class="btn btn-ghost btn-sm" data-mact="skip">Skip this one</button>`:""}`;}
-    else if(g.phase==="react"){const t=g.turns[g.turns.length-1]||{};const n=pgwSeeds(t);
-      body=`<span class="pill p-mute">${g.i+1} of ${PGW_TURNS}</span>${art("pip",96,"Pip")}${bubble(t.reason?x.f:"Thank you for helping me! I'll remember that.")}
-        <div class="pgw-ticks">${[["spoke","You told Pip"],["full","Full sentence"],["reason","You said why"],["topic","You fixed Pip's mistake"]].map(([k,lab])=>`<span class="pgw-tick ${t[k]?"on":""}">${t[k]?"✓":"·"} ${esc(lab)}</span>`).join("")}</div>
-        <p class="saymsg" style="margin:0">${n?`${n} seed${n===1?"":"s"} planted!`:"Good try!"}</p>`;
-      foot=`<button type="button" class="btn btn-leaf btn-big" data-mact="next">${g.i<PGW_TURNS-1?"Next silly thing":"See my garden"} ${ic("fwd")}</button>`;}
-    else if(g.phase==="done"){const tot=g.turns.reduce((s,t)=>s+pgwSeeds(t),0),rs=g.turns.filter(t=>t.reason).length,fs=g.turns.filter(t=>t.full).length;title="You've bloomed!";
-      body=`${art("bloom",110,"Bloom")}<p class="lede" style="margin:0"><b>${tot} seed${tot===1?"":"s"}</b> planted in your garden!</p>
-        <div class="pgw-ticks"><span class="pgw-tick on">✓ ${fs} full sentence${fs===1?"":"s"}</span><span class="pgw-tick on">✓ ${rs} time${rs===1?"":"s"} you said why</span></div>
-        ${g.up?`<p class="pill p-good" style="margin:0">Level up! Next time Pip will be trickier.</p>`:""}
-        ${art("pip",72,"Pip")}${bubble("You're a great teacher! I learned so much.")}`;
-      foot=`<button type="button" class="btn btn-primary" data-mact="again">Play again</button>`;}
-    openModal(title,`<div class="drill pgw" id="pgw">${body}</div>`,{noFocus:true,footerExtra:foot,actions:{
-      go:()=>{g.phase="turn";draw();talk(cur().c);},
-      mic:()=>{if(g.listening)finish(true);else listen();},
-      told:()=>{endTurn({spoke:true,full:false,reason:false,topic:false,words:0,manual:true});},
-      skip:()=>{stop();endTurn({spoke:false,full:false,reason:false,topic:false,words:0});},
-      next:()=>{if(g.i<PGW_TURNS-1){g.i++;Object.assign(g,{phase:"turn",said:"",nudge:0,pushed:false,silent:0,live:"",err:"",lastTopic:false,starter:cfg.starterAt===0});draw();talk(cur().c);}else done();},
-      again:()=>{closeModal();setTimeout(A.pipWrong,150);}}});};
-  /* listen until 2.5 s of quiet after speaking, a long first silence, the level's time cap, or the modal closes */
-  function listen(){if(!SR)return;stop();pipStop&&pipStop();try{speechSynthesis.cancel();}catch(e){}
-    let finals="",heardAny=false,last=Date.now();const t0=Date.now();g.live="";g.err="";
-    let r;try{r=new SR();}catch(e){g.err="Pip can't listen on this browser.";draw();return}
-    r.lang="en-IN";r.continuous=true;r.interimResults=true;r.maxAlternatives=1;g.rec=r;
-    r.onresult=e=>{let interim="";for(let i=e.resultIndex;i<e.results.length;i++){const t=e.results[i][0].transcript;if(e.results[i].isFinal)finals+=t+" ";else interim+=t;}
-      g.live=(finals+interim).trim();if(g.live){heardAny=true;last=Date.now();}const el=document.getElementById("pgw-live");if(el)el.textContent=g.live||"…";};
-    r.onerror=e=>{if(e&&(e.error==="not-allowed"||e.error==="service-not-allowed"))g.err="Pip needs the microphone. Ask a grown-up to allow it in the browser settings.";};
-    r.onend=()=>{if(g.rec===r){g.rec=null;finish(false);}};
-    try{r.start();}catch(e){g.err="Pip couldn't start listening. Try again.";draw();return}
-    g.listening=true;g.t0=t0;draw();
-    g.tick=setInterval(()=>{if(!alive()){stop();return}const now=Date.now();
-      if(cfg.starterAt>0&&!heardAny&&!g.starter&&now-t0>cfg.starterAt*1000){g.starter=true;const s=document.getElementById("pgw-start");if(s)s.innerHTML=starterHTML();}
-      if((heardAny&&now-last>PGW_SILENT_END)||(!heardAny&&now-t0>PGW_FIRST_WAIT)||now-t0>cfg.cap*1000)finish(true);},250);}
-  function finish(manual){if(!g.listening&&!g.rec)return;const text=g.live||"";const secs=Math.round((Date.now()-(g.t0||Date.now()))/1000);
-    stop();if(!alive())return;if(g.err&&!text){draw();return}
-    if(!pgwWords(text).length){g.silent++;g.live="";if(cfg.starterAt>=0)g.starter=true;draw();return}
-    g.sec+=Math.min(secs,cfg.cap);g.said=(g.said+" "+text).trim();g.silent=0;const x=pgwCheck(g.said,cur());g.lastTopic=x.topic;
-    /* gentle nudges: no reason yet → ask (up to 2); level 3 → Pip argues back once after a good answer */
-    if(!x.reason&&g.nudge<2){g.nudge++;g.live="";if(cfg.starterAt>=0)g.starter=true;draw();talk(g.nudge===1&&!x.topic?cur().a:"Ooh! Why do you think that?");return}
-    if(g.lv===3&&x.reason&&!g.pushed&&!x.two){g.pushed=true;g.nudge=0;g.live="";draw();talk("Hmm, are you sure? Give me one more reason!");return}
-    endTurn(x);}
-  function endTurn(x){g.turns.push(x);g.phase="react";draw();const c=cur();talk(x.reason?c.f:"Thank you for helping me! I'll remember that.");}
-  async function done(){stop();g.phase="done";
-    const tot=g.turns.reduce((s,t)=>s+pgwSeeds(t),0),rs=g.turns.filter(t=>t.reason).length,words=g.turns.reduce((s,t)=>s+(t.words||0),0);
-    const met=g.turns.filter(t=>cfg.need(t)).length,silentish=g.turns.filter(t=>!t.spoke).length>=Math.ceil(PGW_TURNS/2);
-    const old=progOf(S.uid).pgw||{};let lv=g.lv,ok=+old.ok||0,quiet=+old.quiet||0;
-    if(sr){if(met>=Math.ceil(PGW_TURNS*0.6)){ok++;quiet=0;}else{ok=0;quiet=silentish?quiet+1:0;}
-      if(ok>=3&&lv<3){lv++;ok=0;g.up=true;}if(quiet>=2&&lv>1){lv--;quiet=0;}}
-    const day=ymd(new Date()),sp=((progOf(S.uid).spk||{})[day])||{};
-    const stars=Math.max(1,rs);/* 1 star for playing, up to 5: one for each time the child said why */
-    draw();talk("You're a great teacher! I learned so much.");
-    try{await earn({pts:{["w"+Date.now().toString(36)]:stars},pgw:{lv,ok,quiet,n:(+old.n||0)+1,at:Date.now()},
-      spk:{[day]:{n:(+sp.n||0)+1,turns:(+sp.turns||0)+g.turns.length,sec:(+sp.sec||0)+g.sec,words:(+sp.words||0)+words,reasons:(+sp.reasons||0)+rs,seeds:(+sp.seeds||0)+tot}}});}catch(e){}
-    toast(`Great speaking! ${stars} star${stars===1?"":"s"} for your garden.`);}
-  draw();};
+/* Data for the age-group games (tr/agegames_src.py) */
+const AG={"pic":{"cat":"🐱","dog":"🐶","cow":"🐮","duck":"🦆","hen":"🐔","lion":"🦁","tiger":"🐯","monkey":"🐵","elephant":"🐘","horse":"🐴","goat":"🐐","sheep":"🐑","pig":"🐷","rabbit":"🐰","fish":"🐟","bird":"🐦","frog":"🐸","bee":"🐝","butterfly":"🦋","ant":"🐜","owl":"🦉","parrot":"🦜","bear":"🐻","mouse":"🐭","apple":"🍎","banana":"🍌","mango":"🥭","grapes":"🍇","orange":"🍊","milk":"🥛","water":"💧","bread":"🍞","rice":"🍚","egg":"🥚","cake":"🎂","juice":"🧃","carrot":"🥕","tomato":"🍅","potato":"🥔","nose":"👃","eyes":"👀","ears":"👂","mouth":"👄","feet":"🦶","hand":"✋","teeth":"🦷","legs":"🦵","baby":"👶","grandma":"👵","grandpa":"👴","teacher":"🧑‍🏫","ball":"⚽","doll":"🪆","book":"📖","bag":"🎒","chair":"🪑","bed":"🛏️","cup":"☕","spoon":"🥄","door":"🚪","window":"🪟","car":"🚗","bus":"🚌","train":"🚂","kite":"🪁","clock":"⏰","sun":"☀️","moon":"🌙","star":"⭐","tree":"🌳","flower":"🌸","rain":"🌧️","cloud":"☁️","run":"🏃","sleep":"😴","sing":"🎤","dance":"💃","swim":"🏊","read":"📚","happy":"😊","sad":"😢","hot":"🔥","cold":"🥶","clap":"👏","eat":"🍽️","walk":"🚶"},"sounds":[["cow","moo"],["dog","woof woof"],["cat","meow"],["duck","quack quack"],["hen","cluck cluck"],["lion","roar"],["sheep","baa"],["goat","maa"],["pig","oink oink"],["horse","neigh"],["frog","ribbit"],["bee","buzz"],["owl","hoo hoo"],["mouse","squeak"],["bird","tweet tweet"]],"colours":[["red","#E8492F"],["blue","#4BA3E3"],["green","#2F8F46"],["yellow","#FFC94A"],["pink","#F7A8C4"],["black","#2E2219"],["white","#FFFFFF"],["purple","#8E5CC4"],["brown","#8B5A2B"],["orange","#F28C28"]],"nums":["one","two","three","four","five","six","seven","eight","nine","ten"],"things":["🍎","🐟","⭐","🌸","🎈","🐞","🍌","🚗","🐥","🍪"],"sent":["The cat is sleeping on the mat.","I can see a big red bus.","My sister likes to read books.","We play cricket after school.","The bird is singing in the tree.","Please close the door.","It is raining outside today.","My grandpa tells funny stories.","The farmer grows rice and wheat.","I brush my teeth every morning.","The train is going very fast.","She drinks a glass of milk.","We went to the market yesterday.","The doctor helps sick people.","My best friend is very kind.","The sun is shining in the sky.","I am proud of my drawing.","The library is full of books.","He caught the ball with one hand.","We wear warm clothes in winter.","The pilot flies the plane.","I feel excited about the trip.","The river flows to the sea.","Can I borrow your pencil, please?","The puppy is under the table.","They built a sandcastle on the beach.","My mother cooks tasty food.","The bus stop is near my house.","I always say thank you.","The monkey climbed up the tree."],"odd":{"feelings":["happy","sad","angry","proud","worried","excited","scared","bored"],"weather":["sunny","cloudy","windy","foggy","stormy","rainy","snowy"],"places":["library","hospital","station","market","village","city","school"],"jobs":["doctor","farmer","pilot","chef","dentist","artist","teacher","scientist"],"animals":["tiger","rabbit","parrot","elephant","monkey","horse","frog"],"food":["rice","bread","mango","carrot","samosa","biscuit","banana"],"past":["ran","swam","ate","wrote","caught","began","flew","sang"],"colours":["red","blue","green","yellow","purple","brown","pink"],"body":["head","hand","nose","knee","elbow","shoulder","ankle"],"transport":["bus","train","auto","cycle","plane","boat","metro"]},"oddLabel":{"feelings":"feelings","weather":"weather words","places":"places","jobs":"jobs","animals":"animals","food":"foods","past":"past-tense verbs","colours":"colours","body":"body parts","transport":"ways to travel"},"cloze":[["persuade","She tried to persuade her parents to adopt a puppy."],["resilient","The resilient team came back to win after a bad start."],["perspective","Reading the diary gave me a new perspective on the war."],["empathy","Good leaders show empathy for the people they lead."],["ambitious","Riya is ambitious and wants to become a surgeon."],["diligent","A diligent student revises a little every day."],["collaborate","The two schools will collaborate on a science fair."],["analyse","Scientists analyse data before drawing conclusions."],["evidence","The detective found evidence under the window."],["hypothesis","Our hypothesis was that plants grow faster in sunlight."],["predict","Meteorologists predict rain for the weekend."],["experiment","We did an experiment with vinegar and baking soda."],["democracy","In a democracy, citizens vote for their leaders."],["constitution","The Indian constitution came into force in 1950."],["responsibility","Keeping the classroom clean is everyone's responsibility."],["fragile","Handle the glass vase carefully; it is fragile."],["reluctant","He was reluctant to jump into the cold pool."],["generous","Our generous neighbour shared mangoes with everyone."],["optimistic","She stayed optimistic even after losing the first match."],["obvious","The answer was obvious once we drew a diagram."],["crucial","Sleep is crucial for a healthy brain."],["temporary","The road is closed, but it is only temporary."],["permanent","The tattoo is permanent, so think before you get one."],["scarce","Water becomes scarce in the desert during summer."],["abundant","Fruit is abundant in the market during the monsoon."],["compromise","After a long debate, both teams agreed to a compromise."],["negotiate","The captain will negotiate the rules with the other team."],["anticipate","We did not anticipate such heavy traffic."],["justify","You must justify your answer with two reasons."],["interpret","Different readers interpret the poem in different ways."],["sustainable","Solar power is a sustainable source of energy."],["consequence","Missing the bus had one consequence: I was late."],["pollution","Plastic waste adds to pollution in our rivers."],["integrity","A person of integrity tells the truth even when it is hard."],["curiosity","Her curiosity led her to ask the guide many questions."],["protagonist","The protagonist of the novel is a brave young girl."],["efficient","LED bulbs are more efficient than old bulbs."],["frequent","Power cuts are frequent in our area in summer."],["acknowledge","He was quick to acknowledge his mistake."],["influence","Friends can have a strong influence on our choices."]],"fix":[["She doesn't like spinach.",["She don't like spinach.","She doesn't likes spinach.","She not like spinach."]],["They were playing in the park.",["They was playing in the park.","They were play in the park.","They is playing in the park."]],["I have finished my homework.",["I have finish my homework.","I has finished my homework.","I finished have my homework."]],["He is taller than his brother.",["He is more taller than his brother.","He is tall than his brother.","He is tallest than his brother."]],["Neither of the answers is correct.",["Neither of the answers are correct.","Neither of the answer is correct.","Neither of the answers be correct."]],["If I were you, I would apologise.",["If I was you, I will apologise.","If I am you, I would apologise.","If I were you, I apologise."]],["We have lived here since 2015.",["We have lived here for 2015.","We live here since 2015.","We are living here since 2015."]],["The book that I borrowed is on the desk.",["The book who I borrowed is on the desk.","The book what I borrowed is on the desk.","The book I borrowed it is on the desk."]],["Each of the students has a laptop.",["Each of the students have a laptop.","Each of the student have a laptop.","Each students has a laptop."]],["I look forward to meeting you.",["I look forward to meet you.","I am look forward to meeting you.","I look forward meeting you."]],["She speaks English fluently.",["She speaks fluently English.","She speak English fluently.","She speaks English fluent."]],["There are fewer cars on Sundays.",["There are less cars on Sundays.","There is fewer cars on Sundays.","There are fewest cars on Sundays."]],["My friend and I went to the museum.",["Me and my friend went to the museum.","My friend and me went to the museum.","I and my friend goes to the museum."]],["It's raining, so take your umbrella.",["Its raining, so take your umbrella.","It's raining, so take you're umbrella.","Its' raining, so take your umbrella."]],["The team has won the trophy.",["The team have win the trophy.","The team has winned the trophy.","The team has won trophy the."]],["He has been studying for three hours.",["He has been studying since three hours.","He is studying for three hours.","He have been studying for three hours."]],["Could you tell me where the station is?",["Could you tell me where is the station?","Could you tell me where the station is.","Could you tell me where station is?"]],["The film was so boring that I fell asleep.",["The film was so bored that I fell asleep.","The film was such boring that I fell asleep.","The film was too boring that I fell asleep."]],["Whose bag is this?",["Who's bag is this?","Whom bag is this?","Whose bag this is?"]],["By the time we arrived, the show had started.",["By the time we arrived, the show has started.","By the time we arrive, the show had started.","By the time we arrived, the show starts."]],["She is good at solving puzzles.",["She is good in solving puzzles.","She is good at solve puzzles.","She good at solving puzzles."]],["Their house is bigger than ours.",["There house is bigger than ours.","They're house is bigger than ours.","Their house is bigger than our's."]],["I wish I had studied harder.",["I wish I have studied harder.","I wish I studied hardly.","I wish I had study harder."]],["The news is good today.",["The news are good today.","The news were good today.","The new is good today."]],["He gave the prize to Meera and me.",["He gave the prize to Meera and I.","He gave the prize to I and Meera.","He gave the prize Meera and me to."]],["Despite the rain, we played outside.",["Despite of the rain, we played outside.","Despite the rain, we play outside yesterday.","Although the rain, we played outside."]],["I would rather walk than take the bus.",["I would rather walk than taking the bus.","I would rather to walk than take the bus.","I rather would walk than take the bus."]],["Everyone must bring their own lunch.",["Everyone must brings their own lunch.","Everyone must bring there own lunch.","Everyone must to bring their own lunch."]],["The children were laughing loudly.",["The childrens were laughing loudly.","The children was laughing loudly.","The children were laughing loud."]],["Have you ever been to Jaipur?",["Have you ever went to Jaipur?","Did you ever been to Jaipur?","Have you ever be to Jaipur?"]]]};
+/* ================= Games for each age group =================
+   Seeds (3.5–6): pictures and sounds, everything read aloud. Sprouts (7–10): reading and building.
+   Blooms (11–15): thinking, typing and speed. All use the same game engine (S.game). */
+const agStage=()=>{const L=myLearner();return (L&&L.stage)||"Seeds";};
+const pickN=(arr,n,r)=>shuffle(arr.slice(),r).slice(0,n);
+const AG_TITLE={pic:"Picture hunt",sound:"Animal sounds",colour:"Colour pop",count:"Count with Pip",build:"Sentence builder",miss:"Missing letter",
+  odd:"Odd one out",cloze:"Fill the gap",fix:"Fix the sentence",bee:"Spelling bee",speed:"Speed round",daily:"Daily challenge",quiz:"Word quiz",listen:"Listen and pick",revise:"Practise again"};
+/* ---------- Seeds ---------- */
+function qPic(r){const ws=Object.keys(AG.pic),w=ws[Math.floor(r()*ws.length)],o=pickN(ws.filter(x=>x!==w),2,r);
+  const opts=shuffle([w,...o],r).map(x=>AG.pic[x]);return {k:"pic",say:`Find the ${w}`,wk:w,auto:1,big:1,prompt:`Find the ${w}!`,opts,ans:AG.pic[w]};}
+function qSound(r){const [a,snd]=AG.sounds[Math.floor(r()*AG.sounds.length)],o=pickN(AG.sounds.filter(x=>x[0]!==a),2,r).map(x=>x[0]);
+  return {k:"sound",say:`Who says ${snd}?`,wk:a,auto:1,big:1,prompt:`Who says “${snd}”?`,opts:shuffle([a,...o],r).map(x=>AG.pic[x]),ans:AG.pic[a]};}
+function qColour(r){const [c,hex]=AG.colours[Math.floor(r()*AG.colours.length)],o=pickN(AG.colours.filter(x=>x[0]!==c),2,r).map(x=>x[0]);
+  return {k:"colour",say:"What colour is this?",wk:c,auto:1,prompt:"What colour is this?",vis:`<div class="agswatch" style="background:${hex}" role="img" aria-label="A colour"></div>`,opts:shuffle([c,...o],r),ans:c};}
+function qCount(r){const n=1+Math.floor(r()*(agStage()==="Seeds"?6:10)),t=AG.things[Math.floor(r()*AG.things.length)];
+  const near=shuffle([n-2,n-1,n+1,n+2].filter(x=>x>=1&&x<=10),r).slice(0,2);
+  return {k:"count",say:"How many can you count?",wk:AG.nums[n-1],auto:1,prompt:"How many can you count?",vis:`<div class="agcount" role="img" aria-label="Some pictures to count">${t.repeat(n)}</div>`,opts:shuffle([n,...near],r).map(x=>AG.nums[x-1]),ans:AG.nums[n-1]};}
+/* ---------- Sprouts ---------- */
+const agSentences=()=>[...AG.sent,...(typeof PACKS!=="undefined"?PACKS.flatMap(p=>p.w.filter(x=>x[3]===2).map(x=>x[2])):[])].filter(s=>s.split(" ").length>=3&&s.split(" ").length<=9);
+function qBuild(r){const all=agSentences(),s=all[Math.floor(r()*all.length)],words=s.split(" ");let tiles=shuffle(words.map((w,i)=>({w,i})),r);
+  if(tiles.every((t,i)=>t.i===i))tiles=tiles.reverse();
+  return {k:"build",say:s,wk:"",prompt:"Tap the words in the right order.",tiles,ans:s,opts:[s,"__"],chosen:[],nospeak:1};}
+function qMiss(pool,r){const ws=pool.filter(x=>/^[a-z]{4,9}$/i.test(x.w));if(!ws.length)return null;const x=ws[Math.floor(r()*ws.length)],w=x.w.toLowerCase();
+  const i=1+Math.floor(r()*(w.length-2)),c=w[i],L="aeiourstlnmbcdgp".split("").filter(y=>y!==c),o=pickN(L,2,r);
+  return {k:"miss",say:w,wk:w,prompt:`Which letter is missing? (${meanFor(x.w,x.m)})`,vis:`<p class="agword">${esc(w.slice(0,i))}<span class="agblank">_</span>${esc(w.slice(i+1))}</p>`,opts:shuffle([c,...o],r),ans:c,big:1,nospeak:1};}
+function qOdd(r){const cats=Object.keys(AG.odd),a=cats[Math.floor(r()*cats.length)];let b=a;while(b===a)b=cats[Math.floor(r()*cats.length)];
+  const three=pickN(AG.odd[a],3,r),odd=AG.odd[b][Math.floor(r()*AG.odd[b].length)];
+  return {k:"odd",say:odd,wk:odd,prompt:"Which word does not belong?",opts:shuffle([...three,odd],r),ans:odd,why:`The others are all ${AG.oddLabel[a]}.`,nospeak:1};}
+/* ---------- Blooms ---------- */
+const agCloze=()=>[...AG.cloze,...(typeof PACKS!=="undefined"?PACKS.flatMap(p=>p.w.filter(x=>x[3]===3&&x[2].toLowerCase().includes(x[1].toLowerCase())).map(x=>[x[1],x[2]])):[])];
+function qCloze(r){const all=agCloze(),[w,s]=all[Math.floor(r()*all.length)],re=new RegExp(w.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"),"i");
+  const o=pickN([...new Set(all.map(x=>x[0]).filter(y=>y.toLowerCase()!==w.toLowerCase()))],3,r);
+  return {k:"cloze",say:w,wk:w,prompt:"Choose the word that fits the gap.",vis:`<p class="agsent">${esc(s.replace(re,"_____"))}</p>`,opts:shuffle([w,...o],r),ans:w,nospeak:1,full:s};}
+function qFix(r){const [ok,bad]=AG.fix[Math.floor(r()*AG.fix.length)];return {k:"fix",say:ok,wk:"",prompt:"Which sentence is correct?",opts:shuffle([ok,...bad],r),ans:ok,nospeak:1,long:1};}
+function qBee(pool,r){const ws=pool.filter(x=>/^[a-z]{5,14}$/i.test(x.w));if(!ws.length)return null;const x=ws[Math.floor(r()*ws.length)];
+  return {k:"bee",say:x.w,wk:x.w,auto:1,prompt:`Spell the word that means “${pMean(x)}”.`,ans:x.w.toLowerCase(),opts:[x.w.toLowerCase(),"__"],typed:""};}
+/* ---------- which games each age group gets ---------- */
+const AG_GAMES={
+  Seeds:[["daily","🎯","Daily challenge","5 picture questions"],["pic","🔍","Picture hunt","Hear a word, find the picture"],["sound","🐮","Animal sounds","Who says moo?"],["colour","🎨","Colour pop","Name the colour"],["count","🔢","Count with Pip","How many can you see?"],["memory","🃏","Picture memory","Match pictures and words"],["drill","🎤","Repeat after me","Listen, say it, hear yourself"]],
+  Sprouts:[["daily","🎯","Daily challenge","5 mixed questions"],["build","🧱","Sentence builder","Put the words in order"],["miss","🔡","Missing letter","Find the letter that's gone"],["odd","🕵️","Odd one out","Which word doesn't belong?"],["quiz","❓","Word quiz","Meanings, both ways"],["listen","👂","Listen and pick","Hear a word, find it"],["memory","🃏","Memory pairs","Match words and meanings"],["drill","🎤","Repeat after me","Listen, say it, hear yourself"]],
+  Blooms:[["daily","🎯","Daily challenge","5 tough questions"],["speed","⚡","Speed round","60 seconds. How many can you get?"],["bee","🐝","Spelling bee","Hear it, type it"],["cloze","🧩","Fill the gap","Pick the word that fits"],["fix","🛠️","Fix the sentence","Spot the correct grammar"],["quiz","❓","Word quiz","Meanings, synonyms, spelling"],["memory","🃏","Memory pairs","8 pairs: words and meanings"],["drill","🎤","Repeat after me","Listen, say it, hear yourself"]]};
+const AG_N={pic:6,sound:6,colour:6,count:6,build:5,miss:8,odd:8,cloze:8,fix:8,bee:8};
+function agBuild(type,pool,r,n){const out=[],seen=new Set();let tries=0;const mk={pic:qPic,sound:qSound,colour:qColour,count:qCount,build:qBuild,odd:qOdd,cloze:qCloze,fix:qFix,miss:r=>qMiss(pool,r),bee:r=>qBee(pool,r)};
+  const kinds=type==="speed"?["cloze","fix","rev","spell"]:[type];
+  while(out.length<n&&tries++<n*12){const k=kinds[out.length%kinds.length];let q;
+    if(k==="rev"||k==="spell"){q=buildQs(pool,1,r,[k])[0];}else q=mk[k](r);
+    if(!q)continue;const key=q.k+"|"+(q.wk||q.ans);if(seen.has(key))continue;seen.add(key);out.push(q);}
+  return out;}
+function agDaily(L,pool,r){const k={Seeds:["pic","count","colour","sound","pic"],Sprouts:["miss","odd","rev","mean","miss"],Blooms:["cloze","fix","spell","rev","cloze"]}[L.stage||"Seeds"]||["mean","listen","rev","mean","listen"];
+  return k.map(t=>t==="mean"||t==="rev"||t==="spell"||t==="listen"?buildQs(pool,1,r,[t])[0]:agBuild(t,pool,r,1)[0]).filter(Boolean);}
+const speedBestKey=()=>"ll-speedbest-"+(S.uid||"");
+const speedBest=()=>{try{return +localStorage.getItem(speedBestKey())||0}catch{return 0}};
+function agStart(type){const L=myLearner();if(!L)return false;const pool=gamePool(L);
+  if(type==="daily"){if((progOf(S.uid).daily||{})[ymd(new Date())]!=null){toast("You've done today's challenge! 🎉");return true;}
+    S.game={type,qs:agDaily(L,pool,rng(ymd(new Date())+S.uid)),i:0,score:0,pick:null};}
+  else if(type==="memory"&&(L.stage||"Seeds")==="Seeds"){const ws=pickN(Object.keys(AG.pic),4,Math.random);
+    S.game={type,cards:shuffle(ws.flatMap((w,i)=>[{t:AG.pic[w],k:i},{t:w,k:i,w:1}])),open:[],done:new Set(),moves:0};}
+  else if(type==="speed"){S.game={type,qs:agBuild("speed",pool,Math.random,60),i:0,score:0,pick:null,end:Date.now()+60000};agTick();}
+  else if(AG_N[type]){S.game={type,qs:agBuild(type,pool,Math.random,AG_N[type]),i:0,score:0,pick:null};}
+  else return false;
+  if(S.view!=="play")go("play");else render(true);agAuto();return true;}
+function agAuto(){const g=S.game,q=g&&g.qs&&g.qs[g.i];if(q&&(q.auto||q.k==="listen"))setTimeout(()=>say(q.say,q.lang),350);}
+/* speed round clock */
+let agT=null;
+function agTick(){clearInterval(agT);agT=setInterval(()=>{const g=S.game;if(!g||g.type!=="speed"||g.over){clearInterval(agT);return;}
+  if(Date.now()>=g.end){clearInterval(agT);g.qs=g.qs.slice(0,g.pick!=null?g.i+1:g.i);if(!g.qs.length){S.game=null;render(true);return;}g.i=g.qs.length-1;g.pick=g.pick??-1;A.nextQ();
+    try{if(g.score>speedBest())localStorage.setItem(speedBestKey(),String(g.score));}catch{}return;}
+  const el=document.getElementById("agclock");if(el)el.textContent=Math.ceil((g.end-Date.now())/1000)+"s";},250);}
+/* sentence builder and spelling bee */
+A.agTile=v=>{const g=S.game,q=g&&g.qs[g.i];if(!q||g.pick!=null)return;const i=+v;if(q.chosen.includes(i))q.chosen=q.chosen.filter(x=>x!==i);else q.chosen.push(i);render(true);};
+A.agClear=()=>{const g=S.game,q=g&&g.qs[g.i];if(!q||g.pick!=null)return;q.chosen=[];render(true);};
+A.agCheck=()=>{const g=S.game,q=g&&g.qs[g.i];if(!q||g.pick!=null)return;let got;
+  if(q.k==="build")got=q.chosen.map(i=>q.tiles[i].w).join(" ");
+  else{const f=document.getElementById("agtype");got=String(f&&f.value||"").trim().toLowerCase();q.typed=got;}
+  A.answer(got===q.ans?0:1);};
+function agQuestionHTML(g,q){
+  if(q.k==="build"){const done=g.pick!=null,ok=done&&g.pick===0;
+    return `<section class="quiz"><h2>${esc(q.prompt)}</h2><div class="agline" aria-live="polite">${q.chosen.length?q.chosen.map(i=>`<button class="agtile on" data-act="agTile" data-id="${i}" ${done?"disabled":""}>${esc(q.tiles[i].w)}</button>`).join(""):`<span class="muted small">Tap the words below…</span>`}</div>
+      <div class="agbank">${q.tiles.map((t,i)=>q.chosen.includes(i)?"":`<button class="agtile" data-act="agTile" data-id="${i}" ${done?"disabled":""}>${esc(t.w)}</button>`).join("")}</div>
+      ${done?`<div class="qfb ${ok?"ok":""}">${ok?"🎉 Perfect sentence!":`The sentence is: “${esc(q.ans)}”`}<button class="btn btn-primary" data-act="nextQ">${g.i<g.qs.length-1?"Next":"Finish"} ${ic("fwd")}</button></div>`
+      :`<div class="row"><button class="btn btn-ghost" data-act="agClear">Start again</button><button class="btn btn-primary" data-act="agCheck" ${q.chosen.length===q.tiles.length?"":"disabled"}>Check</button></div>`}</section>`;}
+  if(q.k==="bee"){const done=g.pick!=null,ok=done&&g.pick===0;
+    return `<section class="quiz"><h2>${esc(q.prompt)}</h2>${canSpeak()?`<button class="btn btn-sun btn-big" data-act="sayQ" style="align-self:center">${ic("sound",24)}Hear the word</button>`:""}
+      <div class="field"><label for="agtype">Type the spelling</label><input id="agtype" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" maxlength="30" value="${esc(q.typed||"")}" ${done?"disabled":""} data-enter="agCheck"></div>
+      ${done?`<div class="qfb ${ok?"ok":""}">${ok?"🎉 Spot on!":`It's spelled “${esc(q.ans)}”.`}${mt(q.wk)?` <span class="mtline">“${esc(q.wk)}” = ${mtHTML(q.wk)}</span>`:""}<button class="btn btn-primary" data-act="nextQ">${g.i<g.qs.length-1?"Next":"Finish"} ${ic("fwd")}</button></div>`
+      :`<button class="btn btn-primary" data-act="agCheck">Check</button>`}</section>`;}
+  return "";}
+/* the Games page grid for this child's age group */
+function stageGamesHTML(L,n,dDone){const st=L.stage||"Seeds",list=AG_GAMES[st]||AG_GAMES.Sprouts,best=speedBest();
+  const needWords=t=>["quiz","listen","miss","bee","memory"].includes(t)&&!(st==="Seeds"&&t==="memory");
+  return `<div class="gamegrid">${list.map(([t,e,ttl,sub],i)=>{
+    if(t==="drill")return `<button class="gamecard g4" data-act="drill" ${n<1?"disabled":""}><span>${e}</span><b>${esc(ttl)}</b><i>${esc(sub)}</i></button>`;
+    const dis=(needWords(t)&&n<4)||(t==="listen"&&!canSpeak());
+    const s2=t==="daily"&&dDone?"Done today!":t==="speed"&&best?`Your best: ${best}`:sub;
+    return `<button class="gamecard g${i%4}" data-act="startGame" data-id="${t}" ${dis?"disabled":""}><span>${t==="daily"&&dDone?"✅":e}</span><b>${esc(ttl)}</b><i>${esc(s2)}</i></button>`;}).join("")}
+    <button class="gamecard g1" data-act="goQuiz" data-id="en"><span>🔤</span><b>Word power</b><i>English quiz, always open</i></button>
+    <button class="gamecard g2" data-act="goQuiz" data-id="gk"><span>🌍</span><b>GK quiz</b><i>Questions about our world</i></button></div>`;}
+/* admin learner preview: choose the age group */
+function setPvStage(st,quiet){if(!STAGES.some(s=>s.v===st))return;S.previewStage=st;S.game=null;try{sessionStorage.setItem("ll-pvstage",st)}catch{}if(!quiet)render(true);}
+try{const v=sessionStorage.getItem("ll-pvstage");if(v)S.previewStage=v;}catch{}
+A.pvStage=st=>{setPvStage(st);};
+const viewAsOpts=cur=>{const st=S.previewStage||"Seeds";return [["admin","Admin"],["teacher","Trainer"],...STAGES.map(s=>["student:"+s.v,`Learner · ${s.v} (${s.ages.replace("Ages ","")})`]),["parent","Parent"]]
+  .map(([v,l])=>opt(v,l,v===(cur==="student"?"student:"+st:cur))).join("");};
+function pvStageChips(){const st=S.previewStage||"Seeds";return `<div class="pvages" role="group" aria-label="Preview age group"><span class="small"><b>Age group:</b></span>${STAGES.map(s=>`<button class="pvchip ${s.v===st?"on":""}" data-act="pvStage" data-id="${s.v}" aria-pressed="${s.v===st}">${esc(s.v)}</button>`).join("")}</div>`;}
+/* hook the new games into the existing engine */
+{const f=A.startGame;A.startGame=t=>{if(agStart(t))return;f(t);};}
+document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target&&e.target.id==="agtype"){e.preventDefault();A.agCheck();}});
 
 /* ================= events ================= */
 document.addEventListener("click",e=>{
