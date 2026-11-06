@@ -26,7 +26,7 @@ An English-learning LMS for children aged 3.5 to 15 (Little Lingos, India). Admi
 ### How a build works
 `build.py` reads `littlelingos-base.html` (the original app). It then runs each `*_patch.py` in order; every patch makes exact text replacements with `R(old, new)` and adds a matching `*_block.js` and `*.css`. Finally it writes `site/index.html` with the head (CSP, config, adapter and data scripts). If an expected piece of text isn't found, the build stops.
 
-Patch order: parents, bank, fun, hwform, draw, pip, upi, adapt, dt, wall, board, notif, say, store, cap, conf, reel, teach, india, sound, pp, share, wod, voice, classfix, sec, cls2, lf, studio, nk, polish.
+Patch order: parents, bank, fun, hwform, draw, pip, upi, adapt, dt, wall, board, notif, say, store, cap, conf, reel, teach, india, sound, pp, share, wod, voice, classfix, sec, cls2, lf, studio, nk, wb, qz, nav2, hidewords, rzp, act, tz, use, lang, age, speakup, polish.
 
 ### Database setup order
 `schema.sql`, `auto-link.sql`, `security-v2.sql`, `security-v2-compat.sql`, then the feature files (`bank`, `journal`, `pip`, `upi`, `adapt`, `screentime`, `wall`, `boards`, `storage`, `conf`, `missions`, `passport`, `share`), then `security-v3.sql` to `security-v6.sql`. `test/resetdb.sh` shows the exact order. Every file is safe to run again.
@@ -43,6 +43,7 @@ Patch order: parents, bank, fun, hwform, draw, pip, upi, adapt, dt, wall, board,
   - Word of the Day.
   - Teach Pip (the child explains a word to Pip).
   - Sound pairs (listen, tap the picture, say it).
+  - Pip Gets It Wrong (Sprouts only): Pip says something silly, the child corrects Pip out loud and says why. Pip nudges ("Why?") instead of marking wrong, the level (1 to 3) moves with performance, and only counts are saved (`progress.spk` per day, `progress.pgw` for the level). No audio or words are kept.
 - **Ask Pip** chat helper and mood check-in.
 - **Games and daily challenge.**
 - **Fun corner:**
