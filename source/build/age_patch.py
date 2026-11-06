@@ -61,7 +61,7 @@ R('@media (prefers-reduced-motion:reduce)','''.qopt.qbig{font-size:2.6rem;min-he
 .pvages{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px;width:100%}
 @media (prefers-reduced-motion:reduce)''')
 
-R('/* ================= events ================= */',open(W+'agegames_data.js').read()+open(W+'agegames_block.js').read()+open(W+'adgame_block.js').read()+'\n/* ================= events ================= */')
+R('/* ================= events ================= */',open(W+'agegames_data.js').read()+open(W+'agegames_block.js').read()+open(W+'adgame_block.js').read()+open(W+'report_block.js').read()+'\n/* ================= events ================= */')
 # ---- adaptive levels: header, feedback, Next/Finish, daily stars, quizzes ----
 R('${g.type!=="speed"?` · ${g.i+1} of ${g.qs.length}`:""}','${g.ad?adLede(g):g.type!=="speed"?` · ${g.i+1} of ${g.qs.length}`:""}')
 R('${q.why?` <span class="mtline">${esc(q.why)}</span>`:""}','${q.why?` <span class="mtline">${esc(q.why)}</span>`:""}${adFbHTML(g)}')
@@ -72,3 +72,24 @@ R('<button class="btn btn-primary" data-act="qzNext" data-id="${kind}">Next ques
 R('@media (prefers-reduced-motion:reduce)','.adnote{color:var(--leaf);font-weight:700}\n@media (prefers-reduced-motion:reduce)')
 R('Counts only minutes when the child is actively using the portal.</p></div>`;}','Counts only minutes when the child is actively using the portal.</p>${adLevelsHTML(L)}</div>`;}')
 R('.adnote{color:var(--leaf);font-weight:700}','.adnote{color:var(--leaf);font-weight:700}\n.adlv{margin-top:10px}')
+# ---- parent: detailed report on the Progress page ----
+R('''  </div>
+  ${adaptParentHTML(L)}''','''  </div>
+  ${parentReportHTML(L)}
+  ${adaptParentHTML(L)}''')
+R('.adlv{margin-top:10px}','''.adlv{margin-top:10px}
+.repcard h3{font-size:1.05rem;margin:14px 0 8px}
+.repsum{background:var(--leafSoft);border-radius:18px;padding:14px 16px;margin:4px 0 10px}
+.repsum p{margin:0 0 6px;line-height:1.55}
+.reptips{margin:6px 0 0;padding-left:20px;line-height:1.55}
+.reptips li{margin:4px 0}
+.repstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:6px 0 4px}
+.repstats div{background:var(--soft);border-radius:16px;padding:12px;text-align:center}
+.repstats b{display:block;font-family:var(--display);font-size:1.5rem;line-height:1.1;color:var(--soil)}
+.repstats span{display:block;font-size:.85rem;font-weight:700}
+.repstats small{display:block;font-size:.78rem;color:var(--muted)}
+.repseg button{border:0;background:transparent;border-radius:999px;min-height:40px;padding:6px 14px;font:inherit;font-weight:700;color:var(--soil);cursor:pointer}
+.repseg button.on{background:var(--card);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.repdots{color:var(--leaf);letter-spacing:2px;font-size:1rem}
+.replv .row{min-height:32px;border-bottom:1px dashed var(--line)}
+.repmore summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:700;color:var(--leaf)}''')
