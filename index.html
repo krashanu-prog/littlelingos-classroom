@@ -6717,6 +6717,20 @@ function pvStageChips(){const st=S.previewStage||"Seeds";return `<div class="pva
 /* hook the new games into the existing engine */
 {const f=A.startGame;A.startGame=t=>{if(agStart(t))return;f(t);};}
 document.addEventListener("keydown",e=>{if(e.key==="Enter"&&e.target&&e.target.id==="agtype"){e.preventDefault();A.agCheck();}});
+/* class form: choose the course from the age group of the children picked */
+function sessAutoCourse(form){const sel=form&&form.querySelector("#s-course");if(!sel)return;
+  const ids=[...form.querySelectorAll('input[name="sl"]:checked')].map(x=>x.value).filter(id=>D.learners[id]);
+  let h=form.querySelector("#s-cauto");if(!h){h=document.createElement("span");h.id="s-cauto";h.className="hint";h.setAttribute("aria-live","polite");sel.insertAdjacentElement("afterend",h);}
+  const sts=[...new Set(ids.map(id=>D.learners[id].stage).filter(Boolean))];
+  if(!ids.length||!sts.length){h.textContent="";return;}
+  if(sts.length>1){h.textContent=`These children are in different age groups (${sts.join(", ")}). Pick the course yourself, or schedule a class for each group.`;return;}
+  const st=sts[0],cs=courseList().filter(c=>c.level===st);
+  if(!cs.length){h.textContent=`No course is set up for ${st} yet.`;return;}
+  if(D.courses[sel.value]&&D.courses[sel.value].level===st){h.textContent=`✓ Matches the children's age group (${st}).`;return;}
+  const tr=form.querySelector("#s-trainer"),tid=tr&&tr.value,pick=cs.find(c=>tid&&c.teacherId===tid)||cs[0];
+  sel.value=pick.id;sel.dispatchEvent(new Event("change",{bubbles:true}));h.textContent=`Course set to “${pick.title}” because these children are ${st}.`;}
+document.addEventListener("change",e=>{const t=e.target;if(t&&t.name==="sl"&&t.form)sessAutoCourse(t.form);});
+document.addEventListener("click",e=>{const b=e.target&&e.target.closest&&e.target.closest("[data-kp]");const f=b&&b.closest("form");if(f&&f.querySelector("#s-course"))setTimeout(()=>sessAutoCourse(f),0);});
 
 /* ================= events ================= */
 document.addEventListener("click",e=>{
