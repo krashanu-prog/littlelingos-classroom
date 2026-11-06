@@ -27,7 +27,7 @@ function repSummary(L,d,p){const n=esc(firstOf(L.name)),per=p==="month"?"In the 
   if(d.hwIn.length)bits.push(`handed in <b>${d.hwIn.length}</b> homework task${d.hwIn.length===1?"":"s"}`);
   if(!bits.length)return `<p>${per}, ${n} hasn't used Little Lingos yet. A few minutes a day makes a big difference: try the Daily challenge together.</p>`;
   const last=bits.pop();return `<p>${per}, ${n} ${bits.length?bits.join(", ")+" and "+last:last}.</p>`;}
-function repTips(L,d){const n=esc(firstOf(L.name)),t=[];const sk=Object.entries(d.skills).filter(([,v])=>v.n>=4).map(([k,v])=>[k,v.r/v.n]);
+function repTips(L,d){if(!L.uid)return "";const n=esc(firstOf(L.name)),t=[];const sk=Object.entries(d.skills).filter(([,v])=>v.n>=4).map(([k,v])=>[k,v.r/v.n]);
   const best=sk.slice().sort((a,b)=>b[1]-a[1])[0],weak=sk.slice().sort((a,b)=>a[1]-b[1])[0];
   if(best&&best[1]>=0.75)t.push(`🌟 <b>Strength:</b> ${esc(best[0])} (${pctStr(best[1])} right). Praise this!`);
   if(weak&&weak[1]<0.6&&(!best||weak[0]!==best[0]))t.push(`🌱 <b>Needs practice:</b> ${esc(weak[0])} (${pctStr(weak[1])} right). The games will give ${n} extra practice here.`);
@@ -36,29 +36,43 @@ function repTips(L,d){const n=esc(firstOf(L.name)),t=[];const sk=Object.entries(
   if(d.hwSet.length>d.hwIn.length)t.push(`📒 <b>Homework:</b> ${d.hwSet.length-d.hwIn.length} task${d.hwSet.length-d.hwIn.length===1?" is":"s are"} still to hand in.`);
   return t.length?`<ul class="reptips">${t.map(x=>`<li>${x}</li>`).join("")}</ul>`:"";}
 function repMeter(v,max=5){return `<span class="repdots" aria-label="${v} of ${max}">${"●".repeat(v)}${"○".repeat(max-v)}</span>`;}
-function parentReportHTML(L){if(!L||!L.uid)return "";const p=S.repP||"week",d=repData(L,p),n=esc(firstOf(L.name));
-  const pool=pipTry(()=>gamePool(L))||[],meaning=w=>{const x=pool.find(y=>String(y.w).toLowerCase()===w);return x?meanFor(x.w,x.m):"";};
+/* trainers' class reports for this child in the period (participation / understanding / note) */
+function repTeacher(L,since){const out=[];const sk=ymd(new Date(since));for(const v of Object.values(allMarks())){const st=v.m&&v.m[L.id];if(!st||String(v.date).slice(0,10)<sk)continue;
+    const note=(v.notes||{})[L.id]||"";const r=typeof srepParse==="function"?srepParse(note):{p:-1,u:-1,txt:note};out.push({date:v.date,title:v.title||"Class",st,p:r.p,u:r.u,txt:r.txt,by:v.by});}
+  return out.sort((a,b)=>String(b.date).localeCompare(String(a.date)));}
+const repAvgLv=xs=>{const v=xs.filter(x=>x>=0);if(!v.length)return null;return Math.round(v.reduce((a,b)=>a+b,0)/v.length);};
+function parentReportHTML(L){if(!L)return "";const p=S.repP||"week",d=repData(L,p),n=esc(firstOf(L.name)),signed=!!L.uid;
+  const pool=signed?(pipTry(()=>gamePool(L))||[]):[],meaning=w=>{const x=pool.find(y=>String(y.w).toLowerCase()===w);return x?meanFor(x.w,x.m):"";};
   const skills=Object.entries(d.skills).sort((a,b)=>b[1].n-a[1].n);
   const lv=Object.entries(d.adl).filter(([,v])=>+v>=1).sort((a,b)=>(+b[1])-(+a[1]));
+  const tr=repTeacher(L,d.since),came=tr.filter(x=>x.st!=="absent"),pA=repAvgLv(came.map(x=>x.p)),uA=repAvgLv(came.map(x=>x.u));
+  const cids=learnCourses(L),crs=cids.map(cid=>{const c=D.courses[cid],ls=lessonsOf(cid),dn=ls.filter(l=>isDone(L.uid,l.id)).length;return {c,dn,t:ls.length};}).filter(x=>x.c&&x.t);
+  const tiles=[
+    signed&&[esc(fmtMins(d.mins)),"Time learning",`${d.days} active day${d.days===1?"":"s"}`],
+    signed&&d.total&&[pctStr(d.right/d.total),"Answers right",`${d.games.length} game${d.games.length===1?"":"s"}`],
+    signed&&[String(d.words.length),"New words",`${d.mastered} mastered`],
+    signed&&[String(d.lessons),"Lessons done",crs.length?`${crs.reduce((a,x)=>a+x.dn,0)} of ${crs.reduce((a,x)=>a+x.t,0)} in total`:""],
+    d.at&&[`${d.ap}/${d.at}`,"Classes attended",""],
+    (d.hwSet.length||d.hwIn.length)&&[`${d.hwIn.length}/${Math.max(d.hwSet.length,d.hwIn.length)}`,"Homework in",""],
+    pA!=null&&[esc(SREP_LV[pA].split(" ").slice(1).join(" ")),"Participation","teacher's view"],
+    uA!=null&&[esc(SREP_LV[uA].split(" ").slice(1).join(" ")),"Understanding","teacher's view"]].filter(Boolean);
+  const sec=(t,body)=>body?`<div class="repsec"><h3>${t}</h3>${body}</div>`:"";
+  const teacherHTML=came.filter(x=>x.txt).slice(0,3).map(x=>`<div class="reptr"><div class="small muted">${esc(fmtDay(new Date(x.date)))} · ${esc(x.title)}${x.p>=0?` · ${esc(SREP_LV[x.p])}`:""}</div><div>${esc(x.txt)}</div></div>`).join("");
+  const skillHTML=skills.map(([k,v])=>{const r=v.n?v.r/v.n:0;return `<div class="reprow"><span>${esc(k)}</span><div class="bar"><i style="width:${pctStr(r)};background:${r>=.75?"var(--leaf)":r>=.5?"var(--sun)":"var(--petal)"}"></i></div><b class="num">${pctStr(r)}</b></div>`;}).join("");
+  const lvHTML=lv.map(([k,v])=>`<div class="reprow"><span>${esc(REP_GAME(k))}</span>${repMeter(+v)}</div>`).join("");
+  const wordsHTML=d.practise.slice(0,6).map(([w,v])=>`<span class="repw" title="${esc(meaning(w))}"><b>${esc(w)}</b>${mt(w)?` ${mtHTML(w)}`:""}<i>×${+v.m}</i></span>`).join("");
+  const crsHTML=crs.map(x=>`<div class="reprow"><span>${esc(x.c.title)}</span><div class="bar"><i style="width:${pctStr(x.t?x.dn/x.t:0)}"></i></div><b class="num">${x.dn}/${x.t}</b></div>`).join("");
   return `<section class="card panel repcard">
-  <div class="ph"><h2>${n}'s report</h2><div class="row"><div class="seg repseg" role="group" aria-label="Report period"><button class="${p==="week"?"on":""}" data-act="repP" data-id="week" aria-pressed="${p==="week"}">This week</button><button class="${p==="month"?"on":""}" data-act="repP" data-id="month" aria-pressed="${p==="month"}">This month</button></div><button class="btn btn-ghost btn-sm" data-act="printReport">🖨️ Print or save</button></div></div>
-  <div class="repsum">${repSummary(L,d,p)}${repTips(L,d)}</div>
-  <div class="repstats">
-    <div><b class="num">${esc(fmtMins(d.mins))}</b><span>Time learning</span><small>${d.days} active day${d.days===1?"":"s"}</small></div>
-    <div><b class="num">${d.total?pctStr(d.right/d.total):"–"}</b><span>Answers right</span><small>${d.games.length} game${d.games.length===1?"":"s"}</small></div>
-    <div><b class="num">${d.words.length}</b><span>New words</span><small>${d.mastered} mastered in total</small></div>
-    <div><b class="num">${d.lessons}</b><span>Lessons finished</span></div>
-    <div><b class="num">${d.at?`${d.ap}/${d.at}`:"–"}</b><span>Classes attended</span></div>
-    <div><b class="num">${d.hwSet.length||d.hwIn.length?`${d.hwIn.length}/${Math.max(d.hwSet.length,d.hwIn.length)}`:"–"}</b><span>Homework handed in</span></div>
-  </div>
-  <div class="cols even">
-    <div><h3>Skills ${p==="month"?"this month":"this week"}</h3>${skills.length?skills.map(([k,v])=>{const r=v.n?v.r/v.n:0;return `<div class="${r>=.75?"h0":r>=.5?"h2":"h3"}"><div class="row" style="justify-content:space-between"><span class="small" style="font-weight:700">${esc(k)}</span><span class="small muted">${v.r} of ${v.n} right</span></div><div class="barrow"><div class="bar"><i style="width:${pctStr(r)}"></i></div><b class="num">${pctStr(r)}</b></div></div>`;}).join(""):`<p class="muted small">Skills show here once ${n} plays some games.</p>`}</div>
-    <div><h3>Game levels</h3>${lv.length?`<div class="replv">${lv.map(([k,v])=>`<div class="row" style="justify-content:space-between"><span class="small">${esc(REP_GAME(k))}</span>${repMeter(+v)}</div>`).join("")}</div><p class="small muted">Levels go up when ${n} answers correctly and down for extra practice. 5 is the hardest.</p>`:`<p class="muted small">Levels appear after ${n} plays the games.</p>`}</div>
-  </div>
-  <div class="cols even">
-    <div><h3>Words to practise at home</h3>${d.practise.length?`<div class="list">${d.practise.slice(0,8).map(([w,v])=>`<div class="item"><div class="grow"><div class="t">${esc(w)}${mt(w)?` · ${mtHTML(w)}`:""}</div>${meaning(w)?`<div class="s">${esc(meaning(w))}</div>`:""}</div><span class="pill p-warn">missed ${+v.m}×</span></div>`).join("")}</div>`:`<p class="muted small">No tricky words right now. Lovely!</p>`}</div>
-    <div><h3>Time on Little Lingos</h3>${usageBars(L.uid,p==="month"?30:14)}<p class="small muted">Minutes each day. Counts only time when ${n} is actively learning.</p>
-      ${d.words.length?`<h3>New words</h3><div class="row" style="gap:6px;flex-wrap:wrap">${d.words.slice(0,24).map(w=>`<span class="pill p-mute">${esc(w)}</span>`).join("")}</div>`:""}</div>
+  <div class="ph"><h2>${n}'s report <span class="pill p-good">${esc(L.stage||"Seeds")}</span></h2><div class="row"><div class="seg repseg" role="group" aria-label="Report period"><button class="${p==="week"?"on":""}" data-act="repP" data-id="week" aria-pressed="${p==="week"}">Week</button><button class="${p==="month"?"on":""}" data-act="repP" data-id="month" aria-pressed="${p==="month"}">Month</button></div><button class="btn btn-ghost btn-sm" data-act="printReport" aria-label="Print or save the report">🖨️ Print</button></div></div>
+  <div class="repsum">${signed?repSummary(L,d,p):`<p><b>${n} hasn't signed in to the app yet,</b> so games, words and time aren't counted. Classes, homework and teacher reports are below.</p>`}${repTips(L,d)}</div>
+  ${tiles.length?`<div class="repstats">${tiles.map(([b,s,sm])=>`<div><b class="num">${b}</b><span>${s}</span>${sm?`<small>${sm}</small>`:""}</div>`).join("")}</div>`:""}
+  <div class="repgrid">
+    ${sec("From the teacher",teacherHTML)}
+    ${sec(p==="month"?"Skills this month":"Skills this week",skillHTML)}
+    ${sec("Game levels <small class=\"muted\">(5 = hardest)</small>",lvHTML)}
+    ${sec("Words to practise at home",wordsHTML?`<div class="repws">${wordsHTML}</div>`:"")}
+    ${sec("Courses",crsHTML)}
+    ${signed&&d.mins?sec("Minutes each day",usageBars(L.uid,p==="month"?30:14)):""}
   </div>
   ${d.acts.length?`<details class="repmore"><summary>Everything ${n} did (${d.acts.length})</summary><div class="list">${d.acts.slice(0,40).map(x=>`<div class="item"><div class="grow"><div class="t">${esc(x.t||REP_GAME(x.k))}</div><div class="s">${esc(fmtDay(new Date(x.at)))}, ${esc(fmtTime(new Date(x.at)))}</div></div>${x.n?`<span class="pill ${x.s/x.n>=.75?"p-good":x.s/x.n>=.5?"p-warn":"p-mute"}">${x.s}/${x.n}</span>`:typeof actResult==="function"?`<span class="pill p-mute">${esc(actResult(x))}</span>`:""}</div>`).join("")}</div></details>`:""}
   </section>`;}

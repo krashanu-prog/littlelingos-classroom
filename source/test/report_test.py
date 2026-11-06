@@ -14,6 +14,8 @@ prog={"screen":{d(0):12,d(1):18,d(3):25,d(5):9,d(12):30},"acts":acts,
  "wk":{"breeze":{"r":1,"m":2,"l":0,"t":now},"forecast":{"r":0,"m":3,"l":0,"t":now},"curious":{"r":3,"m":0,"l":1,"t":now},"gentle":{"r":2,"m":0,"l":1,"t":now},"vendor":{"r":1,"m":1,"l":1,"t":now}},
  "adl":{"quiz":4,"build":2,"miss":3,"listen":1,"en-Sprouts":3}}
 cur.execute("insert into public.docs(path,data) values (%s,%s::jsonb) on conflict (path) do update set data=public.docs.data||excluded.data",('progress/'+kuid,json.dumps(prog))); c.commit()
+mk={"kind":"mark","sid":"srx","at":now,"by":"00000000-0000-0000-0000-0000000000b1","date":datetime.datetime.utcnow().strftime('%Y-%m-%dT%H:%M:%S.000Z'),"courseId":"c1","title":"Phonics fun","m":{"l1":"present"},"note":"","notes":{"l1":"Participation: 😃 Good · Understanding: 🙂 Getting there · Anaya read three new words aloud. Practise the 'th' sound at home."}}
+cur.execute("insert into public.docs(path,data) values ('tw/00000000-0000-0000-0000-0000000000b1/x/m-srx',%s::jsonb) on conflict (path) do update set data=excluded.data",(json.dumps(mk),)); c.commit()
 OUT='/tmp/claude-0/-home-claude/e46c440f-a2dc-5219-9a0e-fc980d1e0e9c/scratchpad/'
 try:
     with sync_playwright() as pw:
@@ -29,5 +31,9 @@ try:
                 print('MONTH:',p.locator('.repsum p').first.inner_text())
                 p.locator('[data-act="printReport"]').click(); p.wait_for_timeout(300)
             ctx.close()
+        cur.execute("update public.docs set data = data - 'uid' where path='learners/l1'"); c.commit()
+        ctx,p=open_as(b,'P1',1280,900); nav(p,'Progress'); p.wait_for_timeout(700)
+        p.locator('.repcard').screenshot(path=OUT+'rep_unsigned.png'); print('UNSIGNED:',p.locator('.repsum').inner_text().replace('\n',' ')[:200]); print('  sections:',p.locator('.repsec h3').all_inner_texts(),'| term-report sections:',p.locator('main h2').all_inner_texts())
+        ctx.close()
         print('errors:', errors[:5]); b.close()
 finally: srv.terminate()

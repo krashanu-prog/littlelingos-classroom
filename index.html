@@ -1131,14 +1131,25 @@ body.st-on{overflow:hidden}
 .pvages{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px;width:100%}
 .adnote{color:var(--leaf);font-weight:700}
 .adlv{margin-top:10px}
-.repcard h3{font-size:1.05rem;margin:14px 0 8px}
-.repsum{background:var(--leafSoft);border-radius:18px;padding:14px 16px;margin:4px 0 10px}
+.repcard h3{font-size:.95rem;margin:0 0 6px}
+.repcard h2 .pill{vertical-align:middle;margin-left:6px}
+.repgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,300px),1fr));gap:10px 18px;margin-top:10px}
+.repsec{border-top:1px solid var(--line);padding-top:10px}
+.reprow{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(56px,1fr) auto;align-items:center;gap:8px;min-height:30px;font-size:.88rem}
+.reprow .bar{height:8px}
+.reprow span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.reprow .repdots{grid-column:2/4;justify-self:end}
+.reptr{background:var(--soft);border-radius:12px;padding:8px 10px;margin-bottom:6px;font-size:.92rem}
+.repws{display:flex;flex-wrap:wrap;gap:6px}
+.repw{display:inline-flex;align-items:center;gap:4px;background:var(--sunSoft);border-radius:999px;padding:4px 10px;font-size:.88rem}
+.repw i{font-style:normal;color:var(--muted);font-size:.78rem}
+.repsum{background:var(--leafSoft);border-radius:16px;padding:10px 14px;margin:2px 0 8px;font-size:.95rem}
 .repsum p{margin:0 0 6px;line-height:1.55}
 .reptips{margin:6px 0 0;padding-left:20px;line-height:1.55}
 .reptips li{margin:4px 0}
-.repstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin:6px 0 4px}
-.repstats div{background:var(--soft);border-radius:16px;padding:12px;text-align:center}
-.repstats b{display:block;font-family:var(--display);font-size:1.5rem;line-height:1.1;color:var(--soil)}
+.repstats{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:8px;margin:4px 0 2px}
+.repstats div{background:var(--soft);border-radius:14px;padding:8px 6px;text-align:center}
+.repstats b{display:block;font-family:var(--display);font-size:1.25rem;line-height:1.1;color:var(--soil)}
 .repstats span{display:block;font-size:.85rem;font-weight:700}
 .repstats small{display:block;font-size:.78rem;color:var(--muted)}
 .repseg button{border:0;background:transparent;border-radius:999px;min-height:40px;padding:6px 14px;font:inherit;font-weight:700;color:var(--soil);cursor:pointer}
@@ -2819,24 +2830,12 @@ function parentProgress(){
   const uid=L.uid, cids=learnerCourses(L), pr=practice(uid,learnCourses(L)), ws=wordsWithMeaning(uid), a=attendanceOf(L.id);
   const topics=kidHistory(L).filter(h=>h.st!=="absent"&&(h.topic||h.objectives));
   const speak=canSpeak();
-  return `<div class="head"><div><h1>Progress</h1><p class="lede">${esc(firstOf(L.name))}'s level, course completion, skills and every word learned so far.</p></div></div>
-  ${kidBar()}${memoriesHTML(L)}${reelCardHTML(L)}${capParentHTML(L)}
-  ${!uid?`<section class="alert a-sun"><b>${esc(firstOf(L.name))} hasn't signed in yet.</b><span class="small">Lessons and words show up once they start using Little Lingos.</span></section>`:""}
-  <div class="stats">
-    <div class="stat f" style="background:var(--leafSoft)"><b>${esc(L.stage||"Seeds")}</b><span>Level</span><small>${esc(stageLabel(L.stage))}</small></div>
-    <div class="stat f" style="background:var(--sunSoft)"><b class="num">${pctStr(overallPct(L))}</b><span>Course completion</span><small>${flowers(uid)} lesson${flowers(uid)===1?"":"s"} finished</small></div>
-    <div class="stat f" style="background:var(--petalSoft)"><b class="num">${ws.length}</b><span>Words learned</span></div>
-    <div class="stat f" style="background:var(--skySoft)"><b class="num">${streak(uid)}</b><span>Day streak</span><small>Attendance ${pctStr(a.rate)}</small></div>
-  </div>
+  return `<div class="head"><div><h1>Progress</h1><p class="lede">How ${esc(firstOf(L.name))} is doing: one report from the app and the teachers.</p></div></div>
+  ${kidBar()}${memoriesHTML(L)}${reelCardHTML(L)}
   ${parentReportHTML(L)}
   ${adaptParentHTML(L)}
-  <div class="cols even">
-    <section class="card panel"><h2>Courses</h2>${cids.length?cids.map(cid=>{const c=D.courses[cid],p=coursePct(uid,cid),ls=lessonsOf(cid);return `<div class="${hue(c)}"><div class="row" style="justify-content:space-between"><b>${esc(c.title)}</b><span class="small muted">${ls.filter(l=>isDone(uid,l.id)).length} of ${ls.length} lessons</span></div><div class="barrow"><div class="bar"><i style="width:${pctStr(p)}"></i></div><b class="num">${pctStr(p)}</b></div></div>`}).join(""):`<p class="muted">Not in any course yet.</p>`}</section>
-    <section class="card panel"><h2>Skills</h2>${pr.length?pr.map(p=>`<div class="h${p.h}"><div class="small" style="font-weight:700">${esc(SKILL[p.label]||p.label)}</div><div class="barrow"><div class="bar"><i style="width:${pctStr(p.v)}"></i></div><b class="num">${pctStr(p.v)}</b></div></div>`).join(""):`<p class="muted">Skills fill in as lessons are finished.</p>`}</section>
-  </div>
-  
-  ${kidReports(L)}${confParentHTML(L)}${spParentHTML(L)}${ppParentHTML(L)}${sharesCardHTML(L)}${kidExtras(L)}
-  <section class="card panel"><h2>Topics covered</h2>${topics.length?`<div class="list">${topics.map(h=>`<div class="item" style="align-items:flex-start"><div class="when"><span>${esc(WD.format(new Date(h.date)))}</span><b class="num">${esc(DNUM.format(new Date(h.date)))}</b></div><div class="grow"><div class="t">${esc(h.topic||h.title||"Class")}</div>${h.objectives?`<ul class="obj small">${String(h.objectives).split("\n").map(x=>x.trim()).filter(Boolean).map(x=>`<li>${esc(x.replace(/^[-•*]\s*/,""))}</li>`).join("")}</ul>`:""}<div class="s">${esc(h.title||"")}</div></div></div>`).join("")}</div>`:`<p class="muted">When teachers add a topic and learning objectives to a class, they're listed here after ${esc(firstOf(L.name))} attends.</p>`}</section>`;
+  ${kidReports(L)}${confParentHTML(L)}${spParentHTML(L)}${ppParentHTML(L)}${kidExtras(L)}${capParentHTML(L)}${sharesCardHTML(L)}
+  ${topics.length?`<section class="card panel"><h2>Topics covered</h2>${topics.length?`<div class="list">${topics.map(h=>`<div class="item" style="align-items:flex-start"><div class="when"><span>${esc(WD.format(new Date(h.date)))}</span><b class="num">${esc(DNUM.format(new Date(h.date)))}</b></div><div class="grow"><div class="t">${esc(h.topic||h.title||"Class")}</div>${h.objectives?`<ul class="obj small">${String(h.objectives).split("\n").map(x=>x.trim()).filter(Boolean).map(x=>`<li>${esc(x.replace(/^[-•*]\s*/,""))}</li>`).join("")}</ul>`:""}<div class="s">${esc(h.title||"")}</div></div></div>`).join("")}</div>`:`<p class="muted">When teachers add a topic and learning objectives to a class, they're listed here after ${esc(firstOf(L.name))} attends.</p>`}</section>`:""}`;
 }
 const SKILL={"Stories":"Reading (stories)","Speaking":"Speaking","Songs & videos":"Listening (songs & videos)","Games":"Word games"};
 
@@ -3478,7 +3477,7 @@ A.sayAll=lid=>{const l=D.lessons[lid];if(!l)return;const c=D.courses[l.courseId]
 function kidReports(L){const rs=reportsFor(L),as=assessFor(L)[0];if(!rs.length&&!as)return "";
   return `<section class="card panel"><h2>Reports and skills</h2>${as?`<div class="skillrow">${SKILLS.map(([k,l])=>`<div><span class="small muted">${l}</span>${skillDots(as.skills&&as.skills[k])}</div>`).join("")}</div><p class="small">${esc(as.level||"")}${as.note?` · ${esc(as.note)}`:""} <span class="muted">(${esc(fmtDay(new Date(as.at)))})</span></p>`:""}
   ${rs.length?`<div class="list">${rs.map(r=>`<div class="item"><div class="grow"><div class="t">${esc(r.term)}</div><div class="s">${esc(byWho(r.uid))} · ${esc(fmtDay(new Date(r.at)))}</div></div><button class="btn btn-ghost btn-sm" data-act="viewReport" data-id="${esc(r.uid+"|"+r.id)}">${ic("doc")}Open</button></div>`).join("")}</div>`:""}</section>`;}
-function kidExtras(L){if(!L.uid)return kidReports(L);loadKp(L.uid);const bs=badgesOf(L),certs=certsOf(L),port=kpItems(L.uid).filter(x=>x.kind!=="rate"&&x.kind!=="join").slice(0,8),lim=limitFor(L);
+function kidExtras(L){if(!L.uid)return "";loadKp(L.uid);const bs=badgesOf(L),certs=certsOf(L),port=kpItems(L.uid).filter(x=>x.kind!=="rate"&&x.kind!=="join").slice(0,8),lim=limitFor(L);
   return `<section class="card panel"><div class="ph"><h2>Stars, badges and certificates</h2><span class="pill p-sun">⭐ ${starsOf(L)} stars</span></div>
     <div class="badges">${bs.filter(b=>b.ok).map(b=>`<div class="badge on"><span>${b.e}</span><b>${esc(b.t)}</b></div>`).join("")||`<p class="muted">Badges appear as ${esc(firstOf(L.name))} learns.</p>`}</div>
     ${certs.length?`<div class="certs">${certs.map(x=>`<button class="certmini" data-act="cert" data-id="${esc(x.cid)}"><span>🏆</span><b>${esc(x.c.title)}</b><i>${esc(fmtDay(new Date(x.at)))}</i></button>${shareBtn(x.cid,"cert")}`).join("")}</div>`:""}
@@ -6956,7 +6955,7 @@ function repSummary(L,d,p){const n=esc(firstOf(L.name)),per=p==="month"?"In the 
   if(d.hwIn.length)bits.push(`handed in <b>${d.hwIn.length}</b> homework task${d.hwIn.length===1?"":"s"}`);
   if(!bits.length)return `<p>${per}, ${n} hasn't used Little Lingos yet. A few minutes a day makes a big difference: try the Daily challenge together.</p>`;
   const last=bits.pop();return `<p>${per}, ${n} ${bits.length?bits.join(", ")+" and "+last:last}.</p>`;}
-function repTips(L,d){const n=esc(firstOf(L.name)),t=[];const sk=Object.entries(d.skills).filter(([,v])=>v.n>=4).map(([k,v])=>[k,v.r/v.n]);
+function repTips(L,d){if(!L.uid)return "";const n=esc(firstOf(L.name)),t=[];const sk=Object.entries(d.skills).filter(([,v])=>v.n>=4).map(([k,v])=>[k,v.r/v.n]);
   const best=sk.slice().sort((a,b)=>b[1]-a[1])[0],weak=sk.slice().sort((a,b)=>a[1]-b[1])[0];
   if(best&&best[1]>=0.75)t.push(`🌟 <b>Strength:</b> ${esc(best[0])} (${pctStr(best[1])} right). Praise this!`);
   if(weak&&weak[1]<0.6&&(!best||weak[0]!==best[0]))t.push(`🌱 <b>Needs practice:</b> ${esc(weak[0])} (${pctStr(weak[1])} right). The games will give ${n} extra practice here.`);
@@ -6965,29 +6964,43 @@ function repTips(L,d){const n=esc(firstOf(L.name)),t=[];const sk=Object.entries(
   if(d.hwSet.length>d.hwIn.length)t.push(`📒 <b>Homework:</b> ${d.hwSet.length-d.hwIn.length} task${d.hwSet.length-d.hwIn.length===1?" is":"s are"} still to hand in.`);
   return t.length?`<ul class="reptips">${t.map(x=>`<li>${x}</li>`).join("")}</ul>`:"";}
 function repMeter(v,max=5){return `<span class="repdots" aria-label="${v} of ${max}">${"●".repeat(v)}${"○".repeat(max-v)}</span>`;}
-function parentReportHTML(L){if(!L||!L.uid)return "";const p=S.repP||"week",d=repData(L,p),n=esc(firstOf(L.name));
-  const pool=pipTry(()=>gamePool(L))||[],meaning=w=>{const x=pool.find(y=>String(y.w).toLowerCase()===w);return x?meanFor(x.w,x.m):"";};
+/* trainers' class reports for this child in the period (participation / understanding / note) */
+function repTeacher(L,since){const out=[];const sk=ymd(new Date(since));for(const v of Object.values(allMarks())){const st=v.m&&v.m[L.id];if(!st||String(v.date).slice(0,10)<sk)continue;
+    const note=(v.notes||{})[L.id]||"";const r=typeof srepParse==="function"?srepParse(note):{p:-1,u:-1,txt:note};out.push({date:v.date,title:v.title||"Class",st,p:r.p,u:r.u,txt:r.txt,by:v.by});}
+  return out.sort((a,b)=>String(b.date).localeCompare(String(a.date)));}
+const repAvgLv=xs=>{const v=xs.filter(x=>x>=0);if(!v.length)return null;return Math.round(v.reduce((a,b)=>a+b,0)/v.length);};
+function parentReportHTML(L){if(!L)return "";const p=S.repP||"week",d=repData(L,p),n=esc(firstOf(L.name)),signed=!!L.uid;
+  const pool=signed?(pipTry(()=>gamePool(L))||[]):[],meaning=w=>{const x=pool.find(y=>String(y.w).toLowerCase()===w);return x?meanFor(x.w,x.m):"";};
   const skills=Object.entries(d.skills).sort((a,b)=>b[1].n-a[1].n);
   const lv=Object.entries(d.adl).filter(([,v])=>+v>=1).sort((a,b)=>(+b[1])-(+a[1]));
+  const tr=repTeacher(L,d.since),came=tr.filter(x=>x.st!=="absent"),pA=repAvgLv(came.map(x=>x.p)),uA=repAvgLv(came.map(x=>x.u));
+  const cids=learnCourses(L),crs=cids.map(cid=>{const c=D.courses[cid],ls=lessonsOf(cid),dn=ls.filter(l=>isDone(L.uid,l.id)).length;return {c,dn,t:ls.length};}).filter(x=>x.c&&x.t);
+  const tiles=[
+    signed&&[esc(fmtMins(d.mins)),"Time learning",`${d.days} active day${d.days===1?"":"s"}`],
+    signed&&d.total&&[pctStr(d.right/d.total),"Answers right",`${d.games.length} game${d.games.length===1?"":"s"}`],
+    signed&&[String(d.words.length),"New words",`${d.mastered} mastered`],
+    signed&&[String(d.lessons),"Lessons done",crs.length?`${crs.reduce((a,x)=>a+x.dn,0)} of ${crs.reduce((a,x)=>a+x.t,0)} in total`:""],
+    d.at&&[`${d.ap}/${d.at}`,"Classes attended",""],
+    (d.hwSet.length||d.hwIn.length)&&[`${d.hwIn.length}/${Math.max(d.hwSet.length,d.hwIn.length)}`,"Homework in",""],
+    pA!=null&&[esc(SREP_LV[pA].split(" ").slice(1).join(" ")),"Participation","teacher's view"],
+    uA!=null&&[esc(SREP_LV[uA].split(" ").slice(1).join(" ")),"Understanding","teacher's view"]].filter(Boolean);
+  const sec=(t,body)=>body?`<div class="repsec"><h3>${t}</h3>${body}</div>`:"";
+  const teacherHTML=came.filter(x=>x.txt).slice(0,3).map(x=>`<div class="reptr"><div class="small muted">${esc(fmtDay(new Date(x.date)))} · ${esc(x.title)}${x.p>=0?` · ${esc(SREP_LV[x.p])}`:""}</div><div>${esc(x.txt)}</div></div>`).join("");
+  const skillHTML=skills.map(([k,v])=>{const r=v.n?v.r/v.n:0;return `<div class="reprow"><span>${esc(k)}</span><div class="bar"><i style="width:${pctStr(r)};background:${r>=.75?"var(--leaf)":r>=.5?"var(--sun)":"var(--petal)"}"></i></div><b class="num">${pctStr(r)}</b></div>`;}).join("");
+  const lvHTML=lv.map(([k,v])=>`<div class="reprow"><span>${esc(REP_GAME(k))}</span>${repMeter(+v)}</div>`).join("");
+  const wordsHTML=d.practise.slice(0,6).map(([w,v])=>`<span class="repw" title="${esc(meaning(w))}"><b>${esc(w)}</b>${mt(w)?` ${mtHTML(w)}`:""}<i>×${+v.m}</i></span>`).join("");
+  const crsHTML=crs.map(x=>`<div class="reprow"><span>${esc(x.c.title)}</span><div class="bar"><i style="width:${pctStr(x.t?x.dn/x.t:0)}"></i></div><b class="num">${x.dn}/${x.t}</b></div>`).join("");
   return `<section class="card panel repcard">
-  <div class="ph"><h2>${n}'s report</h2><div class="row"><div class="seg repseg" role="group" aria-label="Report period"><button class="${p==="week"?"on":""}" data-act="repP" data-id="week" aria-pressed="${p==="week"}">This week</button><button class="${p==="month"?"on":""}" data-act="repP" data-id="month" aria-pressed="${p==="month"}">This month</button></div><button class="btn btn-ghost btn-sm" data-act="printReport">🖨️ Print or save</button></div></div>
-  <div class="repsum">${repSummary(L,d,p)}${repTips(L,d)}</div>
-  <div class="repstats">
-    <div><b class="num">${esc(fmtMins(d.mins))}</b><span>Time learning</span><small>${d.days} active day${d.days===1?"":"s"}</small></div>
-    <div><b class="num">${d.total?pctStr(d.right/d.total):"–"}</b><span>Answers right</span><small>${d.games.length} game${d.games.length===1?"":"s"}</small></div>
-    <div><b class="num">${d.words.length}</b><span>New words</span><small>${d.mastered} mastered in total</small></div>
-    <div><b class="num">${d.lessons}</b><span>Lessons finished</span></div>
-    <div><b class="num">${d.at?`${d.ap}/${d.at}`:"–"}</b><span>Classes attended</span></div>
-    <div><b class="num">${d.hwSet.length||d.hwIn.length?`${d.hwIn.length}/${Math.max(d.hwSet.length,d.hwIn.length)}`:"–"}</b><span>Homework handed in</span></div>
-  </div>
-  <div class="cols even">
-    <div><h3>Skills ${p==="month"?"this month":"this week"}</h3>${skills.length?skills.map(([k,v])=>{const r=v.n?v.r/v.n:0;return `<div class="${r>=.75?"h0":r>=.5?"h2":"h3"}"><div class="row" style="justify-content:space-between"><span class="small" style="font-weight:700">${esc(k)}</span><span class="small muted">${v.r} of ${v.n} right</span></div><div class="barrow"><div class="bar"><i style="width:${pctStr(r)}"></i></div><b class="num">${pctStr(r)}</b></div></div>`;}).join(""):`<p class="muted small">Skills show here once ${n} plays some games.</p>`}</div>
-    <div><h3>Game levels</h3>${lv.length?`<div class="replv">${lv.map(([k,v])=>`<div class="row" style="justify-content:space-between"><span class="small">${esc(REP_GAME(k))}</span>${repMeter(+v)}</div>`).join("")}</div><p class="small muted">Levels go up when ${n} answers correctly and down for extra practice. 5 is the hardest.</p>`:`<p class="muted small">Levels appear after ${n} plays the games.</p>`}</div>
-  </div>
-  <div class="cols even">
-    <div><h3>Words to practise at home</h3>${d.practise.length?`<div class="list">${d.practise.slice(0,8).map(([w,v])=>`<div class="item"><div class="grow"><div class="t">${esc(w)}${mt(w)?` · ${mtHTML(w)}`:""}</div>${meaning(w)?`<div class="s">${esc(meaning(w))}</div>`:""}</div><span class="pill p-warn">missed ${+v.m}×</span></div>`).join("")}</div>`:`<p class="muted small">No tricky words right now. Lovely!</p>`}</div>
-    <div><h3>Time on Little Lingos</h3>${usageBars(L.uid,p==="month"?30:14)}<p class="small muted">Minutes each day. Counts only time when ${n} is actively learning.</p>
-      ${d.words.length?`<h3>New words</h3><div class="row" style="gap:6px;flex-wrap:wrap">${d.words.slice(0,24).map(w=>`<span class="pill p-mute">${esc(w)}</span>`).join("")}</div>`:""}</div>
+  <div class="ph"><h2>${n}'s report <span class="pill p-good">${esc(L.stage||"Seeds")}</span></h2><div class="row"><div class="seg repseg" role="group" aria-label="Report period"><button class="${p==="week"?"on":""}" data-act="repP" data-id="week" aria-pressed="${p==="week"}">Week</button><button class="${p==="month"?"on":""}" data-act="repP" data-id="month" aria-pressed="${p==="month"}">Month</button></div><button class="btn btn-ghost btn-sm" data-act="printReport" aria-label="Print or save the report">🖨️ Print</button></div></div>
+  <div class="repsum">${signed?repSummary(L,d,p):`<p><b>${n} hasn't signed in to the app yet,</b> so games, words and time aren't counted. Classes, homework and teacher reports are below.</p>`}${repTips(L,d)}</div>
+  ${tiles.length?`<div class="repstats">${tiles.map(([b,s,sm])=>`<div><b class="num">${b}</b><span>${s}</span>${sm?`<small>${sm}</small>`:""}</div>`).join("")}</div>`:""}
+  <div class="repgrid">
+    ${sec("From the teacher",teacherHTML)}
+    ${sec(p==="month"?"Skills this month":"Skills this week",skillHTML)}
+    ${sec("Game levels <small class=\"muted\">(5 = hardest)</small>",lvHTML)}
+    ${sec("Words to practise at home",wordsHTML?`<div class="repws">${wordsHTML}</div>`:"")}
+    ${sec("Courses",crsHTML)}
+    ${signed&&d.mins?sec("Minutes each day",usageBars(L.uid,p==="month"?30:14)):""}
   </div>
   ${d.acts.length?`<details class="repmore"><summary>Everything ${n} did (${d.acts.length})</summary><div class="list">${d.acts.slice(0,40).map(x=>`<div class="item"><div class="grow"><div class="t">${esc(x.t||REP_GAME(x.k))}</div><div class="s">${esc(fmtDay(new Date(x.at)))}, ${esc(fmtTime(new Date(x.at)))}</div></div>${x.n?`<span class="pill ${x.s/x.n>=.75?"p-good":x.s/x.n>=.5?"p-warn":"p-mute"}">${x.s}/${x.n}</span>`:typeof actResult==="function"?`<span class="pill p-mute">${esc(actResult(x))}</span>`:""}</div>`).join("")}</div></details>`:""}
   </section>`;}
