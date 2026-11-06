@@ -1,7 +1,7 @@
 # ---- class reports required for every child right after each class ----
 R('''<input type="text" class="mnote" name="n_${esc(L.id)}" maxlength="200" value="${esc((mk&&mk.notes||{})[L.id]||"")}" placeholder="Note for ${esc(firstOf(L.name))}'s family (optional)" aria-label="Note for ${esc(L.name)}'s family">''','''${srepFields(L,(mk&&mk.notes||{})[L.id]||"")}''')
 R('''const notes={};for(const L of list){const t=form.querySelector(`input[name="n_${CSS.escape(L.id)}"]`);if(t&&t.value.trim())notes[L.id]=t.value.trim();}''','''const notes=srepCollect(list,m,form);''')
-R('''The admin, parents and learners see the result.</p>''','''The admin, parents and learners see the result.</p><p class="small srepreq"><b>Required:</b> a short report for every child marked Present or Late: participation, understanding and a sentence for the family.</p>''')
+R('''The admin, parents and learners see the result.</p>''','''The admin, parents and learners see the result.</p><p class="small srepreq"><b>Required:</b> a short report for every child marked Present or Late: participation, a rating for each skill practised, and a sentence for the family.</p>${srepSkillPick(mk)}''')
 R('/* ================= events ================= */',open(W+'srep_block.js').read()+'\n/* ================= events ================= */')
 R('@media (prefers-reduced-motion:reduce)','''.srep{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;width:100%;margin-top:6px}
 .srep textarea{grid-column:1/-1;width:100%}
@@ -40,3 +40,21 @@ R('.repcard h3{font-size:1.05rem;margin:14px 0 8px}','''.repcard h3{font-size:.9
 .repw{display:inline-flex;align-items:center;gap:4px;background:var(--sunSoft);border-radius:999px;padding:4px 10px;font-size:.88rem}
 .repw i{font-style:normal;color:var(--muted);font-size:.78rem}''')
 R('.repsum{background:var(--leafSoft);border-radius:18px;padding:14px 16px;margin:4px 0 10px}','.repsum{background:var(--leafSoft);border-radius:16px;padding:10px 14px;margin:2px 0 8px;font-size:.95rem}')
+# ---- six skills everywhere: assessments and term reports too ----
+R('const SKILLS=[["speaking","Speaking"],["listening","Listening"],["reading","Reading"],["writing","Writing"]];','const SKILLS=[["listening","Listening"],["reading","Reading"],["writing","Writing"],["vocabulary","Vocabulary"],["grammar","Grammar"],["speaking","Speaking"]];')
+R('${SKILLS.map(([k,l])=>`${l} ${d.skills[k]}/5`).join(" · ")}','${SKILLS.filter(([k])=>d.skills[k]).map(([k,l])=>`${l} ${d.skills[k]}/5`).join(" · ")}')
+R('${d.skills?SKILLS.map(([k,l])=>`<tr><td>${l}</td><td style="text-align:right">${d.skills[k]} / 5</td></tr>`).join(""):""}','${d.skills?SKILLS.filter(([k])=>d.skills[k]).map(([k,l])=>`<tr><td>${l}</td><td style="text-align:right">${d.skills[k]} / 5</td></tr>`).join(""):""}')
+R('.srepreq{background:var(--sunSoft);border-radius:12px;padding:8px 12px}','.srepreq{background:var(--sunSoft);border-radius:12px;padding:8px 12px}\n.srskpick{border:2px solid var(--line);border-radius:14px;padding:8px 12px;margin:0 0 10px}\n.srskpick .row{flex-wrap:wrap;gap:6px;margin-top:6px}\n.srsel[hidden]{display:none}')
+R('.repw i{font-style:normal;color:var(--muted);font-size:.78rem}','''.repw i{font-style:normal;color:var(--muted);font-size:.78rem}
+.rep6wrap{margin-top:10px}
+.rep6{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.rep6t{border-radius:14px;padding:10px;display:flex;flex-direction:column;gap:3px;background:var(--soft);border:2px solid transparent}
+.rep6t.lv3{background:var(--leafSoft);border-color:var(--sprout)}
+.rep6t.lv2{background:var(--leafSoft)}
+.rep6t.lv1{background:var(--sunSoft)}
+.rep6t.lv0{background:var(--petalSoft)}
+.rep6h{display:flex;align-items:center;gap:6px;font-size:.95rem}
+.rep6lv{font-family:var(--display);font-weight:800;font-size:1.1rem;color:var(--soil)}
+.rep6bar{height:6px;border-radius:999px;background:rgba(0,0,0,.08);overflow:hidden}
+.rep6bar i{display:block;height:100%;background:var(--leaf);border-radius:999px}
+.rep6t small{font-size:.76rem;color:var(--muted);line-height:1.3}''')

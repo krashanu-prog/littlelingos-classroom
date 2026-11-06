@@ -15,9 +15,9 @@ try:
         p.locator('[data-mact="all"]').click(); p.wait_for_timeout(200)
         p.locator('#modal-root button[type="submit"]').click(); p.wait_for_timeout(600)
         print('SAVE EMPTY ->',(p.locator('.modal .err, .modal [role="alert"], #modal-root .formerr').all_inner_texts() or [p.locator('#modal-root').inner_text()[-260:]])[0].replace('\n',' '))
-        p.screenshot(path=OUT+'srep_form.png')
+        p.screenshot(path=OUT+'srep_form.png'); print('skills ticked:',p.eval_on_selector_all('input[name="srsk"]:checked','e=>e.map(x=>x.value)'),'| visible selects for l1:',p.eval_on_selector_all('[data-srep="l1"] .srsel:not([hidden]) span','e=>e.map(x=>x.textContent)'))
         for lid,txt in [('l1','Anaya read the new words aloud confidently. Practise the /th/ sound.'),('l2','Rohan joined in the song and answered two questions.')]:
-            p.select_option(f'select[name="p_{lid}"]','2'); p.select_option(f'select[name="u_{lid}"]','3'); p.fill(f'textarea[name="n_{lid}"]',txt)
+            p.select_option(f'select[name="p_{lid}"]','2'); p.select_option(f'select[name="klistening_{lid}"]','3'); p.select_option(f'select[name="kspeaking_{lid}"]','1'); p.fill(f'textarea[name="n_{lid}"]',txt)
         p.locator('#modal-root button[type="submit"]').click(); p.wait_for_timeout(1500)
         print('after save, modal open:',p.locator('#modal-root .modal').count(),'| banner:',p.locator('.srepban').count())
         cur.execute("select data->'notes' from docs where path like 'tw/%/x/m-srep1'"); print('saved notes:',cur.fetchone()[0])

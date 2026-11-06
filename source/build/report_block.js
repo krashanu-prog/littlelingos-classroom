@@ -1,19 +1,22 @@
 /* ================= Parent: detailed report (this week / this month) ================= */
-const REP_SKILL={quiz:"Word meanings",revise:"Word meanings",memory:"Word meanings",cloze:"Word meanings",en:"Word meanings",odd:"Word meanings",
-  listen:"Listening",pic:"Listening",sound:"Listening",drill:"Speaking",
-  bee:"Spelling and letters",miss:"Spelling and letters",
-  build:"Sentences and grammar",fix:"Sentences and grammar",
-  gk:"General knowledge",count:"Numbers and colours",colour:"Numbers and colours",daily:"Daily challenge",speed:"Speed round"};
+const REP_SKILL={listen:"listening",pic:"listening",sound:"listening",colour:"listening",count:"listening",
+  cloze:"reading",gk:"reading",bee:"writing",miss:"writing",
+  quiz:"vocabulary",revise:"vocabulary",memory:"vocabulary",odd:"vocabulary",en:"vocabulary",daily:"vocabulary",speed:"vocabulary",
+  build:"grammar",fix:"grammar",drill:"speaking"};
+const REP_LV_SHORT=["Needs help","Getting there","Good","Excellent"];
 const REP_GAME=k=>{const [x,st]=String(k).split("-");return x==="en"?"Word power":x==="gk"?"GK quiz":(typeof AG_TITLE!=="undefined"&&AG_TITLE[k])||k;};
 function repSince(p){const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-(p==="month"?29:6));return d.getTime();}
 function repData(L,p){const uid=L.uid,since=repSince(p),sinceK=ymd(new Date(since)),today=ymd(new Date());
   const pr=progOf(uid)||{},sc=pr.screen||{};let mins=0,days=0;for(const [k,v] of Object.entries(sc))if(k>=sinceK&&k<=today&&+v>0){mins+=+v;days++;}
   const acts=actsOf(uid).filter(x=>(x.at||0)>=since);
   const games=acts.filter(x=>x.n>0&&x.k!=="lesson"&&x.k!=="chess");let right=0,total=0;for(const x of games){right+=+x.s||0;total+=+x.n||0;}
-  const skills={};for(const x of games){const s=REP_SKILL[x.k];if(!s)continue;const o=skills[s]=skills[s]||{r:0,n:0,c:0};o.r+=+x.s||0;o.n+=+x.n||0;o.c++;}
+  const skills={};for(const [k] of SREP_SK)skills[k]={r:0,n:0,c:0};
+  for(const x of acts){const k=REP_SKILL[x.k];if(!k)continue;const o=skills[k];o.c++;if(x.n>0){o.r+=+x.s||0;o.n+=+x.n||0;}}
+  for(const x of doneList(uid)){if(x.ts<since)continue;const l=D.lessons[x.lid]||{};if(l.kind==="story")skills.reading.c++;else if(l.kind==="speak"||l.kind==="song")skills.speaking.c++;}
   const lessons=flowersSince(uid,since),words=wordsOf(uid,since);
   const hws=hwFor(L),hwSet=hws.filter(h=>(h.at||0)>=since||(h.due&&h.due>=sinceK)),hwIn=hws.filter(h=>{const a=answerOf(L,h);return a&&(a.at||0)>=since;});
   let ap=0,at=0;for(const v of Object.values(allMarks())){const st=v.m[L.id];if(!st||String(v.date)<sinceK)continue;at++;if(st==="present"||st==="late")ap++;}
+  skills.writing.c+=hwIn.length;
   const wk=pr.wk||{},wkE=Object.entries(wk);const practise=wkE.filter(([,v])=>+v.m>0).sort((a,b)=>(+b[1].m)-(+a[1].m)||(+b[1].t||0)-(+a[1].t||0));
   const mastered=wkE.filter(([,v])=>+v.r>=2&&!(+v.m>0)).length;
   const adl=pr.adl||{};
@@ -27,23 +30,29 @@ function repSummary(L,d,p){const n=esc(firstOf(L.name)),per=p==="month"?"In the 
   if(d.hwIn.length)bits.push(`handed in <b>${d.hwIn.length}</b> homework task${d.hwIn.length===1?"":"s"}`);
   if(!bits.length)return `<p>${per}, ${n} hasn't used Little Lingos yet. A few minutes a day makes a big difference: try the Daily challenge together.</p>`;
   const last=bits.pop();return `<p>${per}, ${n} ${bits.length?bits.join(", ")+" and "+last:last}.</p>`;}
-function repTips(L,d){if(!L.uid)return "";const n=esc(firstOf(L.name)),t=[];const sk=Object.entries(d.skills).filter(([,v])=>v.n>=4).map(([k,v])=>[k,v.r/v.n]);
-  const best=sk.slice().sort((a,b)=>b[1]-a[1])[0],weak=sk.slice().sort((a,b)=>a[1]-b[1])[0];
-  if(best&&best[1]>=0.75)t.push(`🌟 <b>Strength:</b> ${esc(best[0])} (${pctStr(best[1])} right). Praise this!`);
-  if(weak&&weak[1]<0.6&&(!best||weak[0]!==best[0]))t.push(`🌱 <b>Needs practice:</b> ${esc(weak[0])} (${pctStr(weak[1])} right). The games will give ${n} extra practice here.`);
+/* one level per skill: the teacher's view first (class reports this period, else the latest assessment), else the app (5+ answers) */
+function repSkillLevels(L,d){const tr=repTeacher(L,d.since).filter(x=>x.st!=="absent"),as=(typeof assessFor==="function"&&assessFor(L)[0])||null;
+  return SREP_SK.map(([k,l,e])=>{const tv=tr.map(x=>x.sk&&x.sk[k]).filter(v=>v>=0);let t=tv.length?Math.round(tv.reduce((a,b)=>a+b,0)/tv.length):null,tsrc=tv.length?`${tv.length} class${tv.length===1?"":"es"}`:"";
+    if(t==null&&as&&as.skills&&+as.skills[k]){t=Math.round((+as.skills[k]-1)*3/4);tsrc="assessment";}
+    const a=d.skills[k]||{r:0,n:0,c:0},ar=a.n?a.r/a.n:null,av=a.n>=5?(ar>=.85?3:ar>=.7?2:ar>=.5?1:0):null;
+    return {k,l,e,lv:t!=null?t:av,t,tsrc,a,ar};});}
+function repTips(L,d){if(!L.uid&&!repTeacher(L,d.since).length)return "";const n=esc(firstOf(L.name)),t=[];const sl=repSkillLevels(L,d).filter(x=>x.lv!=null);
+  const best=sl.slice().sort((a,b)=>b.lv-a.lv||(b.ar||0)-(a.ar||0))[0],weak=sl.slice().sort((a,b)=>a.lv-b.lv||(a.ar||1)-(b.ar||1))[0];
+  if(best&&best.lv>=2)t.push(`🌟 <b>Strongest skill:</b> ${esc(best.l)} (${REP_LV_SHORT[best.lv]}). Praise this!`);
+  if(weak&&weak.lv<=1&&(!best||weak.k!==best.k))t.push(`🌱 <b>Needs practice:</b> ${esc(weak.l)} (${REP_LV_SHORT[weak.lv]}). ${weak.k==="speaking"?"Chat in English for a few minutes each day.":weak.k==="reading"?"Read a short story together this week.":weak.k==="writing"?"Ask "+n+" to write three sentences about their day.":weak.k==="listening"?"Play the listening games together.":weak.k==="grammar"?"Try Sentence builder or Fix the sentence.":"Say the words to practise below together."}`);
   if(d.practise.length)t.push(`🗣️ <b>At home:</b> say the "words to practise" below together, a few times this week.`);
-  if(d.days<3)t.push(`⏱️ <b>Little and often:</b> 10–15 minutes on most days works better than one long session.`);
+  if(L.uid&&d.days<3)t.push(`⏱️ <b>Little and often:</b> 10–15 minutes on most days works better than one long session.`);
   if(d.hwSet.length>d.hwIn.length)t.push(`📒 <b>Homework:</b> ${d.hwSet.length-d.hwIn.length} task${d.hwSet.length-d.hwIn.length===1?" is":"s are"} still to hand in.`);
   return t.length?`<ul class="reptips">${t.map(x=>`<li>${x}</li>`).join("")}</ul>`:"";}
 function repMeter(v,max=5){return `<span class="repdots" aria-label="${v} of ${max}">${"●".repeat(v)}${"○".repeat(max-v)}</span>`;}
 /* trainers' class reports for this child in the period (participation / understanding / note) */
 function repTeacher(L,since){const out=[];const sk=ymd(new Date(since));for(const v of Object.values(allMarks())){const st=v.m&&v.m[L.id];if(!st||String(v.date).slice(0,10)<sk)continue;
-    const note=(v.notes||{})[L.id]||"";const r=typeof srepParse==="function"?srepParse(note):{p:-1,u:-1,txt:note};out.push({date:v.date,title:v.title||"Class",st,p:r.p,u:r.u,txt:r.txt,by:v.by});}
+    const note=(v.notes||{})[L.id]||"";const r=typeof srepParse==="function"?srepParse(note):{p:-1,u:-1,sk:{},txt:note};out.push({date:v.date,title:v.title||"Class",st,p:r.p,u:r.u,sk:r.sk||{},txt:r.txt,by:v.by});}
   return out.sort((a,b)=>String(b.date).localeCompare(String(a.date)));}
 const repAvgLv=xs=>{const v=xs.filter(x=>x>=0);if(!v.length)return null;return Math.round(v.reduce((a,b)=>a+b,0)/v.length);};
 function parentReportHTML(L){if(!L)return "";const p=S.repP||"week",d=repData(L,p),n=esc(firstOf(L.name)),signed=!!L.uid;
   const pool=signed?(pipTry(()=>gamePool(L))||[]):[],meaning=w=>{const x=pool.find(y=>String(y.w).toLowerCase()===w);return x?meanFor(x.w,x.m):"";};
-  const skills=Object.entries(d.skills).sort((a,b)=>b[1].n-a[1].n);
+  
   const lv=Object.entries(d.adl).filter(([,v])=>+v>=1).sort((a,b)=>(+b[1])-(+a[1]));
   const tr=repTeacher(L,d.since),came=tr.filter(x=>x.st!=="absent"),pA=repAvgLv(came.map(x=>x.p)),uA=repAvgLv(came.map(x=>x.u));
   const cids=learnCourses(L),crs=cids.map(cid=>{const c=D.courses[cid],ls=lessonsOf(cid),dn=ls.filter(l=>isDone(L.uid,l.id)).length;return {c,dn,t:ls.length};}).filter(x=>x.c&&x.t);
@@ -55,10 +64,11 @@ function parentReportHTML(L){if(!L)return "";const p=S.repP||"week",d=repData(L,
     d.at&&[`${d.ap}/${d.at}`,"Classes attended",""],
     (d.hwSet.length||d.hwIn.length)&&[`${d.hwIn.length}/${Math.max(d.hwSet.length,d.hwIn.length)}`,"Homework in",""],
     pA!=null&&[esc(SREP_LV[pA].split(" ").slice(1).join(" ")),"Participation","teacher's view"],
-    uA!=null&&[esc(SREP_LV[uA].split(" ").slice(1).join(" ")),"Understanding","teacher's view"]].filter(Boolean);
+    uA!=null&&[esc(SREP_LV[uA].split(" ").slice(1).join(" ")),"Understanding","teacher's view (earlier reports)"]].filter(Boolean);
   const sec=(t,body)=>body?`<div class="repsec"><h3>${t}</h3>${body}</div>`:"";
   const teacherHTML=came.filter(x=>x.txt).slice(0,3).map(x=>`<div class="reptr"><div class="small muted">${esc(fmtDay(new Date(x.date)))} · ${esc(x.title)}${x.p>=0?` · ${esc(SREP_LV[x.p])}`:""}</div><div>${esc(x.txt)}</div></div>`).join("");
-  const skillHTML=skills.map(([k,v])=>{const r=v.n?v.r/v.n:0;return `<div class="reprow"><span>${esc(k)}</span><div class="bar"><i style="width:${pctStr(r)};background:${r>=.75?"var(--leaf)":r>=.5?"var(--sun)":"var(--petal)"}"></i></div><b class="num">${pctStr(r)}</b></div>`;}).join("");
+  const sl=repSkillLevels(L,d);
+  const skillHTML=`<div class="rep6">${sl.map(x=>`<div class="rep6t lv${x.lv==null?"n":x.lv}"><div class="rep6h"><span aria-hidden="true">${x.e}</span><b>${esc(x.l)}</b></div><span class="rep6lv">${x.lv==null?"Not enough yet":REP_LV_SHORT[x.lv]}</span>${x.lv!=null?`<span class="rep6bar" aria-hidden="true"><i style="width:${(x.lv+1)*25}%"></i></span>`:""}<small>${x.t!=null?`Teacher: ${REP_LV_SHORT[x.t]} (${esc(x.tsrc)})`:"Teacher: no rating yet"}</small><small>${x.a.n?`App: ${pctStr(x.ar)} right · ${x.a.n} answers`:x.a.c?`App: ${x.a.c} activit${x.a.c===1?"y":"ies"}`:"App: no activity yet"}</small></div>`).join("")}</div>`;
   const lvHTML=lv.map(([k,v])=>`<div class="reprow"><span>${esc(REP_GAME(k))}</span>${repMeter(+v)}</div>`).join("");
   const wordsHTML=d.practise.slice(0,6).map(([w,v])=>`<span class="repw" title="${esc(meaning(w))}"><b>${esc(w)}</b>${mt(w)?` ${mtHTML(w)}`:""}<i>×${+v.m}</i></span>`).join("");
   const crsHTML=crs.map(x=>`<div class="reprow"><span>${esc(x.c.title)}</span><div class="bar"><i style="width:${pctStr(x.t?x.dn/x.t:0)}"></i></div><b class="num">${x.dn}/${x.t}</b></div>`).join("");
@@ -66,9 +76,9 @@ function parentReportHTML(L){if(!L)return "";const p=S.repP||"week",d=repData(L,
   <div class="ph"><h2>${n}'s report <span class="pill p-good">${esc(L.stage||"Seeds")}</span></h2><div class="row"><div class="seg repseg" role="group" aria-label="Report period"><button class="${p==="week"?"on":""}" data-act="repP" data-id="week" aria-pressed="${p==="week"}">Week</button><button class="${p==="month"?"on":""}" data-act="repP" data-id="month" aria-pressed="${p==="month"}">Month</button></div><button class="btn btn-ghost btn-sm" data-act="printReport" aria-label="Print or save the report">🖨️ Print</button></div></div>
   <div class="repsum">${signed?repSummary(L,d,p):`<p><b>${n} hasn't signed in to the app yet,</b> so games, words and time aren't counted. Classes, homework and teacher reports are below.</p>`}${repTips(L,d)}</div>
   ${tiles.length?`<div class="repstats">${tiles.map(([b,s,sm])=>`<div><b class="num">${b}</b><span>${s}</span>${sm?`<small>${sm}</small>`:""}</div>`).join("")}</div>`:""}
+  <div class="repsec rep6wrap"><h3>Skills ${p==="month"?"this month":"this week"}</h3>${skillHTML}</div>
   <div class="repgrid">
     ${sec("From the teacher",teacherHTML)}
-    ${sec(p==="month"?"Skills this month":"Skills this week",skillHTML)}
     ${sec("Game levels <small class=\"muted\">(5 = hardest)</small>",lvHTML)}
     ${sec("Words to practise at home",wordsHTML?`<div class="repws">${wordsHTML}</div>`:"")}
     ${sec("Courses",crsHTML)}

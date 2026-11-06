@@ -3,23 +3,35 @@
    It is saved as that child's note on the class record, which only that child's family can read. */
 const SREP_FROM=Date.parse("2026-11-06T00:00:00+05:30"); /* classes that ended before this are not chased */
 const SREP_LV=["🌱 Needs help","🙂 Getting there","😃 Good","🌟 Excellent"];
-const SREP_RE=/^Participation: (.+?) · Understanding: (.+?) · ([\s\S]*)$/;
-const srepParse=t=>{const m=SREP_RE.exec(String(t||""));return m?{p:SREP_LV.indexOf(m[1]),u:SREP_LV.indexOf(m[2]),txt:m[3]}:{p:-1,u:-1,txt:String(t||"")};};
-const srepOk=t=>{const r=srepParse(t);return r.p>=0&&r.u>=0&&r.txt.trim().length>=10;};
-function srepFields(L,note){const r=srepParse(note),n=esc(firstOf(L.name)),id=esc(L.id);
-  const sel=(nm,lbl,v)=>`<label class="srsel"><span>${lbl}</span><select name="${nm}_${id}" aria-label="${lbl} for ${esc(L.name)}"><option value="">Choose…</option>${SREP_LV.map((x,i)=>`<option value="${i}" ${i===v?"selected":""}>${esc(x)}</option>`).join("")}</select></label>`;
-  return `<div class="srep" data-srep="${id}">${sel("p","Participation",r.p)}${sel("u","Understanding",r.u)}
+const SREP_SK=[["listening","Listening","👂"],["reading","Reading","📖"],["writing","Writing","✏️"],["vocabulary","Vocabulary","🔤"],["grammar","Grammar","🧩"],["speaking","Speaking","🗣️"]];
+const SREP_NAMES={Participation:"p",Understanding:"u",...Object.fromEntries(SREP_SK.map(([k,l])=>[l,k]))};
+/* "Participation: 😃 Good · Listening: 🌟 Excellent · … · note" (older reports used Understanding) */
+function srepParse(t){t=String(t||"");const segs=t.split(" · "),sk={};let p=-1,u=-1,i=0;
+  for(;i<segs.length;i++){const m=/^(\w+): (.+)$/.exec(segs[i]);if(!m||!SREP_NAMES[m[1]])break;const v=SREP_LV.indexOf(m[2]);if(v<0)break;const k=SREP_NAMES[m[1]];if(k==="p")p=v;else if(k==="u")u=v;else sk[k]=v;}
+  return {p,u,sk,txt:i?segs.slice(i).join(" · "):t};}
+const srepOk=t=>{const r=srepParse(t);return r.p>=0&&(r.u>=0||Object.keys(r.sk).length>0)&&r.txt.trim().length>=10;};
+const srepSkDefault=()=>{try{const v=JSON.parse(localStorage.getItem("ll-srsk")||"null");if(Array.isArray(v)&&v.length)return v;}catch{}return ["listening","speaking"];};
+/* once per class: which skills did this class practise? */
+function srepSkillPick(mk){let on=new Set();for(const n of Object.values((mk&&mk.notes)||{}))for(const k of Object.keys(srepParse(n).sk))on.add(k);if(!on.size)on=new Set(srepSkDefault());
+  return `<fieldset class="srskpick"><legend><b>Skills practised in this class</b> <span class="small muted">(tick 1–3; each child is rated on these)</span></legend><div class="row">${SREP_SK.map(([k,l,e])=>`<label class="chip"><input type="checkbox" name="srsk" value="${k}" ${on.has(k)?"checked":""}>${e} ${l}</label>`).join("")}</div></fieldset>`;}
+function srepFields(L,note){const r=srepParse(note),n=esc(firstOf(L.name)),id=esc(L.id);let on=new Set(Object.keys(r.sk));if(!on.size)on=new Set(srepSkDefault());
+  const sel=(nm,lbl,v,sk)=>`<label class="srsel" ${sk?`data-sk="${sk}" ${on.has(sk)?"":"hidden"}`:""}><span>${lbl}</span><select name="${nm}_${id}" aria-label="${lbl} for ${esc(L.name)}"><option value="">Choose…</option>${SREP_LV.map((x,i)=>`<option value="${i}" ${i===v?"selected":""}>${esc(x)}</option>`).join("")}</select></label>`;
+  return `<div class="srep" data-srep="${id}">${sel("p","Participation",r.p)}${SREP_SK.map(([k,l])=>sel("k"+k,l,r.sk[k]!=null?r.sk[k]:-1,k)).join("")}
     <textarea class="mnote" name="n_${id}" rows="2" maxlength="400" placeholder="Report for ${n}'s family: what ${n} did well and what to practise next" aria-label="Report for ${esc(L.name)}'s family">${esc(r.txt)}</textarea></div>`;}
+document.addEventListener("change",e=>{const t=e.target;if(!t||t.name!=="srsk")return;const f=t.closest("form")||document;const on=new Set([...f.querySelectorAll('input[name="srsk"]:checked')].map(x=>x.value));
+  f.querySelectorAll(".srsel[data-sk]").forEach(el=>{el.hidden=!on.has(el.dataset.sk);});});
 /* read the form, check every child who came has a full report, and build the notes */
-function srepCollect(list,m,form){const notes={},miss=[];
-  for(const L of list){const t=form.querySelector(`textarea[name="n_${CSS.escape(L.id)}"],input[name="n_${CSS.escape(L.id)}"]`),txt=t?t.value.trim():"";
+function srepCollect(list,m,form){const notes={},miss=[];const sks=[...form.querySelectorAll('input[name="srsk"]:checked')].map(x=>x.value);
+  const anyCame=list.some(L=>m[L.id]==="present"||m[L.id]==="late");
+  if(anyCame&&!sks.length)throw userErr("Tick at least one skill this class practised (for example Listening or Speaking).");
+  if(sks.length){try{localStorage.setItem("ll-srsk",JSON.stringify(sks))}catch{}}
+  for(const L of list){const id=CSS.escape(L.id),t=form.querySelector(`textarea[name="n_${id}"],input[name="n_${id}"]`),txt=t?t.value.trim():"";
     const came=m[L.id]==="present"||m[L.id]==="late";
     if(!came){if(txt)notes[L.id]=txt;continue;}
-    const p=form.querySelector(`select[name="p_${CSS.escape(L.id)}"]`),u=form.querySelector(`select[name="u_${CSS.escape(L.id)}"]`);
-    const pv=p?p.value:"",uv=u?u.value:"";
-    if(pv===""||uv===""||txt.length<10){miss.push(firstOf(L.name));const box=form.querySelector(`[data-srep="${CSS.escape(L.id)}"]`);if(box)box.classList.add("srmiss");continue;}
-    notes[L.id]=`Participation: ${SREP_LV[+pv]} · Understanding: ${SREP_LV[+uv]} · ${txt}`;}
-  if(miss.length)throw userErr(`Please finish the report for ${miss.join(", ")}: choose participation and understanding, and write at least a short sentence.`);
+    const pv=(form.querySelector(`select[name="p_${id}"]`)||{}).value||"";const kv=sks.map(k=>[k,(form.querySelector(`select[name="k${k}_${id}"]`)||{}).value||""]);
+    if(pv===""||kv.some(([,v])=>v==="")||txt.length<10){miss.push(firstOf(L.name));const box=form.querySelector(`[data-srep="${id}"]`);if(box)box.classList.add("srmiss");continue;}
+    notes[L.id]=[`Participation: ${SREP_LV[+pv]}`,...kv.map(([k,v])=>`${SREP_SK.find(x=>x[0]===k)[1]}: ${SREP_LV[+v]}`),txt].join(" · ");}
+  if(miss.length)throw userErr(`Please finish the report for ${miss.join(", ")}: rate participation and each ticked skill, and write at least a short sentence.`);
   return notes;}
 /* which classes still need reports */
 function srepNeeds(s){if(!s||sessEnd(s)>Date.now()||sessEnd(s)<SREP_FROM)return false;if(noKidsClass(s)||(s.forLids||[]).includes("_trial"))return false;
