@@ -1146,6 +1146,13 @@ body.st-on{overflow:hidden}
 .repdots{color:var(--leaf);letter-spacing:2px;font-size:1rem}
 .replv .row{min-height:32px;border-bottom:1px dashed var(--line)}
 .repmore summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:700;color:var(--leaf)}
+.srep{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;width:100%;margin-top:6px}
+.srep textarea{grid-column:1/-1;width:100%}
+.srsel{display:flex;flex-direction:column;gap:2px;font-size:.82rem;font-weight:700}
+.srsel select{min-height:44px}
+.srep.srmiss{outline:3px solid var(--bad);outline-offset:4px;border-radius:12px}
+.srepreq{background:var(--sunSoft);border-radius:12px;padding:8px 12px}
+.srepban{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
 .iconbtn{width:44px;height:44px;min-height:44px}
 select.inline{min-height:44px}
 .nm,.linkbtn{position:relative}
@@ -2284,9 +2291,9 @@ A.mark=async sid=>{
   const roster=classRoster(s); const extra=Object.keys(cur).filter(id=>!roster.some(L=>L.id===id)&&D.learners[id]).map(learner);
   const list=[...roster,...extra];
   const d=new Date(s.startsAt);
-  const body=list.length?`<p class="small">Mark who came and who was absent, then tap <b>${mk?"Save changes":"Mark class complete"}</b>. The admin, parents and learners see the result.</p><p class="small muted">${esc(c?c.title:"")} · ${esc(fmtDay(d))}, ${esc(fmtTime(d))}${mk?` · last saved ${esc(fmtDay(new Date(mk.at)))}`:""}</p>
+  const body=list.length?`<p class="small">Mark who came and who was absent, then tap <b>${mk?"Save changes":"Mark class complete"}</b>. The admin, parents and learners see the result.</p><p class="small srepreq"><b>Required:</b> a short report for every child marked Present or Late: participation, understanding and a sentence for the family.</p><p class="small muted">${esc(c?c.title:"")} · ${esc(fmtDay(d))}, ${esc(fmtTime(d))}${mk?` · last saved ${esc(fmtDay(new Date(mk.at)))}`:""}</p>
     <div class="row"><button type="button" class="btn btn-ghost btn-sm" data-mact="all">${ic("check")}Mark everyone present</button></div>
-    <div>${list.map(L=>`<div class="markrow"><b>${esc(L.name)}</b><div class="seg" role="radiogroup" aria-label="${esc(L.name)}">${["present","late","absent"].map(st=>`<label><input type="radio" name="m_${esc(L.id)}" value="${st}" ${(cur[L.id]||(joins[L.id]?(joins[L.id]>st0+10*6e4?"late":"present"):""))===st?"checked":""}><span class="${st}">${ATT[st]}</span></label>`).join("")}</div>${joins[L.id]&&!cur[L.id]?`<span class="pill p-info">Auto: joined ${esc(fmtTime(new Date(joins[L.id])))}</span>`:""}<input type="text" class="mnote" name="n_${esc(L.id)}" maxlength="200" value="${esc((mk&&mk.notes||{})[L.id]||"")}" placeholder="Note for ${esc(firstOf(L.name))}'s family (optional)" aria-label="Note for ${esc(L.name)}'s family"></div>`).join("")}</div>
+    <div>${list.map(L=>`<div class="markrow"><b>${esc(L.name)}</b><div class="seg" role="radiogroup" aria-label="${esc(L.name)}">${["present","late","absent"].map(st=>`<label><input type="radio" name="m_${esc(L.id)}" value="${st}" ${(cur[L.id]||(joins[L.id]?(joins[L.id]>st0+10*6e4?"late":"present"):""))===st?"checked":""}><span class="${st}">${ATT[st]}</span></label>`).join("")}</div>${joins[L.id]&&!cur[L.id]?`<span class="pill p-info">Auto: joined ${esc(fmtTime(new Date(joins[L.id])))}</span>`:""}${srepFields(L,(mk&&mk.notes||{})[L.id]||"")}</div>`).join("")}</div>
     <p class="section-title">After class</p>
     <div class="field"><label for="mk-note">Class note for families</label><textarea id="mk-note" name="cnote" rows="2" maxlength="600" placeholder="What we covered and how the class went">${esc(mk&&mk.note||"")}</textarea><span class="hint">Every family in the class sees this. The notes above go only to that learner's family.</span></div>
     <div class="field"><label for="mk-voc">Words taught</label><textarea id="mk-voc" name="voc" rows="2" maxlength="2000" placeholder="cow = गाय">${esc(s.vocab||"")}</textarea><span class="hint">Learners marked present get these in My words.</span></div>
@@ -2297,7 +2304,7 @@ A.mark=async sid=>{
     onSubmit:list.length?async(f,form)=>{
       const m={};for(const L of list){const r=form.querySelector(`input[name="m_${CSS.escape(L.id)}"]:checked`);if(r)m[L.id]=r.value;}
       if(!Object.keys(m).length)throw userErr("Mark at least one learner.");
-      const notes={};for(const L of list){const t=form.querySelector(`input[name="n_${CSS.escape(L.id)}"]`);if(t&&t.value.trim())notes[L.id]=t.value.trim();}
+      const notes=srepCollect(list,m,form);
       const rec=f.rec.value.trim();if(rec&&!safeUrl(rec))throw userErr("The recording link must start with https://");
       await S.db.doc(`tw/${S.uid}/x/m-${sid}`).set({kind:"mark",sid,at:Date.now(),by:S.uid,date:s.startsAt,courseId:s.courseId,title:s.title||(c?c.title:"Class"),m,note:f.cnote.value.trim(),notes});
       const upd={};if(safeUrl(rec)!==(s.recordingUrl||""))upd.recordingUrl=safeUrl(rec);if(f.voc.value.trim()!==(s.vocab||""))upd.vocab=f.voc.value.trim();if(Object.keys(upd).length)await S.db.doc("sessions/"+sid).update(upd);if(!s.doneAt){try{await S.db.doc("sessions/"+sid).update({doneAt:Date.now(),doneBy:S.uid})}catch(e){}}
@@ -6986,6 +6993,54 @@ function parentReportHTML(L){if(!L||!L.uid)return "";const p=S.repP||"week",d=re
   </section>`;}
 A.repP=p=>{S.repP=p==="month"?"month":"week";render(true);};
 A.printReport=()=>{const el=document.querySelector(".repcard");if(!el)return;const det=el.querySelector("details");if(det)det.open=true;el.classList.add("printdoc");setTimeout(()=>{try{window.print()}catch{toast("Printing isn't available here.",true)}setTimeout(()=>el.classList.remove("printdoc"),500);},50);};
+
+/* ================= Class reports: required for every child, right after each class =================
+   Each child marked Present or Late needs a short report (participation, understanding and a note).
+   It is saved as that child's note on the class record, which only that child's family can read. */
+const SREP_FROM=Date.parse("2026-11-06T00:00:00+05:30"); /* classes that ended before this are not chased */
+const SREP_LV=["🌱 Needs help","🙂 Getting there","😃 Good","🌟 Excellent"];
+const SREP_RE=/^Participation: (.+?) · Understanding: (.+?) · ([\s\S]*)$/;
+const srepParse=t=>{const m=SREP_RE.exec(String(t||""));return m?{p:SREP_LV.indexOf(m[1]),u:SREP_LV.indexOf(m[2]),txt:m[3]}:{p:-1,u:-1,txt:String(t||"")};};
+const srepOk=t=>{const r=srepParse(t);return r.p>=0&&r.u>=0&&r.txt.trim().length>=10;};
+function srepFields(L,note){const r=srepParse(note),n=esc(firstOf(L.name)),id=esc(L.id);
+  const sel=(nm,lbl,v)=>`<label class="srsel"><span>${lbl}</span><select name="${nm}_${id}" aria-label="${lbl} for ${esc(L.name)}"><option value="">Choose…</option>${SREP_LV.map((x,i)=>`<option value="${i}" ${i===v?"selected":""}>${esc(x)}</option>`).join("")}</select></label>`;
+  return `<div class="srep" data-srep="${id}">${sel("p","Participation",r.p)}${sel("u","Understanding",r.u)}
+    <textarea class="mnote" name="n_${id}" rows="2" maxlength="400" placeholder="Report for ${n}'s family: what ${n} did well and what to practise next" aria-label="Report for ${esc(L.name)}'s family">${esc(r.txt)}</textarea></div>`;}
+/* read the form, check every child who came has a full report, and build the notes */
+function srepCollect(list,m,form){const notes={},miss=[];
+  for(const L of list){const t=form.querySelector(`textarea[name="n_${CSS.escape(L.id)}"],input[name="n_${CSS.escape(L.id)}"]`),txt=t?t.value.trim():"";
+    const came=m[L.id]==="present"||m[L.id]==="late";
+    if(!came){if(txt)notes[L.id]=txt;continue;}
+    const p=form.querySelector(`select[name="p_${CSS.escape(L.id)}"]`),u=form.querySelector(`select[name="u_${CSS.escape(L.id)}"]`);
+    const pv=p?p.value:"",uv=u?u.value:"";
+    if(pv===""||uv===""||txt.length<10){miss.push(firstOf(L.name));const box=form.querySelector(`[data-srep="${CSS.escape(L.id)}"]`);if(box)box.classList.add("srmiss");continue;}
+    notes[L.id]=`Participation: ${SREP_LV[+pv]} · Understanding: ${SREP_LV[+uv]} · ${txt}`;}
+  if(miss.length)throw userErr(`Please finish the report for ${miss.join(", ")}: choose participation and understanding, and write at least a short sentence.`);
+  return notes;}
+/* which classes still need reports */
+function srepNeeds(s){if(!s||sessEnd(s)>Date.now()||sessEnd(s)<SREP_FROM)return false;if(noKidsClass(s)||(s.forLids||[]).includes("_trial"))return false;
+  const mk=allMarks()[s.id];if(!mk)return true;const notes=mk.notes||{};
+  return Object.entries(mk.m||{}).some(([lid,st])=>(st==="present"||st==="late")&&D.learners[lid]&&!srepOk(notes[lid]));}
+const srepTrainerOf=s=>s.trainerId||(D.courses[s.courseId]||{}).teacherId||"";
+function srepPending(all){const ss=all?entries(D.sessions):scopedSessions();return ss.filter(srepNeeds).sort((a,b)=>String(a.startsAt).localeCompare(String(b.startsAt)));}
+const srepAge=s=>{const h=(Date.now()-sessEnd(s))/36e5;return h<1?`${Math.max(1,Math.round(h*60))} min ago`:h<48?`${Math.round(h)} h ago`:`${Math.round(h/24)} days ago`;};
+function srepRow(s,inModal){const c=D.courses[s.courseId],d=new Date(s.startsAt);return `<div class="item"><div class="grow"><div class="t">${esc(s.title||(c?c.title:"Class"))}</div><div class="s">${esc(fmtDay(d))}, ${esc(fmtTime(d))} · ended ${esc(srepAge(s))}${role()==="admin"?` · ${esc((D.trainers[srepTrainerOf(s)]||{}).name||"No trainer")}`:""}</div></div><button type="button" class="btn btn-primary btn-sm" ${inModal?"data-mact":"data-act"}="${inModal?"fill":"mark"}" data-id="${esc(s.id)}">Fill reports</button></div>`;}
+/* a banner on every staff page */
+function srepBanner(){const r=role();if(r!=="teacher"&&r!=="admin")return "";if(realRole()==="admin"&&r==="teacher")return "";
+  const ps=srepPending(r==="admin");if(!ps.length)return "";
+  if(r==="admin"){const by={};for(const s of ps){const t=(D.trainers[srepTrainerOf(s)]||{}).name||"No trainer";by[t]=(by[t]||0)+1;}
+    return `<section class="alert a-sun srepban"><span><b>${ps.length} class${ps.length===1?" still needs":"es still need"} child reports.</b> ${esc(Object.entries(by).map(([t,n])=>`${t}: ${n}`).join(" · "))}</span><button class="btn btn-ghost btn-sm" data-act="srepList">See classes</button></section>`;}
+  return `<section class="alert a-bad srepban"><span><b>Class reports needed (${ps.length}).</b> Fill in a short report for every child right after each class. Families are waiting to hear how it went.</span><button class="btn btn-primary btn-sm" data-act="mark" data-id="${esc(ps[0].id)}">Fill now</button></section>`;}
+A.srepList=()=>{const ps=srepPending(role()==="admin");openModal("Classes that need child reports",ps.length?`<p class="small">A short report is required for every child who came, right after each class.</p><div class="list">${ps.map(s=>srepRow(s,1)).join("")}</div>`:`<p>All class reports are done. 🎉</p>`,{noFocus:true,actions:SREP_ACTS});};
+/* trainers: a reminder that pops up after a class ends, until the reports are done (can be put off for 15 minutes) */
+const srepSnoozed=()=>{try{return +sessionStorage.getItem("ll-srep-snooze")>Date.now()}catch{return false}};
+A.srepLater=()=>{try{sessionStorage.setItem("ll-srep-snooze",String(Date.now()+15*6e4))}catch{}closeModal();};
+const SREP_ACTS={fill:id=>{closeModal();setTimeout(()=>A.mark(id),80);},later:()=>A.srepLater()};
+function srepNudge(){try{if(S.status!=="ready"||realRole()!=="teacher"||modalOpen||srepSnoozed())return;const ps=srepPending(false);if(!ps.length)return;
+  openModal("Class reports needed",`<p>${ps.length===1?"This class has":"These classes have"} ended. Reports for every child who came are required, and families see them straight away.</p><div class="list">${ps.slice(0,6).map(s=>srepRow(s,1)).join("")}</div>`,
+    {noFocus:true,actions:SREP_ACTS,footerExtra:`<button type="button" class="btn btn-ghost" data-mact="later">Remind me in 15 minutes</button>`});}catch(e){}}
+setInterval(srepNudge,60000);setTimeout(srepNudge,4000);
+for(const v of Object.keys(VIEWS)){const f=VIEWS[v];VIEWS[v]=function(){return srepBanner()+f.apply(this,arguments);};}
 
 /* ================= events ================= */
 document.addEventListener("click",e=>{
