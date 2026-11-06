@@ -4,8 +4,19 @@
    until the child gets it right (up to 3 tries, then we move on and it comes back later). */
 const AD_MAX_TRIES=3;
 const adKey=t=>"ll-adl-"+(S.uid||"")+"-"+t;
-function adGet(t){try{const v=+localStorage.getItem(adKey(t));if(v>=1&&v<=5)return v;}catch{}return agStage()==="Seeds"?1:2;}
-function adSet(t,v){try{localStorage.setItem(adKey(t),String(v))}catch{}}
+/* levels live on the child's account (progress/<uid>.adl), with this device as a backup; admin previews stay on the device */
+const adOnAccount=()=>realRole()==="student"&&!!S.uid&&!!S.db;
+function adGet(t){const a=adOnAccount()?((progOf(S.uid)||{}).adl||{})[t]:null;if(+a>=1&&+a<=5)return +a;
+  try{const v=+localStorage.getItem(adKey(t));if(v>=1&&v<=5)return v;}catch{}return agStage()==="Seeds"?1:2;}
+let adPend={},adT=null;
+function adSet(t,v){try{localStorage.setItem(adKey(t),String(v))}catch{}
+  if(!adOnAccount())return;const p=D.progress[S.uid]=D.progress[S.uid]||{};p.adl=p.adl||{};if(p.adl[t]===v)return;p.adl[t]=v;adPend[t]=v;clearTimeout(adT);adT=setTimeout(adFlush,1500);}
+function adFlush(){const x=adPend;adPend={};if(!Object.keys(x).length||!S.db||!S.uid)return;upsert("progress/"+S.uid,{adl:x}).catch(()=>{});}
+addEventListener("pagehide",adFlush);
+/* parents and teachers see the levels in the child's info card */
+function adLevelsHTML(L){const a=(progOf(L&&L.uid)||{}).adl||{};const ks=Object.keys(a).filter(k=>+a[k]>=1);if(!ks.length)return "";
+  const name=k=>{const [x,st]=k.split("-");return x==="en"?`Word power (${st})`:x==="gk"?`GK quiz (${st})`:(AG_TITLE[k]||k);};
+  return `<div class="adlv"><p class="small"><b>Game levels</b> (1 = easiest, 5 = hardest)</p><div class="pvchips">${ks.sort().map(k=>`<span class="pvchip">${esc(name(k))} · <b>${+a[k]}/5</b></span>`).join("")}</div></div>`;}
 const adLc=w=>String(w||"").toLowerCase();
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
 /* split a list into 5 difficulty bands by a score */
@@ -122,17 +133,17 @@ const AD_TYPES=new Set(["daily","quiz","listen","pic","sound","colour","count","
 /* ---------- Word power and GK quizzes: same idea ---------- */
 const qzTopic=q=>String(q).toLowerCase().replace(/['‘’“”"]/g,"").split(/\s+/).slice(0,4).join(" ");
 const qzDiff=x=>String(x.q).length+String(x.a).length*2;
-function qzAdapt(st){if(st.ad)return st.ad;const band=adBands(st.deck,qzDiff);st.ad={d:adGet("qz-"+st.stage),band,miss:new Map(),up:false,retry:false};return st.ad;}
-{const f=A.qzPick;A.qzPick=v=>{const [kind]=String(v).split(":");const st=qzState(kind);if(st.picked==null){const ad=qzAdapt(st),x=st.deck[st.i],ok=x.opts[+String(v).split(":")[1]]===x.a;ad.up=false;ad.retry=false;
+function qzAdapt(st,kind){if(st.ad)return st.ad;const band=adBands(st.deck,qzDiff);st.ad={d:adGet((kind||st.kind||"qz")+"-"+st.stage),band,miss:new Map(),up:false,retry:false};return st.ad;}
+{const f=A.qzPick;A.qzPick=v=>{const [kind]=String(v).split(":");const st=qzState(kind);st.kind=kind;if(st.picked==null){const ad=qzAdapt(st,kind),x=st.deck[st.i],ok=x.opts[+String(v).split(":")[1]]===x.a;ad.up=false;ad.retry=false;
   if(ok){if(!x.again&&ad.d<5){ad.d++;ad.up=true;}ad.miss.delete(x.q);}
   else{if(ad.d>1)ad.d--;const n=(ad.miss.get(x.q)||0)+1;ad.miss.set(x.q,n);ad.retry=n<AD_MAX_TRIES;}
   adSet(kind+"-"+st.stage,ad.d);}f(v);};}
-{const f=A.qzNext;A.qzNext=kind=>{const st=qzState(kind),ad=qzAdapt(st),x=st.deck[st.i];
+{const f=A.qzNext;A.qzNext=kind=>{const st=qzState(kind),ad=qzAdapt(st,kind),x=st.deck[st.i];
   if(x&&ad.retry){/* same topic next, and the missed question again two questions later */
     const tp=qzTopic(x.q),j=st.deck.findIndex((y,k)=>k>st.i&&qzTopic(y.q)===tp&&!y.again);if(j>st.i+1){const [y]=st.deck.splice(j,1);st.deck.splice(st.i+1,0,y);}
     st.deck.splice(Math.min(st.deck.length,st.i+3),0,{q:x.q,a:x.a,opts:shuffle(x.opts.slice()),again:1});}
   else{/* move a question at the new level to be next */
     const j=st.deck.findIndex((y,k)=>k>st.i&&!y.again&&ad.band.get(y)===ad.d);if(j>st.i+1){const [y]=st.deck.splice(j,1);st.deck.splice(st.i+1,0,y);}}
   ad.retry=false;f(kind);};}
-function qzAdHTML(st){const ad=st.deck&&st.deck.length?qzAdapt(st):null;if(!ad)return "";return ` · Level ${ad.d}/5 ${"●".repeat(ad.d)}${"○".repeat(5-ad.d)}`;}
+function qzAdHTML(st,kind){if(kind)st.kind=kind;const ad=st.deck&&st.deck.length?qzAdapt(st,kind):null;if(!ad)return "";return ` · Level ${ad.d}/5 ${"●".repeat(ad.d)}${"○".repeat(5-ad.d)}`;}
 function qzFbHTML(st){const ad=st.ad;if(!ad)return "";if(ad.retry)return `<p class="small adnote">💪 We'll practise this kind of question again.</p>`;if(ad.up)return `<p class="small adnote">⬆️ Level ${ad.d}! The next one is a bit harder.</p>`;return "";}
