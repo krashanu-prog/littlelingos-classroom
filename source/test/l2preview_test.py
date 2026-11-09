@@ -1,0 +1,17 @@
+exec(open('/tmp/claude-0/-home-claude/e46c440f-a2dc-5219-9a0e-fc980d1e0e9c/scratchpad/web/test/e2e_real.py').read().split("\ntry:")[0])
+errs=[]
+with sync_playwright() as pw:
+    b = pw.chromium.launch(executable_path='/opt/pw-browsers/chromium-1194/chrome-linux/chrome')
+    ctx,p=open_as(b,'A'); p.on('pageerror',lambda e:errs.append(str(e))); p.wait_for_timeout(800)
+    print('admin chip:',p.locator('.l2chip').count())
+    p.select_option('#viewas','student:Sprouts'); p.wait_for_timeout(800)
+    print('preview chip:',p.locator('.l2chip').get_attribute('aria-label') if p.locator('.l2chip').count() else 'none')
+    p.locator('.l2chip').click(); p.wait_for_timeout(300); p.locator('[data-mact="pickL2"][data-id="hi"]').click(); p.wait_for_timeout(600)
+    print('after pick chip:',p.locator('.l2chip').get_attribute('aria-label'), '| toast:',p.locator('#toast-root').inner_text())
+    p.screenshot(path='test/l2_preview.png')
+    nav(p,'Words'); p.wait_for_timeout(800); t=p.locator('main').text_content(); import re; print('hindi chars on Words:',len(re.findall(r'[\u0900-\u097F]',t)), t[300:1200].replace(chr(10),' | '))
+    p.select_option('#viewas','parent'); p.wait_for_timeout(800); print('parent preview chip:',p.locator('.l2chip').get_attribute('aria-label') if p.locator('.l2chip').count() else 'none')
+    p.select_option('#viewas','admin'); p.wait_for_timeout(800); print('back to admin chip:',p.locator('.l2chip').count())
+    ctx.close()
+    ctx,p=open_as(b,'K1',390,844); p.wait_for_timeout(800); print('real kid chip:',p.locator('.l2chip').get_attribute('aria-label') if p.locator('.l2chip').count() else 'none'); ctx.close()
+print('errors',errs)
