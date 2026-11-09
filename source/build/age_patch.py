@@ -61,7 +61,7 @@ R('@media (prefers-reduced-motion:reduce)','''.qopt.qbig{font-size:2.6rem;min-he
 .pvages{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px;width:100%}
 @media (prefers-reduced-motion:reduce)''')
 
-R('/* ================= events ================= */',open(W+'agegames_data.js').read()+open(W+'agegames_block.js').read()+open(W+'adgame_block.js').read()+open(W+'report_block.js').read()+'\n/* ================= events ================= */')
+R('/* ================= events ================= */',open(W+'agegames_data.js').read()+open(W+'agegames_block.js').read()+open(W+'adgame_block.js').read()+open(W+'report_block.js').read()+open(W+'debate_data.js').read()+open(W+'debate_block.js').read()+'\n/* ================= events ================= */')
 # ---- adaptive levels: header, feedback, Next/Finish, daily stars, quizzes ----
 R('${g.type!=="speed"?` · ${g.i+1} of ${g.qs.length}`:""}','${g.ad?adLede(g):g.type!=="speed"?` · ${g.i+1} of ${g.qs.length}`:""}')
 R('${q.why?` <span class="mtline">${esc(q.why)}</span>`:""}','${q.why?` <span class="mtline">${esc(q.why)}</span>`:""}${adFbHTML(g)}')
@@ -93,3 +93,26 @@ R('.adlv{margin-top:10px}','''.adlv{margin-top:10px}
 .repdots{color:var(--leaf);letter-spacing:2px;font-size:1rem}
 .replv .row{min-height:32px;border-bottom:1px dashed var(--line)}
 .repmore summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-weight:700;color:var(--leaf)}''')
+# ---- Debate with Pip ----
+R('@media (prefers-reduced-motion:reduce)','''.dbmotion h2{font-size:1.5rem;text-align:center}
+.dbsides{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}.dbsides .btn{min-width:150px}
+.dbmot{margin:0 0 8px}
+.dbchat{display:flex;flex-direction:column;gap:10px;margin:0 0 12px}
+.dbmsg{display:flex;gap:8px;align-items:flex-end}.dbmsg p{margin:0;padding:10px 14px;border-radius:18px;max-width:85%;line-height:1.45}
+.dbmsg.pip p{background:#fff;border:2px solid var(--leaf-light,#DDEFC4);border-bottom-left-radius:4px}
+.dbmsg.me{justify-content:flex-end}.dbmsg.me p{background:#DDEFC4;border-bottom-right-radius:4px}
+.dbhear{min-width:44px;min-height:44px;vertical-align:middle}
+.dbinput{display:flex;flex-direction:column;gap:8px;background:#fff;border-radius:20px;padding:14px}
+.dbinput textarea{width:100%;font:inherit;font-size:1rem;border-radius:12px;padding:10px}
+.dbstarters{display:flex;flex-wrap:wrap;gap:6px}.dbstarters .chip{min-height:44px;border:2px solid #DDEFC4;background:#F5FAEE;cursor:pointer}
+.dbbtns{justify-content:flex-end;flex-wrap:wrap}.dbbtns .btn{min-height:44px}
+.dbchecks{list-style:none;padding:0;margin:0;text-align:left;display:grid;gap:4px}
+.dbtips{background:#FFF4D6;border-radius:12px;padding:10px 14px;text-align:left}.dbtips ul{margin:4px 0 0;padding-left:18px}
+.dbtrans{margin-top:12px}.dbtrans summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
+.dbpip{display:flex;gap:10px;align-items:center}.dbpip svg,.dbmsg svg{flex:none}.dbpip svg{width:64px!important;height:64px!important}.dbmsg svg{width:40px!important;height:40px!important}
+.dbchoose{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap}
+.dbbig{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:130px;min-height:130px;padding:14px;border-radius:28px;border:3px solid #DDEFC4;background:#fff;cursor:pointer;font:inherit}
+.dbbig span{font-size:3.4rem;line-height:1}.dbbig b{font-family:var(--display);font-size:1.2rem}
+.dbor{font-family:var(--display);font-weight:800;font-size:1.2rem}
+.dbline{font-family:var(--display);font-weight:800;font-size:1.5rem;text-align:center;margin:8px 0}
+@media (prefers-reduced-motion:reduce)''')
