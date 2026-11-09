@@ -9,6 +9,12 @@ with sync_playwright() as pw:
     for st in ['Seeds','Sprouts','Blooms']:
         stage(st); ctx,p=open_as(b,'K1'); p.on('pageerror',lambda e:errs.append(str(e))); p.set_viewport_size({'width':390,'height':844}); nav(p,'Play'); p.wait_for_timeout(400)
         print('=====',st,[x.split('\n')[1] for x in p.locator('.gamecard').all_inner_texts()][:3])
+        if st=='Blooms':
+            def fake(route):
+                b=json.loads(route.request.post_data or '{}'); d=b.get('debate',{})
+                last=[m for m in b.get('messages',[]) if m['role']=='user'][-1]['content']
+                route.fulfill(status=200,content_type='application/json',headers={'Access-Control-Allow-Origin':'*'},body=json.dumps({'reply':f"AI[{d.get('phase')}|{d.get('side')}|{d.get('stage')}|{len(b['messages'])} msgs] answering: {last[:30]}"}))
+            p.route('**/functions/v1/ask-pip',fake)
         p.locator('[data-act="startGame"][data-id="debate"]').click(); p.wait_for_timeout(400)
         if st=='Seeds':
             for i in range(3):

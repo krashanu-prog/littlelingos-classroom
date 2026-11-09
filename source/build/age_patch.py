@@ -109,6 +109,8 @@ R('@media (prefers-reduced-motion:reduce)','''.dbmotion h2{font-size:1.5rem;text
 .dbchecks{list-style:none;padding:0;margin:0;text-align:left;display:grid;gap:4px}
 .dbtips{background:#FFF4D6;border-radius:12px;padding:10px 14px;text-align:left}.dbtips ul{margin:4px 0 0;padding-left:18px}
 .dbtrans{margin-top:12px}.dbtrans summary{cursor:pointer;font-weight:700;min-height:44px;display:flex;align-items:center}
+.dbtyping i{animation:dbdot 1.2s infinite;font-style:normal}.dbtyping i:nth-child(2){animation-delay:.2s}.dbtyping i:nth-child(3){animation-delay:.4s}@keyframes dbdot{0%,60%,100%{opacity:.2}30%{opacity:1}}
+.dbverdict{display:flex;gap:8px;align-items:flex-start;background:#DDEFC4;border-radius:16px;padding:10px 12px;text-align:left}.dbverdict p{margin:0}.dbverdict svg{flex:none;width:40px!important;height:40px!important}
 .dbpip{display:flex;gap:10px;align-items:center}.dbpip svg,.dbmsg svg{flex:none}.dbpip svg{width:64px!important;height:64px!important}.dbmsg svg{width:40px!important;height:40px!important}
 .dbchoose{display:flex;gap:12px;align-items:center;justify-content:center;flex-wrap:wrap}
 .dbbig{display:flex;flex-direction:column;align-items:center;gap:6px;min-width:130px;min-height:130px;padding:14px;border-radius:28px;border:3px solid #DDEFC4;background:#fff;cursor:pointer;font:inherit}

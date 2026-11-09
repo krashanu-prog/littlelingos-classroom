@@ -1,7 +1,8 @@
 /* ================= Debate with Pip =================
    Sprouts and Blooms: pick a side of a motion, Pip argues the other side, three rounds, then feedback.
    Seeds: "Pip's choice", a which-do-you-like-more game that builds "I like … because …".
-   Works without AI. What the child types or says is not saved; only the score is logged. */
+   Pip answers the child's actual argument using Ask Pip's free AI (same child-safety checks; debate chats
+   are kept 30 days for admin safety review, like Ask Pip). Without AI it falls back to scripted replies. */
 const DB_ROUNDS=3;
 const DB_TARGET={Sprouts:10,Blooms:20};
 const DB_STARTERS={
@@ -54,16 +55,28 @@ A.dbMic=()=>{const d=S.debate;if(!d||!SR||d.listening)return;try{const r=new SR(
   const ta=document.getElementById("dbtext");const base=ta?ta.value:d.draft;
   r.onresult=e=>{const t=[...e.results].map(x=>x[0].transcript).join(" ").trim();if(t)d.draft=(base.trim()?base.trim()+" ":"")+t.charAt(0).toUpperCase()+t.slice(1)+(/[.!?]$/.test(t)?"":".");};
   r.onerror=()=>{};r.onend=()=>{d.listening=false;if(S.debate===d)render(true);};r.start();setTimeout(()=>{try{r.stop()}catch{}},15000);}catch{d.listening=false;render(true);}};
-A.dbSend=()=>{const d=S.debate;if(!d||d.done)return;const ta=document.getElementById("dbtext");const txt=String(ta?ta.value:d.draft).trim();
+/* Pip's AI reply (Ask Pip's free AI, same child-safety checks). Falls back to the scripted reply. */
+let DB_AIOFF=false;
+async function dbAI(d,phase){if(DB_AIOFF||!window.LL_sb||!navigator.onLine)return null;
+  const messages=d.log.filter(x=>!x.nudge).map(x=>({role:x.who==="pip"?"assistant":"user",content:x.t}));
+  try{const call=window.LL_sb.functions.invoke("ask-pip",{body:{mode:"debate",messages,debate:{motion:dbTopic(d)[0],side:d.side,stage:d.st,phase}}});
+    const {data,error}=await Promise.race([call,new Promise(r=>setTimeout(()=>r({error:{timeout:1}}),15000))]);
+    if(error){const st=error.context&&error.context.status;if(st===503||st===404||error.name==="FunctionsFetchError"||error.name==="FunctionsRelayError")DB_AIOFF=true;return null;}
+    return data&&data.reply?{t:String(data.reply).slice(0,700),blocked:!!data.blocked}:null;}catch(e){return null;}}
+A.dbSend=async()=>{const d=S.debate;if(!d||d.done||d.busy)return;const ta=document.getElementById("dbtext");const txt=String(ta?ta.value:d.draft).trim();
   if(dbWords(txt)<3){toast("Say a little more first: try “I think … because …”.",true);return;}
-  if(dbWords(txt)<5&&!d.nudged){d.nudged=true;d.draft=txt;dbPip(d,`Tell me a bit more! ${d.st==="Blooms"?"Give a reason and an example.":"Try adding “because…”."}`);render(true);return;}
-  d.nudged=false;d.log.push({who:"me",t:txt});d.draft="";d.turns++;d.words+=dbWords(txt);for(const k of dbScore(txt,d.st))d.hits[k]=(d.hits[k]||0)+1;
-  if(d.closing){dbFinish(d);return;}
-  if(d.round>=DB_ROUNDS){d.closing=true;dbPip(d,dbPipReply(d,txt,true));render(true);return;}
-  dbPip(d,dbPipReply(d,txt));d.round++;render(true);};
-function dbFinish(d){d.done=true;const max=(DB_ROUNDS+1)*6;let pts=0;for(const v of Object.values(d.hits))pts+=v;
-  d.pts=pts;d.stars=pts>=max*0.55?3:pts>=max*0.3?2:1;
-  dbPip(d,d.stars===3?"Wow, what a debate! You argued like a champion. I think the audience is on your side!":d.stars===2?"Great debate! You made some strong points. Next time, add even more reasons and examples.":"Well done for debating with me! Every debate makes you a stronger speaker.");
+  if(dbWords(txt)<5&&!d.nudged){d.nudged=true;d.draft=txt;d.log.push({who:"pip",t:`Tell me a bit more! ${d.st==="Blooms"?"Give a reason and an example.":"Try adding “because…”."}`,nudge:1});if(d.talk)say(d.log[d.log.length-1].t);render(true);return;}
+  d.nudged=false;d.log.push({who:"me",t:txt});d.draft="";
+  const phase=d.closing?"final":d.round>=DB_ROUNDS?"closing":"rebut";
+  d.busy=true;render(true);const ai=await dbAI(d,phase);d.busy=false;if(S.debate!==d)return;
+  if(ai&&ai.blocked){d.log[d.log.length-1].off=1;dbPip(d,ai.t);render(true);return;}
+  d.turns++;d.words+=dbWords(txt);for(const k of dbScore(txt,d.st))d.hits[k]=(d.hits[k]||0)+1;if(ai)d.ai=(d.ai||0)+1;
+  if(phase==="final"){dbFinish(d,ai&&ai.t);return;}
+  if(phase==="closing"){d.closing=true;dbPip(d,ai?ai.t:dbPipReply(d,txt,true));render(true);return;}
+  dbPip(d,ai?ai.t:dbPipReply(d,txt));d.round++;render(true);setTimeout(()=>{const c=document.querySelector(".dbinput");if(c)c.scrollIntoView({block:"nearest"});},60);};
+function dbFinish(d,verdict){d.done=true;const max=(DB_ROUNDS+1)*6;let pts=0;for(const v of Object.values(d.hits))pts+=v;
+  d.pts=pts;d.stars=pts>=max*0.55?3:pts>=max*0.3?2:1;d.verdict=verdict||"";
+  dbPip(d,verdict||(d.stars===3?"Wow, what a debate! You argued like a champion. I think the audience is on your side!":d.stars===2?"Great debate! You made some strong points. Next time, add even more reasons and examples.":"Well done for debating with me! Every debate makes you a stronger speaker."));
   const t=dbTopic(d)[0];actLog("debate","Debate: "+t,pts,max);save(()=>earn({pts:{["d"+Date.now().toString(36)]:d.stars}}));render(true);}
 A.dbStop=()=>{try{speechSynthesis.cancel()}catch{}S.debate=null;render(true);};
 document.addEventListener("input",e=>{if(e.target&&e.target.id==="dbtext"&&S.debate)S.debate.draft=e.target.value;});
@@ -97,11 +110,11 @@ function debateHTML(){const d=S.debate;if(d.seeds)return debateSeedsHTML(d);cons
     <p class="small">${st==="Blooms"?"Choose your side. You'll give an opening argument, answer Pip's points, then make a closing statement.":"Do you agree? Choose your side, then tell Pip your reasons."}</p>
     <div class="dbsides"><button class="btn btn-primary btn-big" data-act="dbSide" data-id="for">👍 I agree</button><button class="btn btn-sun btn-big" data-act="dbSide" data-id="against">👎 I disagree</button></div>
     <button class="btn btn-ghost btn-sm" data-act="dbNext" style="align-self:center">${ic("refresh",18)}Another topic</button></section>`;
-  const chat=`<div class="dbchat" aria-live="polite">${d.log.map((x,i)=>x.who==="pip"?`<div class="dbmsg pip">${art("pip",40,"Pip")}<p>${esc(x.t)}${canSpeak()?` <button class="iconbtn dbhear" data-act="dbHear" data-id="${i}" aria-label="Hear Pip">${ic("sound",18)}</button>`:""}</p></div>`:`<div class="dbmsg me"><p>${esc(x.t)}</p></div>`).join("")}</div>`;
+  const chat=`<div class="dbchat" aria-live="polite">${d.log.map((x,i)=>x.who==="pip"?`<div class="dbmsg pip">${art("pip",40,"Pip")}<p>${esc(x.t)}${canSpeak()?` <button class="iconbtn dbhear" data-act="dbHear" data-id="${i}" aria-label="Hear Pip">${ic("sound",18)}</button>`:""}</p></div>`:`<div class="dbmsg me"><p>${esc(x.t)}</p></div>`).join("")}${d.busy?`<div class="dbmsg pip">${art("pip",40,"Pip")}<p class="dbtyping" role="status">Pip is thinking about your argument<i>.</i><i>.</i><i>.</i></p></div>`:""}</div>`;
   if(d.done){const max=(DB_ROUNDS+1)*6,rows=[...DB_CHECKS.map(([k,l])=>[k,l]),["long","Said enough each time"]];
     const miss=rows.filter(([k])=>!d.hits[k]).map(([k])=>DB_TIP[k]).slice(0,3);
     return head+`<div class="card dbres" style="align-items:center;text-align:center">${art("bloom",96,"Bloom")}<h2>${d.stars===3?"Debate champion!":d.stars===2?"Strong debater!":"Brave debater!"}</h2><p class="bigstars">${"⭐".repeat(d.stars)}${"☆".repeat(3-d.stars)}</p>
-      <p class="lede">${d.pts} of ${max} debate points · ${d.words} words in ${d.turns} turns</p>
+      ${d.verdict?`<div class="dbverdict">${art("pip",40,"Pip")}<p><b>Pip's verdict:</b> ${esc(d.verdict)}</p></div>`:""}<p class="lede">${d.pts} of ${max} debate points · ${d.words} words in ${d.turns} turns</p>
       <ul class="dbchecks">${rows.map(([k,l])=>`<li class="${d.hits[k]?"ok":""}">${d.hits[k]?"✅":"⬜"} ${esc(l)}${d.hits[k]?` <span class="small muted">×${d.hits[k]}</span>`:""}</li>`).join("")}</ul>
       ${miss.length?`<div class="dbtips"><b>Next time</b><ul>${miss.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`:""}
       <div class="row" style="justify-content:center"><button class="btn btn-primary" data-act="debate">New debate</button><button class="btn btn-ghost" data-act="dbStop">More games</button></div></div>
@@ -111,7 +124,7 @@ function debateHTML(){const d=S.debate;if(d.seeds)return debateSeedsHTML(d);cons
     <section class="dbinput"><label for="dbtext" class="small"><b>${d.closing?"Your closing statement":"Your turn"}</b> <span class="muted">(aim for ${target}+ words${SR?", type or tap 🎤 to speak":""})</span></label>
       <div class="dbstarters" role="group" aria-label="Sentence starters">${(DB_STARTERS[st]||[]).map((s,i)=>`<button type="button" class="chip" data-act="dbStarter" data-id="${i}">${esc(s)}</button>`).join("")}</div>
       <textarea id="dbtext" rows="3" maxlength="600" placeholder="${st==="Blooms"?"Make your argument. Give a reason and an example.":"I think … because …"}">${esc(d.draft)}</textarea>
-      <div class="row dbbtns">${SR?`<button type="button" class="btn btn-ghost" data-act="dbMic" ${d.listening?"disabled":""}>🎤 ${d.listening?"Listening…":"Speak"}</button>`:""}<button type="button" class="btn btn-ghost" data-act="dbIdea">💡 Need an idea?</button><button type="button" class="btn btn-primary" data-act="dbSend">${d.closing?"Finish debate":"Send"}</button></div>
+      <div class="row dbbtns">${SR?`<button type="button" class="btn btn-ghost" data-act="dbMic" ${d.listening?"disabled":""}>🎤 ${d.listening?"Listening…":"Speak"}</button>`:""}<button type="button" class="btn btn-ghost" data-act="dbIdea">💡 Need an idea?</button><button type="button" class="btn btn-primary" data-act="dbSend" ${d.busy?"disabled":""}>${d.closing?"Finish debate":"Send"}</button></div>
       <span class="small muted" id="dbcount">${w} word${w===1?"":"s"}</span></section>`;}
 document.addEventListener("input",e=>{if(e.target&&e.target.id==="dbtext"){const c=document.getElementById("dbcount");if(c){const w=dbWords(e.target.value);c.textContent=`${w} word${w===1?"":"s"}`;}}});
 /* show it on the Games page */
