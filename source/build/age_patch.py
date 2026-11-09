@@ -96,7 +96,7 @@ R('.adlv{margin-top:10px}','''.adlv{margin-top:10px}
 # ---- Debate with Pip ----
 R('@media (prefers-reduced-motion:reduce)','''.dbmotion h2{font-size:1.5rem;text-align:center}
 .dbsides{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}.dbsides .btn{min-width:150px}
-.dbmot{margin:0 0 8px}
+.dbmot{margin:0 0 8px}.dbvoice{margin:0 0 6px;min-height:0}.dbvoice:empty{display:none}
 .dbchat{display:flex;flex-direction:column;gap:10px;margin:0 0 12px}
 .dbmsg{display:flex;gap:8px;align-items:flex-end}.dbmsg p{margin:0;padding:10px 14px;border-radius:18px;max-width:85%;line-height:1.45}
 .dbmsg.pip p{background:#fff;border:2px solid var(--leaf-light,#DDEFC4);border-bottom-left-radius:4px}
