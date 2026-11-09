@@ -5,7 +5,7 @@ def stage(st): cur.execute("""update public.docs set data = data || jsonb_build_
 errs=[]
 with sync_playwright() as pw:
     b = pw.chromium.launch(executable_path='/opt/pw-browsers/chromium-1194/chrome-linux/chrome',args=['--autoplay-policy=no-user-gesture-required'])
-    for st in ['Seeds','Sprouts']:
+    for st in ['Seeds','Sprouts','Blooms']:
         stage(st); ctx,p=open_as(b,'K1'); p.on('pageerror',lambda e:errs.append(str(e)))
         got=[]; p.on('request',lambda r: got.append(r.url.split('/')[-1].split('?')[0]) if '/pv/' in r.url else None)
         nav(p,'Play'); p.wait_for_timeout(500); got.clear()
@@ -14,6 +14,11 @@ with sync_playwright() as pw:
             print(st,'question clips:',got); got.clear()
             p.locator('[data-act="dbSeedPick"]').first.click(); p.wait_for_timeout(9000); print('  pick clips:',got); got.clear()
             p.locator('[data-act="dbSeedWhy"]').first.click(); p.wait_for_timeout(6000); print('  reason clips:',got)
+        elif st=='Blooms':
+            p.route('**/functions/v1/ask-pip',lambda route: route.fulfill(status=200,content_type='application/json',headers={'Access-Control-Allow-Origin':'*'},body=json.dumps({'reply':'You think phones help in emergencies, which is fair. But teachers can phone parents too. Who else could help?'})))
+            p.locator('[data-act="dbSide"][data-id="for"]').click(); p.wait_for_timeout(8000); got.clear()
+            p.fill('#dbtext','I think phones are useful because parents can call in an emergency.'); p.locator('[data-act="dbSend"]').click(); p.wait_for_timeout(6000)
+            print(st,'AI reply clips:',got,'| shown:',p.locator('.dbmsg.pip p').last.inner_text()[:60])
         else:
             p.locator('[data-act="dbSide"][data-id="against"]').click(); p.wait_for_timeout(9000); print(st,'opening clips:',got,'| voice note:',p.locator('#dbvoice').inner_text() if p.locator('#dbvoice').count() else '')
         ctx.close()

@@ -35,6 +35,9 @@ const DB_L={
   open:{Sprouts:{for:["I don't agree!"],against:["I agree!"],ask:"What do you think?"},Blooms:{for:["I'll argue against the motion."],against:["I'll argue for the motion."],ask:"What's your opening argument?"}},
   nudge:["Tell me a bit more!"],nudgeB:"Give a reason and an example.",nudgeS:"Try adding “because…”.",
   end:{3:["Wow, what a debate!","You argued like a champion.","I think the audience is on your side!"],2:["Great debate!","You made some strong points.","Next time, add even more reasons and examples."],1:["Well done for debating with me!","Every debate makes you a stronger speaker."]},
+  react:{Sprouts:["Ooh, let me answer that!","Hmm, here's what I think!","Good thinking, now read my answer!","I have an answer for that!"],
+    Blooms:["Interesting argument, here's my response.","Let me respond to that.","Fair enough, but read my counter-argument.","Good point, here's my reply."]},
+  reactClose:"Read my reply, then give your closing statement!",reactVerdict:"Here's my verdict!",off:["Let's keep to our debate!","Tell me what you think about the motion, and give me a reason."],
   seedQ:"Which do you like more?",seedNow:"Now you say it!",seedGreat:"Great reason!",seedEnd:["You've bloomed!","You gave great reasons."]};
 const dbCap=t=>t.charAt(0).toUpperCase()+t.slice(1);
 const dbOr=t=>`${dbCap(t[1])} or ${t[3]}?`;
@@ -51,29 +54,27 @@ function dbFixedLines(){const o=[],add=x=>{for(const y of [].concat(x))if(typeof
   for(const st of ["Sprouts","Blooms"]){for(const t of DEBATE[st]){add(t[1]);add(t[2]);}add(DB_L.turn[st]);add(Object.values(DB_L.ask[st]));add(Object.values(DB_L.praise[st]).flat());
     const op=DB_L.open[st];add(op.for);add(op.against);add(op.ask);}
   add(DB_L.ackS.map(f=>f("")[1]));add(DB_L.ackB.map(f=>f("")[1]));add(DB_L.agree);add(DB_L.agreeAsk);add(DB_L.close);add(DB_L.nudge);add(DB_L.nudgeB);add(DB_L.nudgeS);
-  add(Object.values(DB_L.end).flat());add([DB_L.seedQ,DB_L.seedNow,DB_L.seedGreat,...DB_L.seedEnd]);
+  add(Object.values(DB_L.end).flat());add([DB_L.seedQ,DB_L.seedNow,DB_L.seedGreat,...DB_L.seedEnd]);add(Object.values(DB_L.react).flat());add([DB_L.reactClose,DB_L.reactVerdict,...DB_L.off]);
   for(const t of DEBATE.Seeds){add(dbOr(t));add(`I like ${t[1]}.`);add(`I like ${t[3]}.`);add(t[4]);add(t[5]);add(`Why do you like ${t[1]}?`);add(`Why do you like ${t[3]}?`);
     for(const r of t[6])add(dbSeedLine(t,0,r));for(const r of t[7])add(dbSeedLine(t,1,r));}
   return [...new Set(o)];}
 /* ================= app ================= */
 const dbMotionTxt=m=>m.replace(/\.$/,"");
 /* ---------- Pip's voice for the debate ----------
-   Every fixed sentence plays from Pip's pre-recorded voice library (pv/, made with tr/debate_voice.py).
-   The AI's brand-new sentences can't be pre-recorded: making them on the device with Pip's voice model was
-   tested and took about 45 seconds per sentence on a desktop (and longer on phones), so they use the device
-   voice, set up to match Pip as closely as it can (warm US English voice, Pip's speed). The child's own
-   quoted words in scripted replies are not read out, so scripted lines stay fully in Pip's voice. */
+   Pip only ever speaks in his recorded voice (the same voice as Today's word seed): every fixed sentence plays
+   from the voice library (pv/, made with tr/debate_voice.py). The AI's replies are new every time and making
+   them in Pip's voice on the device was far too slow (about 45 s per sentence on a desktop), so for those Pip
+   says a short recorded line and the reply is shown as text. The child's quoted words are not read out. */
 const DB_SENT=t=>String(t||"").replace(/\s+/g," ").trim().split(/(?<=[.!?…”])\s+(?=[A-Z“"'])/).filter(x=>pvNorm(x));
 let DBQ=0;
-function dbDevice(text){return new Promise(res=>{try{if(!canSpeak())return res();const u=new SpeechSynthesisUtterance(text);u.lang="en-IN";u.onend=()=>res();u.onerror=()=>res();speechSynthesis.speak(u);setTimeout(res,Math.min(20000,1500+text.length*90));}catch(e){res();}});}
 function dbHush(){DBQ++;try{pipStop();}catch(e){}try{const c=speechSynthesis.__origCancel||speechSynthesis.cancel.bind(speechSynthesis);c();}catch(e){}}
-/* say a Pip line sentence by sentence; ai = the whole line is new (read with the device voice) */
-async function dbSay(text,ai){dbHush();const my=DBQ;const ss=DB_SENT(text);if(!ss.length)return;
+/* say a Pip line sentence by sentence, only in Pip's recorded voice (sentences without a recording are not read out) */
+async function dbSay(text){dbHush();const my=DBQ;const ss=DB_SENT(text);if(!ss.length)return;
   await Promise.race([pvsP,new Promise(r=>setTimeout(r,1500))]).catch(()=>{});
-  const plan=ss.map(s=>{const url=pvAny(pvKey(s));return url?{s,url}:ai?{s}:null;}).filter(Boolean);
+  const plan=ss.map(s=>{const url=pvAny(pvKey(s));return url?{s,url}:null;}).filter(Boolean);
   for(const x of plan){if(my!==DBQ)return;let r=false;
     if(x.url)r=await pipAudioPlay(x.url,false);
-    if(my!==DBQ||r==="stop")return;if(r!==true)await dbDevice(x.s);}}
+    if(my!==DBQ||r==="stop")return;}}
 /* start */
 A.debate=()=>{const L=myLearner();if(!L)return;const st=L.stage||"Seeds";
   if(st==="Seeds"){const ts=shuffle(DEBATE.Seeds.slice()).slice(0,3);S.debate={st,seeds:1,ts,i:0,pick:null,reason:null,heard:"",pts:0};render(true);setTimeout(()=>dbSay(DB_L.seedQ+" "+dbOr(ts[0])),300);return;}
@@ -83,9 +84,11 @@ A.dbNext=()=>{const d=S.debate;if(!d)return;d.ti++;render(true);};
 A.dbSide=side=>{const d=S.debate;if(!d)return;const t=dbTopic(d);d.side=side;d.pip=(side==="for"?t[2]:t[1]).slice();d.mine=(side==="for"?t[1]:t[2]).slice();d.round=0;
   const op=DB_L.open[d.st]||DB_L.open.Sprouts,open=[...op[side],d.pip[0],op.ask].join(" ");
   d.round=1;dbPip(d,open);render(true);};
-function dbPip(d,t,ai){d.log.push({who:"pip",t,ai:!!ai});if(d.talk)dbSay(t,ai);}
+/* an AI reply is new every time, so it can't be in Pip's recorded voice: Pip says a short recorded line and the child reads the reply */
+function dbPip(d,t,ai){const react=ai?(d.done?DB_L.reactVerdict:d.closing?DB_L.reactClose:dbPick(DB_L.react[d.st]||DB_L.react.Sprouts)):"";
+  d.log.push({who:"pip",t,ai:!!ai,react});if(d.talk)dbSay(ai?react:t);}
 A.dbTalk=()=>{const d=S.debate;if(!d)return;d.talk=!d.talk;if(!d.talk)dbHush();render(true);};
-A.dbHear=i=>{const d=S.debate;if(!d)return;const x=d.log[+i];if(x)dbSay(x.t,x.ai);};
+A.dbHear=i=>{const d=S.debate;if(!d)return;const x=d.log[+i];if(x)dbSay(x.ai?x.react:x.t);};
 A.dbStarter=i=>{const d=S.debate;if(!d)return;const s=(DB_STARTERS[d.st]||[])[+i];if(!s)return;const ta=document.getElementById("dbtext");const cur=ta?ta.value:d.draft;
   d.draft=(cur.trim()?cur.trim()+" ":"")+s.replace(/ …$/,"").replace(/…/g,"").trim()+" ";render(true);setTimeout(()=>{const t=document.getElementById("dbtext");if(t){t.focus();t.setSelectionRange(t.value.length,t.value.length);}},50);};
 A.dbIdea=()=>{const d=S.debate;if(!d||!d.mine)return;const idea=d.mine[(d.round-1)%d.mine.length];toast("Idea: "+idea);d.ideas=(d.ideas||0)+1;};
@@ -147,7 +150,7 @@ function debateHTML(){const d=S.debate;if(d.seeds)return debateSeedsHTML(d);cons
     <p class="small">${st==="Blooms"?"Choose your side. You'll give an opening argument, answer Pip's points, then make a closing statement.":"Do you agree? Choose your side, then tell Pip your reasons."}</p>
     <div class="dbsides"><button class="btn btn-primary btn-big" data-act="dbSide" data-id="for">👍 I agree</button><button class="btn btn-sun btn-big" data-act="dbSide" data-id="against">👎 I disagree</button></div>
     <button class="btn btn-ghost btn-sm" data-act="dbNext" style="align-self:center">${ic("refresh",18)}Another topic</button></section>`;
-  const chat=`<div class="dbchat" aria-live="polite">${d.log.map((x,i)=>x.who==="pip"?`<div class="dbmsg pip">${art("pip",40,"Pip")}<p>${esc(x.t)} <button class="iconbtn dbhear" data-act="dbHear" data-id="${i}" aria-label="Hear Pip">${ic("sound",18)}</button></p></div>`:`<div class="dbmsg me"><p>${esc(x.t)}</p></div>`).join("")}${d.busy?`<div class="dbmsg pip">${art("pip",40,"Pip")}<p class="dbtyping" role="status">Pip is thinking about your argument<i>.</i><i>.</i><i>.</i></p></div>`:""}</div>`;
+  const chat=`<div class="dbchat" aria-live="polite">${d.log.map((x,i)=>x.who==="pip"?`<div class="dbmsg pip${x.ai?" dbai":""}">${art("pip",40,"Pip")}<p>${esc(x.t)} <button class="iconbtn dbhear" data-act="dbHear" data-id="${i}" aria-label="Hear Pip">${ic("sound",18)}</button></p></div>`:`<div class="dbmsg me"><p>${esc(x.t)}</p></div>`).join("")}${d.busy?`<div class="dbmsg pip">${art("pip",40,"Pip")}<p class="dbtyping" role="status">Pip is thinking about your argument<i>.</i><i>.</i><i>.</i></p></div>`:""}</div>`;
   if(d.done){const max=(DB_ROUNDS+1)*6,rows=[...DB_CHECKS.map(([k,l])=>[k,l]),["long","Said enough each time"]];
     const miss=rows.filter(([k])=>!d.hits[k]).map(([k])=>DB_TIP[k]).slice(0,3);
     return head+`<div class="card dbres" style="align-items:center;text-align:center">${art("bloom",96,"Bloom")}<h2>${d.stars===3?"Debate champion!":d.stars===2?"Strong debater!":"Brave debater!"}</h2><p class="bigstars">${"⭐".repeat(d.stars)}${"☆".repeat(3-d.stars)}</p>
