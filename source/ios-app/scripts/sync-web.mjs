@@ -3,7 +3,9 @@
    1. Inside the app the page address is capacitor://localhost, so links meant for
       people (invites, share links, the sign-in email) use the real web address.
    2. native.js is loaded, which marks the page as running inside the app.
-   3. The parent pay panels (Razorpay and UPI) are removed, so no payment is taken in the app. */
+   3. Alerts use iPhone notifications (native.js), and grown-ups get a reminder
+      10 minutes before each class, even when the app is closed (reminders.js).
+   4. The parent pay panels (Razorpay and UPI) are removed, so no payment is taken in the app. */
 import { cpSync, rmSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -40,6 +42,10 @@ patch("index.html", [
   ["share page address", "location.origin+location.pathname.replace(/[^/]*$/,\"\").replace(/\\/+$/,\"\")", `"${WEB}"`, 0],
   ["web address", "location.origin", `"${WEB}"`, 3],
   ["manifest link", '<link rel="manifest" href="manifest.webmanifest">', "", 1],
+  /* Native notifications: the app is already "installed", and class reminders are added (reminders.js). */
+  ["installed check", "const isStandalone=()=>{try{return ", "const isStandalone=()=>{try{return !!window.LL_NATIVE||", 1],
+  ["alerts-on line", "<b>Alerts are on</b> for this device while Little Lingos is open.", "<b>Alerts are on</b> for this device, with a reminder 10 minutes before each class.", 1],
+  ["alert timer", "setTimeout(()=>{notifAlert();offlineSave();},6000);", "setTimeout(()=>{notifAlert();offlineSave();},6000);\n" + readFileSync(join(here, "reminders.js"), "utf8"), 1],
   /* No payments inside the app: parents see what is due, and pay the academy outside the app. */
   ["Razorpay pay panel", "function rzpParentHTML(L,fk){", 'function rzpParentHTML(L,fk){return "";', 1],
   ["UPI pay panel", "function upiParentHTML(L,fk){", 'function upiParentHTML(L,fk){return "";', 1],
@@ -53,9 +59,5 @@ patch("adapter.js", [
   ["sign-in email link", "location.origin + location.pathname", `"${WEB}/"`, 2],
 ]);
 
-writeFileSync(join(out, "native.js"),
-`/* Runs only inside the iPhone and iPad app. */
-window.LL_NATIVE = { platform: "ios", web: "${WEB}" };
-document.documentElement.classList.add("ll-native");
-`);
+writeFileSync(join(out, "native.js"), readFileSync(join(here, "native.js"), "utf8").replaceAll("__WEB__", WEB));
 console.log("www/ is ready (" + WEB + ")");

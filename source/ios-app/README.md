@@ -22,10 +22,12 @@ Run `npm run sync` again, then build in Xcode. It re-copies the web files into t
 | File | What it does |
 |---|---|
 | `scripts/sync-web.mjs` | Copies the web app into `www/` and points invite, share and sign-in links at https://classroom.littlelingos.in. It also removes the parent pay panels (Razorpay and UPI), so no payment is taken inside the app; parents still see what is due. It stops with a clear message if the web app changed in a way it doesn't expect. |
+| `scripts/native.js` | Lets the app's existing alert code use iPhone notifications. |
+| `scripts/reminders.js` | Reminds parents and trainers 10 minutes before each class in the next 7 days, even when the app is closed. Never runs on a child's sign-in. |
 | `capacitor.config.json` | App name (Little Lingos) and app ID (`in.littlelingos.classroom`). |
 | `ios/` | The Xcode project: icon, launch screen and the permission messages for microphone, speech, camera and photos. |
 
 ## Not done yet
 
 - Signing: in Xcode, choose your Apple Developer team under App › Signing & Capabilities.
-- Alerts: the web app's browser alerts don't exist inside an iPhone app. Native notifications are the next step.
+- Notifications and class reminders are written but only tested with a stand-in for the iPhone. Check them on a real device: turn alerts on from the bell, then add a class 15 minutes ahead.
