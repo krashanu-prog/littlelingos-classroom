@@ -1,0 +1,11 @@
+{
+  "appId": "in.littlelingos.classroom",
+  "appName": "Little Lingos",
+  "webDir": "www",
+  "backgroundColor": "#F5FAEE",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#F5FAEE",
+    "allowsLinkPreview": false
+  }
+}
