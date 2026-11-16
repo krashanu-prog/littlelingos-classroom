@@ -4645,7 +4645,7 @@ function tjForm(x={}){return `<div class="two"><div class="field"><label for="tj
   <div class="field"><label for="tj-m">How was the day?</label><select id="tj-m" name="m">${MOODS.map(([v,t])=>opt(v,t,(x.mood||"good")===v)).join("")}</select></div></div>
   <div class="field"><label for="tj-t">Title (optional)</label><input type="text" id="tj-t" name="t" maxlength="100" value="${esc(x.title||"")}" placeholder="e.g. Great phonics class with the Sprouts batch"></div>
   <div class="field"><span class="lbl">Need a start? Tap a prompt</span><div class="row" style="flex-wrap:wrap">${TJ_PROMPTS.map((p,i)=>`<button type="button" class="btn btn-ghost btn-sm" data-mact="prompt" data-id="${i}">${esc(p)}</button>`).join("")}</div></div>
-  <div class="field"><label for="tj-x">Journal</label><textarea id="tj-x" name="x" rows="9" maxlength="8000" placeholder="Write freely. This is just for you.">${esc(x.text||"")}</textarea></div>`;}
+  <div class="field"><label for="tj-x">Journal</label><textarea id="tj-x" name="x" rows="9" maxlength="8000" placeholder="Write freely. Only you and the admin can read this.">${esc(x.text||"")}</textarea></div>`;}
 const tjActs={prompt:(i,b,form)=>{const ta=form.querySelector("#tj-x");ta.value=(ta.value.trim()?ta.value.trim()+"\n\n":"")+TJ_PROMPTS[+i]+"\n";ta.focus();ta.setSelectionRange(ta.value.length,ta.value.length);}};
 async function tjSave(f,id){const text=f.x.value.trim();if(!text)throw userErr("Write something first.");const data={date:f.d.value||ymd(new Date()),mood:f.m.value,title:f.t.value.trim(),text,updatedAt:Date.now()};
   if(id)await S.db.doc(`tj/${S.uid}/x/${id}`).update(data);else await S.db.collection(`tj/${S.uid}/x`).doc().set({...data,at:Date.now()});}
@@ -4664,7 +4664,7 @@ function mySpaceView(){
     <p class="small muted">Reflect on your classes, note ideas and track how your days feel. Families and learners can't see your journal.</p>
     ${D.tj==null?`<div class="skel"></div>`:xs.length?`<div class="list">${xs.map(x=>`<div class="item tj"><span class="mood m-${esc(x.mood||"good")}">${esc((MOODS.find(m=>m[0]===x.mood)||MOODS[1])[1])}</span><div class="grow"><div class="t">${esc(x.title||fmtDay(new Date(x.date+"T00:00")))}</div><div class="s">${x.title?esc(fmtDay(new Date(x.date+"T00:00")))+" · ":""}${esc(String(x.text||"").slice(0,160))}${String(x.text||"").length>160?"…":""}</div></div><button class="btn btn-ghost btn-sm" data-act="tjEdit" data-id="${esc(x.id)}">${ic("edit")}Open</button><button class="iconbtn" data-act="tjDel" data-id="${esc(x.id)}" aria-label="Delete entry">${ic("trash")}</button></div>`).join("")}</div>`
       :emptyBox("No entries yet","Write a few lines after class. Over time you'll see what works best with your learners.",`<button class="btn btn-primary" data-act="tjNew">Write my first entry</button>`,"pip")}</section>`;}
-  return `<div class="head"><div><h1>My space</h1><p class="lede">Your own corner: a private journal and a game of chess between classes.</p></div></div>${tabs}${body}`;
+  return `<div class="head"><div><h1>My space</h1><p class="lede">Your own corner: a journal that only you and the admin can read, and a game of chess between classes.</p></div></div>${tabs}${body}`;
 }
 
 /* ================= Ask Pip: helper on every dashboard (updates, mood check-in, AI chat) ================= */
