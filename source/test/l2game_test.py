@@ -7,7 +7,7 @@ try:
     with sync_playwright() as pw:
         b = pw.chromium.launch(executable_path='/opt/pw-browsers/chromium-1194/chrome-linux/chrome')
         ctx, p = open_as(b, 'K1'); nav(p,'Play'); p.wait_for_timeout(500)
-        p.locator('[data-act="startGame"][data-id="quiz"], [data-act="startGame"][data-id="daily"]').first.click(); p.wait_for_timeout(600)
+        p.locator('[data-act="startGame"][data-id="%s"]' % ('quiz' if p.locator('[data-act="startGame"][data-id="quiz"]').count() else 'pic')).first.click(); p.wait_for_timeout(600)
         for i in range(3):
             q=p.locator('.quiz h2').inner_text(); o=p.locator('[data-act="answer"]').all_inner_texts()
             print(q,'->',o,[scr(x) for x in o])

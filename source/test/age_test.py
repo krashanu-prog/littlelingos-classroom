@@ -8,15 +8,16 @@ def run(b,st):
     nav(p,'Path'); p.wait_for_timeout(500)
     print('path tabs:', p.locator('.seg button').all_inner_texts() if p.locator('.seg button').count() else '-', '| lessons:', p.locator('.plabel').all_inner_texts())
     nav(p,'Play'); p.wait_for_timeout(500); print('banner:', p.locator('.lvband').inner_text().replace('\n',' '))
-    p.locator('[data-act="startGame"][data-id="quiz"], [data-act="startGame"][data-id="daily"]').first.click(); p.wait_for_timeout(500)
+    p.locator('[data-act="startGame"][data-id="%s"]' % ('quiz' if p.locator('[data-act="startGame"][data-id="quiz"]').count() else 'pic')).first.click(); p.wait_for_selector('[data-act="answer"]',timeout=8000)
     kinds=collections.Counter(); n=0; nopt=set()
-    while p.locator('[data-act="answer"]').count():
+    for _q in range(12):
+        if not p.locator('[data-act="answer"]:not([disabled])').count(): break
         q=p.locator('.quiz h2').inner_text(); o=p.locator('[data-act="answer"]').all_inner_texts(); nopt.add(len(o)); n+=1
-        kinds[q.split(' ')[0]+' '+q.split(' ')[1]]+=1
+        kinds[' '.join(q.split(' ')[:2])]+=1
         if n<=3: print('  Q:',q,'->',o)
-        p.locator('[data-act="answer"]').first.click(); p.wait_for_timeout(120); p.locator('[data-act="nextQ"]').click(); p.wait_for_timeout(150)
+        p.locator('[data-act="answer"]').first.click(); p.wait_for_timeout(120); (p.locator('[data-act="nextQ"]').first.click() if p.locator('[data-act="nextQ"]').count() else None); p.wait_for_timeout(150)
     print('quiz questions:',n,'options:',nopt,dict(kinds))
-    p.locator('[data-act="endGame"]').click(); p.wait_for_timeout(300)
+    p.locator('[data-act="endGame"]').first.click(); p.wait_for_timeout(300)
     p.locator('[data-act="startGame"][data-id="memory"]').click(); p.wait_for_timeout(400); print('memory cards:', p.locator('.mem').count())
     ctx.close()
 try:
