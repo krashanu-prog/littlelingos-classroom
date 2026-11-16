@@ -1203,6 +1203,8 @@ body.st-on{overflow:hidden}
 .srsel[hidden]{display:none}
 .srepban{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px}
 .req{color:var(--tomato,#E8492F);font-weight:700;font-size:.85em}
+.ppvbar{display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;background:#FFF4D6;border-radius:16px;padding:10px 14px;margin:0 0 14px}
+.ppvbar .pvages{margin:0}.ppvpick{display:flex;gap:6px;align-items:center}.ppvpick select{min-height:44px;border-radius:12px;padding:0 10px;font:inherit}
 .iconbtn{width:44px;height:44px;min-height:44px}
 select.inline{min-height:44px}
 .nm,.linkbtn{position:relative}
@@ -1389,7 +1391,7 @@ function scopedSessions(){
   const all=entries(D.sessions); if(scopeAll())return all;
   const tid=myTid(); return all.filter(s=>s.trainerId===tid||(!s.trainerId&&D.courses[s.courseId]?.teacherId===tid));
 }
-const childrenOf=uid=>uid?activeLearners().filter(L=>(L.parents||[]).includes(uid)).map(L=>L.id):[];
+const childrenOf=uid=>{if(uid&&uid===S.uid&&ppvOn()){const k=ppvKid();return k?[k.id]:[];}return uid?activeLearners().filter(L=>(L.parents||[]).includes(uid)).map(L=>L.id):[];};
 const parentsOf=L=>(L&&L.parents||[]).filter(u=>D.profiles[u]);
 const parentAccounts=()=>Object.entries(D.profiles).filter(([uid,p])=>p&&p.role==="parent"&&uid!==D.config.ownerUid).map(([uid,p])=>({uid,...p})).sort((a,b)=>String(a.displayName||"").localeCompare(String(b.displayName||"")));
 const waitingParents=()=>parentAccounts().filter(p=>!childrenOf(p.uid).length);
@@ -6801,8 +6803,8 @@ function stageGamesHTML(L,n,dDone){const st=L.stage||"Seeds",list=AG_GAMES[st]||
 function setPvStage(st,quiet){if(!STAGES.some(s=>s.v===st))return;S.previewStage=st;S.game=null;try{sessionStorage.setItem("ll-pvstage",st)}catch{}if(!quiet)render(true);}
 try{const v=sessionStorage.getItem("ll-pvstage");if(v)S.previewStage=v;}catch{}
 A.pvStage=st=>{setPvStage(st);};
-const viewAsOpts=cur=>{const st=S.previewStage||"Seeds";return [["admin","Admin"],["teacher","Trainer"],...STAGES.map(s=>["student:"+s.v,`Learner · ${s.v} (${s.ages.replace("Ages ","")})`]),["parent","Parent"]]
-  .map(([v,l])=>opt(v,l,v===(cur==="student"?"student:"+st:cur))).join("");};
+const viewAsOpts=cur=>{const st=S.previewStage||"Seeds";return [["admin","Admin"],["teacher","Trainer"],...STAGES.map(s=>["student:"+s.v,`Learner · ${s.v} (${s.ages.replace("Ages ","")})`]),...STAGES.map(s=>["parent:"+s.v,`Parent · ${s.v} (${s.ages.replace("Ages ","")})`])]
+  .map(([v,l])=>opt(v,l,v===(cur==="student"||cur==="parent"?cur+":"+st:cur))).join("");};
 function pvStageChips(){const st=S.previewStage||"Seeds";return `<div class="pvages" role="group" aria-label="Preview age group"><span class="small"><b>Age group:</b></span>${STAGES.map(s=>`<button class="pvchip ${s.v===st?"on":""}" data-act="pvStage" data-id="${s.v}" aria-pressed="${s.v===st}">${esc(s.v)}</button>`).join("")}</div>`;}
 /* hook the new games into the existing engine */
 {const f=A.startGame;A.startGame=t=>{if(agStart(t))return;f(t);};}
@@ -7316,6 +7318,23 @@ document.addEventListener("change",e=>{const t=e.target;if(!t||t.name!=="stage"|
   autoOn.forEach(b=>{b.checked=false;delete b.dataset.auto;});
   const c=courseList().find(c=>c.level===t.value);const b=c&&boxes.find(b=>b.value===c.id);if(b){b.checked=true;b.dataset.auto="1";}});
 document.addEventListener("change",e=>{const t=e.target;if(t&&t.name==="courses"&&t.dataset.auto)delete t.dataset.auto;});
+/* ================= Admin parent preview =================
+   Admin picks "Parent · <age group>"; the parent pages then show one real child of that age group (the admin can
+   switch child). Nothing is saved to the child's family; anything done here is done as the admin. */
+const ppvOn=()=>realRole()==="admin"&&S.viewAs==="parent";
+const ppvKids=st=>activeLearners().filter(L=>(L.stage||"Seeds")===st);
+function ppvRank(L){let n=0;for(const s of Object.values(D.sessions||{}))if(s&&(s.forLids||[]).includes(L.id))n++;return (L.uid?1000:0)+((L.parents||[]).length?500:0)+n;}
+function ppvKid(){const st=S.previewStage||"Seeds",ks=ppvKids(st);if(!ks.length)return null;
+  let k=ks.find(x=>x.id===S.ppvKid);if(!k){k=ks.slice().sort((a,b)=>ppvRank(b)-ppvRank(a))[0];S.ppvKid=k.id;}return k;}
+try{const v=sessionStorage.getItem("ll-ppvkid");if(v)S.ppvKid=v;}catch{}
+A.ppvKid=id=>{S.ppvKid=id;S.kid=id;try{sessionStorage.setItem("ll-ppvkid",id)}catch{}render(true);};
+A.ppvStage=st=>{setPvStage(st,true);S.ppvKid=null;const k=ppvKid();if(k)S.kid=k.id;render(true);};
+document.addEventListener("change",e=>{const t=e.target;if(t&&t.id==="ppv-kid")A.ppvKid(t.value);});
+function ppvBar(){if(!ppvOn())return "";const st=S.previewStage||"Seeds",ks=ppvKids(st),k=ppvKid();
+  return `<section class="ppvbar"><div class="pvages" role="group" aria-label="Preview age group"><span class="small"><b>Age group:</b></span>${STAGES.map(s=>`<button class="pvchip ${s.v===st?"on":""}" data-act="ppvStage" data-id="${s.v}" aria-pressed="${s.v===st}">${esc(s.v)}</button>`).join("")}</div>
+    ${ks.length?`<label class="ppvpick"><span class="small"><b>Parent of:</b></span><select id="ppv-kid" aria-label="Child to preview">${ks.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name))).map(L=>opt(L.id,`${L.name}${L.uid?"":" (not signed in yet)"}`,k&&L.id===k.id)).join("")}</select></label>`:`<span class="small">No ${esc(st)} children yet.</span>`}
+    <span class="small muted">Preview of what this child's family sees. Messages or changes made here are made as you, the admin.</span></section>`;}
+for(const v of Object.keys(VIEWS)){const f=VIEWS[v];VIEWS[v]=function(){return ppvBar()+f.apply(this,arguments);};}
 /* ================= events ================= */
 document.addEventListener("click",e=>{
   if(e.target.closest("#modal-root"))return;
