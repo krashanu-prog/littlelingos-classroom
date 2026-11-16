@@ -8,7 +8,7 @@ def run(b,st):
     nav(p,'Path'); p.wait_for_timeout(500)
     print('path tabs:', p.locator('.seg button').all_inner_texts() if p.locator('.seg button').count() else '-', '| lessons:', p.locator('.plabel').all_inner_texts())
     nav(p,'Play'); p.wait_for_timeout(500); print('banner:', p.locator('.lvband').inner_text().replace('\n',' '))
-    p.locator('[data-act="startGame"][data-id="quiz"]').click(); p.wait_for_timeout(500)
+    p.locator('[data-act="startGame"][data-id="quiz"], [data-act="startGame"][data-id="daily"]').first.click(); p.wait_for_timeout(500)
     kinds=collections.Counter(); n=0; nopt=set()
     while p.locator('[data-act="answer"]').count():
         q=p.locator('.quiz h2').inner_text(); o=p.locator('[data-act="answer"]').all_inner_texts(); nopt.add(len(o)); n+=1

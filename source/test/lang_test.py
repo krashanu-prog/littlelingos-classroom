@@ -20,7 +20,7 @@ try:
         if p.locator('[data-act="packOpen"]').count():
             p.locator('[data-act="packOpen"]').first.click(); p.wait_for_timeout(500); print('pack:', p.locator('.pword').first.inner_text().replace('\n',' | '))
         nav(p,'Me'); p.wait_for_timeout(500); print('me row:', p.locator('.row', has_text='Home language').first.inner_text().replace('\n',' | '))
-        p.locator('[data-act="changeL2"]').click(); p.wait_for_timeout(400); print('modal open:', p.locator('form.modal').count(), p.locator('form.modal .l2btn').count()); p.locator('form.modal .l2btn[data-id="ar"]').click(); p.wait_for_timeout(1000)
+        p.locator('[data-act="changeL2"]').first.click(); p.wait_for_timeout(400); print('modal open:', p.locator('form.modal').count(), p.locator('form.modal .l2btn').count()); p.locator('form.modal .l2btn[data-id="ar"]').click(); p.wait_for_timeout(1000)
         cur.execute("select data->>'lang2' from public.docs where path=%s",('profiles/'+U('d1'),)); print('after change lang2:', cur.fetchone(), '| modal still open:', p.locator('form.modal').count()); p.screenshot(path=T+'r_l2_after.png')
         nav(p,'Explore'); p.wait_for_timeout(400)
         print('pack open already:', p.locator('.pword').count())

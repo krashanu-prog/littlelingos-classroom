@@ -1,0 +1,38 @@
+exec(open('/tmp/claude-0/-home-claude/e46c440f-a2dc-5219-9a0e-fc980d1e0e9c/scratchpad/web/test/e2e_real.py').read().split("\ntry:")[0])
+CJ=open('/tmp/claude-0/-home-claude/e46c440f-a2dc-5219-9a0e-fc980d1e0e9c/scratchpad/chesspkg/package/chess.js','rb').read()
+def cdn(r): r.fulfill(status=200,body=CJ,headers={'Content-Type':'application/javascript','Access-Control-Allow-Origin':'*'})
+try:
+    with sync_playwright() as pw:
+        b = pw.chromium.launch(executable_path='/opt/pw-browsers/chromium-1194/chrome-linux/chrome')
+        ctx,p=open_as(b,'K1'); ctx.route('**/cdn.jsdelivr.net/**', cdn)
+        p.evaluate("location.hash='fun'"); p.wait_for_timeout(800); print('1 kid fun h1:', h1(p), '| tiles:', p.locator('.funtile').count(), '| pip:', p.locator('.pipguide').count())
+        p.click('[data-act="funTab"][data-id="chess"]'); p.wait_for_timeout(1500)
+        print('2 board squares:', p.locator('.chsq').count(), '| status:', p.locator('.chstat').inner_text())
+        p.click('[data-id="e2"]'); print('3 targets after e2:', p.locator('.chsq.tgt').count()); p.click('[data-id="e4"]'); p.wait_for_timeout(1500)
+        print('4 status:', p.locator('.chstat').inner_text(), '| last move squares:', p.locator('.lastmv').count())
+        p.screenshot(path=T+'fun_chess.png')
+        # scholar's mate vs two players
+        p.select_option('select[data-change="chMode"]','two'); p.wait_for_timeout(300)
+        for a,c in [('e2','e4'),('e7','e5'),('f1','c4'),('b8','c6'),('d1','h5'),('g8','f6'),('h5','f7')]:
+            p.click(f'[data-id="{a}"]'); p.click(f'[data-id="{c}"]'); p.wait_for_timeout(80)
+        print('5 mate:', p.locator('.chstat').inner_text())
+        p.click('[data-act="funTab"][data-id="gk"]'); p.wait_for_timeout(300)
+        print('6 gk:', p.locator('.gkq').inner_text(), '| opts:', p.locator('.gkopt').count(), '| stage:', p.input_value('select[data-change="gkStage"]'))
+        for i in range(5):
+            p.locator('.gkopt').first.click(); p.wait_for_timeout(100); fb=p.locator('.gkfb').inner_text(); p.click('[data-act="gkNext"]'); p.wait_for_timeout(100)
+        print('7 done:', p.locator('.gkdone h3').inner_text())
+        p.screenshot(path=T+'fun_gk.png')
+        p.click('[data-act="drawPad"]'); p.wait_for_timeout(400); print('8 draw pad open:', p.locator('#pad').count()); p.keyboard.press('Escape'); ctx.close()
+        ctx,p=open_as(b,'T1'); ctx.route('**/cdn.jsdelivr.net/**', cdn)
+        nav(p,'My space'); print('9 trainer:', h1(p))
+        p.locator('[data-act="tjNew"]').first.click(); p.wait_for_timeout(300); p.click('[data-mact="prompt"][data-id="0"]'); p.fill('#tj-x', p.input_value('#tj-x')+'The Sprouts loved the rhyme game.'); p.fill('#tj-t','Good Wednesday'); p.click('#m-ok'); p.wait_for_timeout(1500)
+        print('10 entries:', p.locator('.item.tj').all_inner_texts())
+        p.click('[data-act="mySpaceTab"][data-id="chess"]'); p.wait_for_timeout(1200); print('11 trainer chess squares:', p.locator('.chsq').count())
+        p.screenshot(path=T+'myspace.png'); ctx.close()
+        for who in ['P1','K1','T1','A']:
+            ctx,p=open_as(b,who)
+            r=p.evaluate("""async()=>{const db=await window.claude.use('db');const t=await new Promise(res=>{db.collection('tj/00000000-0000-0000-0000-0000000000b1/x').onSnapshot(s=>res('rows '+s.docs.length),e=>res('denied'));setTimeout(()=>res('timeout'),5000)});return t}""")
+            print('12', who, 'reads T1 journal:', r); ctx.close()
+        b.close()
+finally: srv.terminate()
+print('ERRORS:', errors)

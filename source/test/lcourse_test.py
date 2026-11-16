@@ -1,0 +1,21 @@
+exec(open('/tmp/claude-0/-home-claude/e46c440f-a2dc-5219-9a0e-fc980d1e0e9c/scratchpad/web/test/e2e_real.py').read().split("\ntry:")[0])
+import psycopg2
+c=psycopg2.connect(host='127.0.0.1',user='postgres',password='pw',dbname='e2e'); c.autocommit=True; cur=c.cursor()
+for f in ['supabase/starter-content.sql']: cur.execute(open(f).read())
+def ticked(p): return p.evaluate("()=>[...document.querySelectorAll('#modal-root input[name=courses]:checked')].map(x=>x.value)")
+errs=[]
+with sync_playwright() as pw:
+    b = pw.chromium.launch(executable_path='/opt/pw-browsers/chromium-1194/chrome-linux/chrome')
+    ctx,p=open_as(b,'A'); p.on('pageerror',lambda e:errs.append(str(e))); p.wait_for_timeout(800)
+    p.evaluate("location.hash='learners'"); p.wait_for_timeout(800)
+    p.locator('[data-act="newLearner"]').first.click(); p.wait_for_timeout(600)
+    print('new form default ticked:',ticked(p))
+    p.locator('.lfstage input[value="Sprouts"]').check(force=True); p.wait_for_timeout(200); print('after Sprouts:',ticked(p))
+    p.locator('.lfstage input[value="Blooms"]').check(force=True); p.wait_for_timeout(200); print('after Blooms:',ticked(p))
+    for x in p.locator('#modal-root input[name="courses"]:checked').all(): x.uncheck(force=True)
+    print('cleared:',ticked(p))
+    p.fill('#modal-root input[name="name"]','Course Test Kid'); p.locator('#modal-root button[type="submit"]').click(); p.wait_for_timeout(1500)
+    cur.execute("select data->'courses', data->>'stage' from public.docs where path like 'learners/%%' and data->>'name'='Course Test Kid'"); print('saved:',cur.fetchall())
+    cur.execute("select substr(path,9), data->>'level' from public.docs where path like 'courses/%%'"); print('courses:',cur.fetchall())
+    ctx.close()
+print('errors',errs)

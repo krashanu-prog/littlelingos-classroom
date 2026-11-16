@@ -16,7 +16,7 @@ try:
         b = pw.chromium.launch(executable_path='/opt/pw-browsers/chromium-1194/chrome-linux/chrome')
         errs=[]
         ctx, p = open_as(b, 'A'); p.on('console', lambda m: errs.append(m.text[:200]) if m.type=='error' and 'WebSocket' not in m.text else None)
-        p.select_option('#viewas','student'); p.wait_for_timeout(1200)
+        p.select_option('#viewas','student:Seeds'); p.wait_for_timeout(1200)
         print('A-as-learner h1:', h1(p))
         draw_and_save(p,'A-as-learner')
         print('errors:', errs[:5]); ctx.close()

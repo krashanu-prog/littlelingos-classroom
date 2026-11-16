@@ -11,7 +11,7 @@ try:
             info=p.evaluate("st=>({gk:LL_GK[st].length,en:LL_EN[st].length})",st)
             words=[]
             for r in range(6):
-                p.locator('[data-act="startGame"][data-id="quiz"]').click(); p.wait_for_timeout(300)
+                p.locator('[data-act="startGame"][data-id="quiz"], [data-act="startGame"][data-id="daily"]').first.click(); p.wait_for_timeout(300)
                 while p.locator('[data-act="answer"]').count():
                     words.append(p.locator('.quiz h2').inner_text()+' '+'/'.join(sorted(p.locator('[data-act="answer"]').all_inner_texts())))
                     p.locator('[data-act="answer"]').first.click(); p.wait_for_timeout(60); p.locator('[data-act="nextQ"]').click(); p.wait_for_timeout(80)

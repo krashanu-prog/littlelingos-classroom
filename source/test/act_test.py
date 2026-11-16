@@ -36,7 +36,7 @@ try:
         if li.count():
             li.first.click(); p.wait_for_timeout(1500); print('A modal activities:', acts(p)[:3])
         ctx.close(); ctx, p = open_as(b, 'A')
-        p.select_option('#viewas','student'); p.wait_for_timeout(1200)
+        p.select_option('#viewas','student:Seeds'); p.wait_for_timeout(1200)
         print('A preview note:', p.locator('.prevnote').inner_text()[:90] if p.locator('.prevnote').count() else 'NONE')
         gk(p,2); nav(p,'Me'); p.wait_for_timeout(800); print('A preview activities:', acts(p))
         ctx.close()

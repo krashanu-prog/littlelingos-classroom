@@ -3,7 +3,7 @@ try:
     with sync_playwright() as pw:
         b = pw.chromium.launch(executable_path='/opt/pw-browsers/chromium-1194/chrome-linux/chrome')
         ctx, p = open_as(b, 'K1'); nav(p,'Play'); p.wait_for_timeout(500)
-        p.locator('[data-act="startGame"][data-id="quiz"]').click(); p.wait_for_timeout(600)
+        p.locator('[data-act="startGame"][data-id="quiz"], [data-act="startGame"][data-id="daily"]').first.click(); p.wait_for_timeout(600)
         for i in range(12):
             if not p.locator('[data-act="answer"]').count(): break
             p.locator('[data-act="answer"]').first.click(); p.wait_for_timeout(200); p.locator('[data-act="nextQ"]').click(); p.wait_for_timeout(300)

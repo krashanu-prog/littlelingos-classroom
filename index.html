@@ -2185,7 +2185,7 @@ A.undoDone=lid=>save(()=>upsert("progress/"+S.uid,{completed:{[lid]:null}}),"Flo
 /* ---- learners (admin) ---- */
 function learnerForm(L={},prefill={}){
   const pv=D.priv[L.id]||{}, f=D.fees[L.id]||{}, ts=activeTrainers(), isNew=!L.id;
-  const stage=L.stage||prefill.stage||"Seeds", cs=courseList(), mine=new Set(L.courses||prefill.courses||(cs.length===1?[cs[0].id]:[]));
+  const stage=L.stage||prefill.stage||"Seeds", cs=courseList(), mine=new Set(L.courses||prefill.courses||(cs.length===1?[cs[0].id]:cs.filter(c=>c.level===stage).slice(0,1).map(c=>c.id)));
   const waiting=waitingAccounts("student");
   const acct=prefill.uid||L.uid||"";
   const extraAcct=prefill.uid&&!waiting.some(w=>w.uid===prefill.uid)&&prefill.uid!==L.uid;
@@ -2196,7 +2196,7 @@ function learnerForm(L={},prefill={}){
   <div class="two"><div class="field"><label for="lf-name">Child's name</label><input type="text" id="lf-name" name="name" required maxlength="60" data-label="Child's name" autocomplete="off" value="${esc(L.name||prefill.name||"")}" placeholder="First and last name"></div>
     <div class="field"><label for="lf-trainer">Trainer</label><select id="lf-trainer" name="trainer">${opt("","Assign later",!L.trainerId)}${ts.map(t=>opt(t.id,t.name,t.id===(L.trainerId||prefill.trainerId))).join("")}</select></div></div>
   <div class="field"><span class="lbl">Stage</span><div class="chips lfstage" role="radiogroup" aria-label="Stage">${STAGES.map(s=>`<label class="chip"><input type="radio" name="stage" value="${s.v}" ${s.v===stage?"checked":""}><span>${s.v} <i>${esc(s.ages)}</i></span></label>`).join("")}</div></div>
-  <div class="field"><span class="lbl">Courses</span>${cs.length?`<div class="chips">${cs.map(c=>`<label class="chip"><input type="checkbox" name="courses" value="${esc(c.id)}" ${mine.has(c.id)?"checked":""}><span>${esc(c.title)}</span></label>`).join("")}</div>`:`<p class="small muted">No courses yet. Create a course first, then add learners to it.</p>`}</div>
+  <div class="field"><span class="lbl">Courses</span>${cs.length?`<div class="chips">${cs.map(c=>`<label class="chip"><input type="checkbox" name="courses" value="${esc(c.id)}" ${mine.has(c.id)?"checked":""} ${!L.id&&mine.has(c.id)&&c.level===stage?'data-auto="1"':""}><span>${esc(c.title)}</span></label>`).join("")}</div>`:`<p class="small muted">No courses yet. Create a course first, then add learners to it.</p>`}</div>
   <p class="section-title">Parent</p>
   <div class="two"><div class="field"><label for="lf-guardian">Parent's name</label><input type="text" id="lf-guardian" name="guardian" maxlength="60" autocomplete="off" value="${esc(pv.guardian||prefill.guardian||"")}"></div>
     <div class="field"><label for="lf-phone">WhatsApp number</label><input type="tel" id="lf-phone" name="phone" maxlength="20" inputmode="tel" value="${esc(pv.phone||prefill.phone||"")}" placeholder="+91 98765 43210"></div></div>
@@ -2224,7 +2224,8 @@ let lfBusy=false;
 async function saveLearner(f,form,id){
   if(lfBusy)return false;
   const name=f.name.value.trim().replace(/\s+/g," "); if(!name)throw userErr("Add the child's name.");
-  const courses=[...form.querySelectorAll('input[name="courses"]:checked')].map(x=>x.value);
+  let courses=[...form.querySelectorAll('input[name="courses"]:checked')].map(x=>x.value);
+  if(!courses.length){const sc=courseList().filter(c=>c.level===f.stage.value);if(sc.length)courses=[sc[0].id];else if(courseList().length)throw userErr("Tick the course this child will join.");}
   const fee=+f.fee.value||0, start=f.start.value, due=Math.min(28,Math.max(1,+f.due.value||10));
   if(fee>0&&!isMonth(start))throw userErr("Pick the month fees start from (for example 2026-10).");
   const acct=f.acct.value||null;
@@ -7308,6 +7309,13 @@ function noLinkBanner(){const r=role();if(r!=="teacher"&&r!=="admin")return "";i
   const s=ss[0],d=new Date(s.startsAt);
   return `<section class="alert a-bad nolinkban"><span><b>${ss.length===1?"A class has":ss.length+" classes have"} no joining link.</b> Learners can't join without it. Next: ${esc(s.title||"Class")}, ${esc(fmtDay(d))} ${esc(fmtTime(d))}.</span><button class="btn btn-primary btn-sm" data-act="editSession" data-id="${esc(s.id)}">Add link</button></section>`;}
 for(const v of Object.keys(VIEWS)){const f=VIEWS[v];VIEWS[v]=function(){return noLinkBanner()+f.apply(this,arguments);};}
+/* learner form: picking an age group ticks its course when no course is ticked yet */
+document.addEventListener("change",e=>{const t=e.target;if(!t||t.name!=="stage"||!t.closest(".lfstage"))return;const form=t.closest("form");if(!form)return;
+  const boxes=[...form.querySelectorAll('input[name="courses"]')];if(!boxes.length)return;
+  const autoOn=boxes.filter(b=>b.dataset.auto==="1");const userOn=boxes.filter(b=>b.checked&&b.dataset.auto!=="1");if(userOn.length)return;
+  autoOn.forEach(b=>{b.checked=false;delete b.dataset.auto;});
+  const c=courseList().find(c=>c.level===t.value);const b=c&&boxes.find(b=>b.value===c.id);if(b){b.checked=true;b.dataset.auto="1";}});
+document.addEventListener("change",e=>{const t=e.target;if(t&&t.name==="courses"&&t.dataset.auto)delete t.dataset.auto;});
 /* ================= events ================= */
 document.addEventListener("click",e=>{
   if(e.target.closest("#modal-root"))return;
