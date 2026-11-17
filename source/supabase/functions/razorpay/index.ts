@@ -114,6 +114,10 @@ Deno.serve(async (req) => {
     if (!safeEq(await hmacHex(WH_SECRET, raw), sig)) return json({ error: "bad signature" }, 400);
     let ev: Doc = {}; try { ev = JSON.parse(raw); } catch { return json({ error: "bad body" }, 400); }
     if (ev.event === "payment.captured" && ev.payload && ev.payload.payment && ev.payload.payment.entity) {
+      // Payment links / pages for new enrollments carry no learner notes; Ops (ops.littlelingos.in) handles those.
+      // Acknowledge them so Razorpay doesn't keep retrying and switch this webhook off.
+      const n = ev.payload.payment.entity.notes || {};
+      if (!n.lid || !n.uid) return json({ ok: true, ignored: "not a Classroom fee payment" });
       try { await record(db, ev.payload.payment.entity); } catch (e) { return json({ error: String(e && (e as Error).message || e) }, 500); }
     }
     return json({ ok: true });
