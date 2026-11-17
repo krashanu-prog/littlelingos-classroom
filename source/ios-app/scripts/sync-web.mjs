@@ -3,6 +3,7 @@
    1. Inside the app the page address is capacitor://localhost, so links meant for
       people (invites, share links, the sign-in email) use the real web address.
    2. native.js is loaded, which marks the page as running inside the app.
+      The page also starts below the iPhone's notch, so the header no longer covers the top of each page.
    3. Alerts use iPhone notifications (native.js), and grown-ups get a reminder
       10 minutes before each class, even when the app is closed (reminders.js).
    4. The parent pay panels (Razorpay and UPI) are removed, so no payment is taken in the app. */
@@ -37,7 +38,7 @@ function patch(file, edits) {
 }
 
 patch("index.html", [
-  ["config script", '<script src="config.js"></script>', '<script src="config.js"></script>\n<script src="native.js"></script>', 1],
+  ["config script", '<script src="config.js"></script>', '<script src="config.js"></script>\n<script src="native.js"></script>\n<style>body{padding-top:env(safe-area-inset-top,0px)}</style>', 1],
   ["web address + folder", "location.origin+location.pathname.replace(/[^/]*$/,\"\")", `"${WEB}/"`, 1],
   ["share page address", "location.origin+location.pathname.replace(/[^/]*$/,\"\").replace(/\\/+$/,\"\")", `"${WEB}"`, 0],
   ["web address", "location.origin", `"${WEB}"`, 3],
