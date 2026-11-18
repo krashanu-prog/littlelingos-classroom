@@ -1407,7 +1407,8 @@ const sessForLearner=(s,L)=>{if(!s.trainerId)return true;const t=learnerTids(L);
 /* course-wide homework goes to the learners of the trainer who set it (set by the admin = whole course) */
 const hwForLearner=(h,L)=>{const t=trainerByUid(h.uid);if(!t)return true;const ts=learnerTids(L);return !ts.length||ts.includes(t.id);};
 const seesSession=s=>{const r=role();if(r!=="student"&&r!=="parent")return true;return myKids().some(L=>L&&(s.forLids||[]).includes(L.id));};
-const sessionsOf=cids=>entries(D.sessions).filter(s=>cids.includes(s.courseId)&&seesSession(s)).sort((a,b)=>String(a.startsAt).localeCompare(String(b.startsAt)));
+const kidOrphan=s=>{const r=role();if(r!=="student"&&r!=="parent")return false;const ks=myKids().filter(Boolean);return ks.some(L=>(s.forLids||[]).includes(L.id))&&!ks.some(L=>learnerCourses(L).includes(s.courseId));};
+const sessionsOf=cids=>entries(D.sessions).filter(s=>(cids.includes(s.courseId)||kidOrphan(s))&&seesSession(s)).sort((a,b)=>String(a.startsAt).localeCompare(String(b.startsAt)));
 const sessEnd=s=>new Date(s.startsAt).getTime()+(s.durationMin||45)*6e4;
 function upcoming(cids,n){const now=Date.now();return sessionsOf(cids).filter(s=>sessEnd(s)>now).slice(0,n);}
 const doneList=uid=>uid?Object.entries(D.progress[uid]?.completed||{}).filter(([lid,ts])=>ts&&D.lessons[lid]).map(([lid,ts])=>({lid,ts:+ts})).sort((a,b)=>b.ts-a.ts):[];
