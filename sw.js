@@ -1,6 +1,6 @@
 /* Little Lingos Classroom service worker: app shell offline + notification taps.
    Family data from the database is never cached here; only the app's own files. */
-const CACHE = "ll-shell-v3";
+const CACHE = "ll-shell-v4";
 const SHELL = ["./", "index.html", "adapter.js", "config.js", "supabase.js", "bank.js", "gk.js",
   "manifest.webmanifest", "icon-192.png", "icon-512.png", "icon.svg"];
 self.addEventListener("install", e => {
@@ -41,8 +41,20 @@ self.addEventListener("fetch", e => {
     })));
   }
 });
+/* class reminders sent by the class-reminders function (web push) */
+self.addEventListener("push", e => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch (_) { d = { body: e.data ? e.data.text() : "" }; }
+  const title = d.title || "Little Lingos";
+  e.waitUntil(self.registration.showNotification(title, {
+    body: d.body || "", icon: "icon-192.png", badge: "icon-192.png", tag: d.tag || "ll-push", renotify: true,
+    data: { go: d.go || "schedule", url: d.url || "" }
+  }));
+});
 self.addEventListener("notificationclick", e => {
   e.notification.close();
+  const url = e.notification.data && e.notification.data.url;
+  if (url && /^https:\/\//.test(url)) { e.waitUntil(self.clients.openWindow(url)); return; }
   const go = (e.notification.data && e.notification.data.go) || "home";
   e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then(cs => {
     for (const c of cs) { if ("focus" in c) { c.postMessage({ llGo: go }); return c.focus(); } }
