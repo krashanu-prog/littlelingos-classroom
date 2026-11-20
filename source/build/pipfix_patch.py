@@ -4,5 +4,9 @@ R('''.pip-chat{flex:1;display:flex;flex-direction:column;gap:8px;min-height:120p
 .pip-chat>*{flex:none}.pip-form,.pip-fine{flex:none}.pip-form{background:inherit}''')
 R('''${esc(m.content).replace(/\\n/g,"<br>")}</div>`).join("")''','''${pipFmt(m.content)}</div>`).join("")''')
 R('/* ================= events ================= */','''/* Ask Pip replies: keep it plain and safe (everything escaped first), then show **bold**, *italics* and line breaks */
-function pipFmt(t){return esc(String(t||"")).replace(/\\*\\*([^*\\n]+)\\*\\*/g,"<b>$1</b>").replace(/(^|[\\s(])\\*([^*\\n]+)\\*(?=[\\s.,!?)]|$)/g,"$1<i>$2</i>").replace(/^\\s*[-•]\\s+/gm,"• ").replace(/\\n/g,"<br>");}
+function pipFmt(t){let h=esc(String(t||"").replace(/\\r/g,"")).replace(/^#{1,4}\\s*/gm,"");
+  h=h.replace(/^\\s*[-*•]\\s+/gm,"• ");                                   /* bullets: "- x", "* x" */
+  h=h.replace(/\\*{3}([^*\\n]+?)\\*{2,3}/g,"<b>$1</b>").replace(/\\*\\*([^*\\n]+?)\\*\\*/g,"<b>$1</b>");  /* **bold** (and stray ***) */
+  h=h.replace(/(^|[\\s(])\\*([^*\\n]+?)\\*(?=[\\s.,!?:;)]|$)/gm,"$1<i>$2</i>").replace(/\\*{2,}/g,"");    /* *italics*, drop leftover ** */
+  return h.replace(/\\n{2,}/g,"<br><br>").replace(/\\n/g,"<br>");}
 /* ================= events ================= */''')
