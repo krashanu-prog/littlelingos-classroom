@@ -56,7 +56,9 @@ async function vapid(db: DB): Promise<{ pub: string; priv: string }> {
   const v = { pub, priv: jwk.d as string };
   // keep the first keys if two calls race
   await db.from("ll_kv").insert({ k: "vapid", v }).then(() => {}, () => {});
-  return (await kvGet(db, "vapid")) || v;
+  const saved = await kvGet(db, "vapid");
+  if (!saved) throw new Error("setup needed: run class-reminders.sql"); // never hand out keys that were not saved
+  return saved;
 }
 
 // ---------- email ----------
