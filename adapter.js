@@ -81,17 +81,44 @@
   }
   const reloadAll = () => { for (const s of subs.values()) load(s); };
 
-  // A collection changed (from the live feed or our own write): re-read it.
-  const pendingTopics = new Set(); let flushTimer = null;
-  function touchTopic(t) { pendingTopics.add(t); if (!flushTimer) flushTimer = setTimeout(flush, 120); }
-  function touched(path) { touchTopic(parentOf(path)); }
+  // Something changed (from the live feed or our own write). To keep data use low:
+  //  - when we know which document changed, only that document is re-read (not the whole collection);
+  //  - several changes close together are handled in one go;
+  //  - while the app is in a background tab nothing is re-read; the changes are caught up when it is shown again.
+  const pending = new Map(); // topic -> Set of changed paths, or null = re-read the whole collection
+  let flushTimer = null, flushAt = 0;
+  function schedFlush(delay) { const at = Date.now() + delay; if (flushTimer && flushAt <= at) return; clearTimeout(flushTimer); flushAt = at; flushTimer = setTimeout(flush, delay); }
+  function touchTopic(t, delay = 700) { pending.set(t, null); schedFlush(delay); }
+  function touchDoc(path, delay = 700) {
+    const t = parentOf(path);
+    if (!pending.has(t)) pending.set(t, new Set());
+    const set = pending.get(t);
+    if (set) { set.add(path); if (set.size > 15) pending.set(t, null); }
+    schedFlush(delay);
+  }
+  function touched(path) { touchDoc(path, 80); }
+  async function patchDocs(s, paths) {
+    const ver = s.ver;
+    try {
+      const got = await Promise.all(paths.map(p => fetchDoc(p).then(d => [p, d])));
+      if (ver !== s.ver) return; // a full re-read started meanwhile
+      for (const [p, d] of got) { if (d === undefined) s.rows.delete(p); else s.rows.set(p, d); }
+      emit(s);
+    } catch (e) { load(s); }
+  }
   function flush() {
     flushTimer = null;
-    const topics = [...pendingTopics]; pendingTopics.clear();
-    if (topics.includes("_access")) checkAccess();
+    if (document.hidden) return; // caught up when the tab is shown again
+    const work = [...pending]; pending.clear();
+    if (work.some(([t]) => t === "_access")) checkAccess();
     for (const s of subs.values()) {
-      const t = s.kind === "col" ? s.path : parentOf(s.path);
-      if (topics.includes(t)) load(s);
+      if (s.kind === "col") {
+        const w = work.find(([t]) => t === s.path); if (!w) continue;
+        if (w[1] && s.loaded && s.rows) patchDocs(s, [...w[1]]); else load(s);
+      } else {
+        const w = work.find(([t]) => t === parentOf(s.path)); if (!w) continue;
+        if (!w[1] || w[1].has(s.path)) load(s);
+      }
     }
   }
   let level = 0, scope = "";
@@ -107,8 +134,9 @@
     let wasDown = false;
     sb.channel("ll-changes")
       .on("postgres_changes", { event: "*", schema: "public", table: "ll_changes" }, payload => {
-        const t = (payload.new && payload.new.topic) || (payload.old && payload.old.topic);
-        if (t) touchTopic(t);
+        const n = payload.new || {}, o = payload.old || {};
+        const t = n.topic || o.topic, p = n.path || o.path;
+        if (p && t && parentOf(p) === t) touchDoc(p); else if (t) touchTopic(t);
       })
       .subscribe(status => {
         if (status === "SUBSCRIBED") { if (wasDown) { checkAccess(); reloadAll(); } wasDown = false; }
@@ -117,8 +145,11 @@
     // Safety nets: refresh when the page comes back, and re-check access every few minutes.
     let hiddenAt = 0;
     document.addEventListener("visibilitychange", () => {
-      if (document.hidden) hiddenAt = Date.now();
-      else if (hiddenAt && Date.now() - hiddenAt > 60000) { checkAccess(); reloadAll(); }
+      if (document.hidden) { hiddenAt = Date.now(); return; }
+      // back after a long break: the live feed may have been paused by the browser, so read everything once
+      if (hiddenAt && Date.now() - hiddenAt > 15 * 60000) { pending.clear(); checkAccess(); reloadAll(); }
+      else if (pending.size) schedFlush(50); // otherwise just catch up on what changed
+      hiddenAt = 0;
     });
     setInterval(() => { if (!document.hidden) checkAccess(); }, 180000);
   }

@@ -19,7 +19,7 @@
 <style id="ll-fb">html{display:none!important}</style><script>if(self===top){var s=document.getElementById("ll-fb");s.parentNode.removeChild(s)}else{try{top.location.replace(self.location.href)}catch(e){}}</script>
 <script src="config.js"></script>
 <script src="supabase.js"></script>
-<script src="adapter.js?v=7295f79569"></script>
+<script src="adapter.js?v=8c3ccf31a5"></script>
 <script src="bank.js"></script>
 <script src="gk.js?v=6ab0aafbdb"></script>
 </head>
@@ -2675,7 +2675,7 @@ async function syncContacts(){
   for(const [uid,o] of Object.entries(want)){
     const sig=JSON.stringify(o); if(ctSig[uid]===sig)continue;
     const col=S.db.collection(`contacts/${uid}/l`); const snap=await col.get(); const have={};for(const d of snap.docs)have[d.id]=d.data();
-    for(const [lid,v] of Object.entries(o))if(JSON.stringify(have[lid])!==JSON.stringify(v))await col.doc(lid).set(v);
+    for(const [lid,v] of Object.entries(o))if(stableJ(have[lid])!==stableJ(v))await col.doc(lid).set(v);
     for(const lid of Object.keys(have))if(!o[lid])await col.doc(lid).delete();
     ctSig[uid]=sig;
   }
@@ -7402,6 +7402,10 @@ function rmdAdminCard(){if(realRole()!=="admin"||S.viewAs)return "";rmdStatusLoa
   return `<section class="card panel"><h2>Class reminders for families</h2><p class="small">Families get an email about an hour before each class, and a phone notification an hour and 10 minutes before (if they turned it on). Trainers can also tap <b>Remind</b> on a class to send WhatsApp reminders.</p>${body}</section>`;}
 {const f=VIEWS.settings;if(f)VIEWS.settings=function(){const h=f.apply(this,arguments);return realRole()==="admin"&&!S.viewAs&&(S.stab||"academy")==="academy"?rmdAdminCard()+h:h;};}
 setTimeout(()=>{if(realRole&&realRole()!=="student")rmdCheck();},1500);
+/* JSON with the keys sorted, so two copies of the same data compare equal whatever order their fields are in */
+function stableJ(v){if(v===undefined)return "u";if(v===null||typeof v!=="object")return JSON.stringify(v);
+  if(Array.isArray(v))return "["+v.map(stableJ).join(",")+"]";
+  return "{"+Object.keys(v).sort().filter(k=>v[k]!==undefined).map(k=>JSON.stringify(k)+":"+stableJ(v[k])).join(",")+"}";}
 /* ================= events ================= */
 document.addEventListener("click",e=>{
   if(e.target.closest("#modal-root"))return;

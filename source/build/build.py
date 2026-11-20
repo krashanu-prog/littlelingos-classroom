@@ -95,6 +95,7 @@ exec(open(W+'ppv_patch.py').read())
 exec(open(W+'kidcls_patch.py').read())
 exec(open(W+'pipfix_patch.py').read())
 exec(open(W+'remind_patch.py').read())
+exec(open(W+'egress_patch.py').read())
 exec(open(W+'polish_patch.py').read())
 # drop the claude-only meta
 R('<meta name="claude:viewport-fit-sides" content="cover">\n', '')
