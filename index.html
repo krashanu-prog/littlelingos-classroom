@@ -701,7 +701,8 @@ button.stat{font:inherit;color:inherit;cursor:pointer}.stat.sel{box-shadow:inset
 .pip-h4{margin:6px 0 0;font-size:1rem}.pip-mlist{display:flex;flex-direction:column;gap:6px}
 .pip-mrow{display:flex;align-items:center;gap:8px;background:#fff;border-radius:12px;padding:6px 10px}.pip-mrow b{flex:1}.pip-mrow span{font-size:.85rem;color:var(--muted)}
 .pip-mrow.sad{background:var(--skySoft)}.pip-nomood{width:26px;height:26px;border-radius:50%;border:2px dashed var(--line)}
-.pip-chat{flex:1;display:flex;flex-direction:column;gap:8px;min-height:120px}
+.pip-chat{flex:1 1 auto;display:flex;flex-direction:column;gap:8px;min-height:120px;overflow-y:auto;overscroll-behavior:contain;padding:2px 4px 6px 0;scroll-behavior:smooth}
+.pip-chat>*{flex:none}.pip-form,.pip-fine{flex:none}.pip-form{background:inherit}
 .pip-msg{max-width:88%;padding:9px 13px;border-radius:18px;line-height:1.4;white-space:normal;word-wrap:break-word}
 .pip-msg.pip{background:#fff;align-self:flex-start;border-radius:18px 18px 18px 6px}.pip-msg.me{background:var(--leaf);color:#fff;align-self:flex-end;border-radius:18px 18px 6px 18px}
 .pip-msg.typing{display:flex;gap:4px}.pip-msg.typing i{width:8px;height:8px;border-radius:50%;background:var(--muted);animation:pipdot 1s infinite}.pip-msg.typing i:nth-child(2){animation-delay:.15s}.pip-msg.typing i:nth-child(3){animation-delay:.3s}
@@ -4741,7 +4742,7 @@ function pipDraw(){const p=document.getElementById("pippanel");if(!p||p.hidden)r
     ${mine?`<p class="pip-note">${esc(pipMoodReply(mine))}</p>`:""}${pipMoodOthers()}`;}
   else if(PIPST.tab==="ask"){const kid=pipRole()==="learner";
     const sugg=kid?["What does 'curious' mean?","Give me a fun word for today","How do I hand in homework?","Tell me a riddle"]:pipRole()==="parent"?["How can I help my child read at home?","How do I see my child's homework?","How do I set a password?"]:pipRole()==="trainer"?["A 10-minute phonics game for Seeds","How do I set homework?","Write a friendly note to a parent about missed homework"]:["Write a notice about the Diwali holiday","How do I add a trainer?","Ideas to keep parents engaged"];
-    body=`<div class="pip-chat" id="pip-chat" aria-live="polite">${PIPST.chat.length?PIPST.chat.map(m=>`<div class="pip-msg ${m.role==="user"?"me":"pip"}">${esc(m.content).replace(/\n/g,"<br>")}</div>`).join(""):`<p class="pip-say">${kid?"Hi! I'm Pip. Ask me about words, stories or how to use your garden!":"Hi! I'm Pip. Ask me anything about teaching English, Little Lingos or using this app."}</p><div class="pip-sugg">${sugg.map(s=>`<button type="button" data-pip="sugg">${esc(s)}</button>`).join("")}</div>`}${PIPST.busy?`<div class="pip-msg pip typing"><i></i><i></i><i></i></div>`:""}</div>
+    body=`<div class="pip-chat" id="pip-chat" aria-live="polite">${PIPST.chat.length?PIPST.chat.map(m=>`<div class="pip-msg ${m.role==="user"?"me":"pip"}">${pipFmt(m.content)}</div>`).join(""):`<p class="pip-say">${kid?"Hi! I'm Pip. Ask me about words, stories or how to use your garden!":"Hi! I'm Pip. Ask me anything about teaching English, Little Lingos or using this app."}</p><div class="pip-sugg">${sugg.map(s=>`<button type="button" data-pip="sugg">${esc(s)}</button>`).join("")}</div>`}${PIPST.busy?`<div class="pip-msg pip typing"><i></i><i></i><i></i></div>`:""}</div>
     <form class="pip-form" novalidate><label for="pip-q" class="sr">Ask Pip</label><input id="pip-q" name="q" type="text" maxlength="500" autocomplete="off" placeholder="${kid?"Type your question…":"Ask Pip anything…"}" ${PIPST.busy?"disabled":""}><button class="btn btn-primary btn-sm" type="submit" ${PIPST.busy?"disabled":""}>Send</button></form>
     <p class="pip-fine">${kid?"Pip is a computer helper, not a person. Never share your address, phone number or passwords. Your chats help keep you safe: the academy can read them.":"Pip is an AI helper and can make mistakes. Check important facts."}</p>`;}
   else if(PIPST.tab==="log"){body=pipLogHTML();}
@@ -7336,6 +7337,8 @@ function ppvBar(){if(!ppvOn())return "";const st=S.previewStage||"Seeds",ks=ppvK
     ${ks.length?`<label class="ppvpick"><span class="small"><b>Parent of:</b></span><select id="ppv-kid" aria-label="Child to preview">${ks.slice().sort((a,b)=>String(a.name).localeCompare(String(b.name))).map(L=>opt(L.id,`${L.name}${L.uid?"":" (not signed in yet)"}`,k&&L.id===k.id)).join("")}</select></label>`:`<span class="small">No ${esc(st)} children yet.</span>`}
     <span class="small muted">Preview of what this child's family sees. Messages or changes made here are made as you, the admin.</span></section>`;}
 for(const v of Object.keys(VIEWS)){const f=VIEWS[v];VIEWS[v]=function(){return ppvBar()+f.apply(this,arguments);};}
+/* Ask Pip replies: keep it plain and safe (everything escaped first), then show **bold**, *italics* and line breaks */
+function pipFmt(t){return esc(String(t||"")).replace(/\*\*([^*\n]+)\*\*/g,"<b>$1</b>").replace(/(^|[\s(])\*([^*\n]+)\*(?=[\s.,!?)]|$)/g,"$1<i>$2</i>").replace(/^\s*[-•]\s+/gm,"• ").replace(/\n/g,"<br>");}
 /* ================= events ================= */
 document.addEventListener("click",e=>{
   if(e.target.closest("#modal-root"))return;
