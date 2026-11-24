@@ -12,6 +12,7 @@ with sync_playwright() as pw:
         if st=='Blooms':
             def fake(route):
                 b=json.loads(route.request.post_data or '{}'); d=b.get('debate',{})
+                if b.get('mode')=='tts': return route.fulfill(status=503,content_type='application/json',headers={'Access-Control-Allow-Origin':'*'},body='{}')
                 last=[m for m in b.get('messages',[]) if m['role']=='user'][-1]['content']
                 route.fulfill(status=200,content_type='application/json',headers={'Access-Control-Allow-Origin':'*'},body=json.dumps({'reply':f"AI[{d.get('phase')}|{d.get('side')}|{d.get('stage')}|{len(b['messages'])} msgs] answering: {last[:30]}"}))
             p.route('**/functions/v1/ask-pip',fake)
