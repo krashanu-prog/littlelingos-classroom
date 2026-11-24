@@ -52,3 +52,11 @@ Safety: keep it suitable for children. Use only everyday, child-friendly argumen
     return json({ reply });
   }
 ```
+
+## Feedback report (Nov 2026)
+Debate phase `"report"`: the client sends the whole debate; Pip returns a coach's report as JSON.
+1. `reportSystem(d)` added before `debateSystem` (asks for JSON: overall, strengths[], improve[{point,why,try}], turns[{n,good,fix,better}], goal).
+2. First line of `debateSystem`: `if (d.phase === "report") return reportSystem(d);`
+3. In the debate block: messages `.slice(debate.phase === "report" ? -16 : -10)`; max tokens 1500 and temperature 0.4 for the report.
+4. Before `return json({ reply })` in the debate block: parse the first `{...}` in the reply and return `{ report }` (or `{ reply }` if it does not parse). The same child-safety screen runs on the report text.
+The app falls back to a report built from its own debate checks when the AI is unavailable.

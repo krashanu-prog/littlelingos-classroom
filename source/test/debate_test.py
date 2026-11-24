@@ -1,11 +1,11 @@
-exec(open('/tmp/claude-0/-home-claude/e46c440f-a2dc-5219-9a0e-fc980d1e0e9c/scratchpad/web/test/e2e_real.py').read().split("\ntry:")[0])
+exec(open('/home/claude/ws/web/test/e2e_real.py').read().split("\ntry:")[0])
 import psycopg2,time
 c=psycopg2.connect(host='127.0.0.1',user='postgres',password='pw',dbname='e2e'); cur=c.cursor()
 def stage(st): cur.execute("""update public.docs set data = data || jsonb_build_object('stage',%s) where path='learners/l1'""",(st,)); c.commit()
-OUT='/tmp/claude-0/-home-claude/e46c440f-a2dc-5219-9a0e-fc980d1e0e9c/scratchpad/web/test/'
+OUT='/home/claude/ws/web/test/'
 errs=[]
 with sync_playwright() as pw:
-    b = pw.chromium.launch(executable_path='/opt/pw-browsers/chromium-1194/chrome-linux/chrome')
+    b = pw.chromium.launch()
     for st in ['Seeds','Sprouts','Blooms']:
         stage(st); ctx,p=open_as(b,'K1'); p.on('pageerror',lambda e:errs.append(str(e))); p.set_viewport_size({'width':390,'height':844}); nav(p,'Play'); p.wait_for_timeout(400)
         print('=====',st,[x.split('\n')[1] for x in p.locator('.gamecard').all_inner_texts()][:3])
@@ -40,7 +40,7 @@ with sync_playwright() as pw:
                 print('   >',t[:40],'| lede:',p.locator('.head .lede').inner_text())
                 if p.locator('.dbmsg.pip p').count(): print('     pip:',p.locator('.dbmsg.pip p').last.inner_text()[:200])
             p.screenshot(path=OUT+f'db_{st}_end.png',full_page=True)
-            print('  result:',p.locator('.dbres').inner_text().replace('\n',' | ')[:400])
+            print('  result:',p.locator('.dbreport').inner_text().replace('\n',' | ')[:400])
         ctx.close()
     # parent report shows the debate as speaking
     ctx,p=open_as(b,'P1'); p.on('pageerror',lambda e:errs.append(str(e))); nav(p,'Progress'); p.wait_for_timeout(600)
