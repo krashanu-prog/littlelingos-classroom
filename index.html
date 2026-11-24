@@ -1614,7 +1614,7 @@ function topHTML(){
       ${l2Chip()}
       ${clockChip(cur)}
       ${bellHTML()}
-      <button class="me" data-act="profile" aria-label="Edit your profile">${cur==="student"&&!S.viewAs?avatarHTML(S.uid,44):`<span class="av">${esc(ini)}</span>`}<span class="nm">${esc(myName())}</span></button>`;
+      <button class="me" data-act="profile" aria-label="Edit your profile">${cur==="student"&&!S.viewAs?`<span class="av" style="background:${esc(avatarOf(S.uid).c)}">${esc(ini)}</span>`:`<span class="av">${esc(ini)}</span>`}<span class="nm">${esc(myName())}</span></button>`;
   }
   return `<a class="brand" href="#home" data-go="home" aria-label="Little Lingos home">${LOGO}</a>${right}`;
 }

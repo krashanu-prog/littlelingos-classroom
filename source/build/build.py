@@ -1,6 +1,6 @@
 """Build the self-hosted site/index.html from the claude.ai app source."""
 import re, shutil, os
-P = '/tmp/claude-0/-home-claude/e46c440f-a2dc-5219-9a0e-fc980d1e0e9c/scratchpad/'
+P = '/home/claude/ws/'
 W = P + 'web/'
 s = open(P + 'littlelingos.html').read()
 
@@ -97,6 +97,7 @@ exec(open(W+'pipfix_patch.py').read())
 exec(open(W+'remind_patch.py').read())
 exec(open(W+'egress_patch.py').read())
 exec(open(W+'lpv_patch.py').read())
+exec(open(W+'avini_patch.py').read())
 exec(open(W+'polish_patch.py').read())
 # drop the claude-only meta
 R('<meta name="claude:viewport-fit-sides" content="cover">\n', '')
