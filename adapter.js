@@ -122,6 +122,13 @@
     }
   }
   let level = 0, scope = "";
+  // super admin / sales team flags (supabase/sales-team.sql); empty until that has been run
+  let flags = null, flagsFor = null;
+  async function staffFlags(uid) {
+    if (flags && flagsFor === uid) return flags;
+    try { const { data, error } = await sb.rpc("ll_staff_flags"); flags = (!error && data) || {}; } catch (e) { flags = {}; }
+    flagsFor = uid; return flags;
+  }
   async function checkAccess() {
     const { data, error } = await sb.rpc("ll_whoami");
     if (error || !data) return;
@@ -208,7 +215,9 @@
       const u = session.user;
       let name = nameCache[u.id];
       if (!name) { const { data } = await sb.from("people").select("name").eq("id", u.id).maybeSingle(); name = (data && data.name) || (u.email || "").split("@")[0]; nameCache[u.id] = name; }
-      return { id: u.id, name, email: u.email, avatarUrl: "", color: "#888", isOwner: level >= 4, canEdit: level >= 3 };
+      const f = await staffFlags(u.id);
+      return { id: u.id, name, email: u.email, avatarUrl: "", color: "#888", isOwner: level >= 4, canEdit: level >= 3,
+        isSuper: level >= 4 && !!f.super, isSales: level < 4 && !!f.sales };
     },
     profiles: async ids => {
       ids = [...new Set([].concat(ids || []))].filter(id => /^[0-9a-f-]{36}$/.test(id));

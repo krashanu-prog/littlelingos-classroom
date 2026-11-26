@@ -19,7 +19,7 @@
 <style id="ll-fb">html{display:none!important}</style><script>if(self===top){var s=document.getElementById("ll-fb");s.parentNode.removeChild(s)}else{try{top.location.replace(self.location.href)}catch(e){}}</script>
 <script src="config.js"></script>
 <script src="supabase.js"></script>
-<script src="adapter.js?v=8c3ccf31a5"></script>
+<script src="adapter.js?v=a07f5ceb9d"></script>
 <script src="bank.js"></script>
 <script src="gk.js?v=6ab0aafbdb"></script>
 </head>
@@ -1227,6 +1227,7 @@ body.st-on{overflow:hidden}
 @media print{.printdoc .noprint,.printdoc .dbr-acts{display:none!important}.printdoc .dbr-turns li{break-inside:avoid}}
 .pip-hear{display:inline-grid;place-items:center;width:36px;height:36px;min-width:36px;border-radius:50%;border:2px solid var(--line,#e3ecd6);background:#F5FAEE;color:#22703A;vertical-align:middle;margin-left:4px;cursor:pointer}
 .pip-hear:hover{background:#DDEFC4}
+.salesadd{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin-top:10px}.salesadd label{display:grid;gap:4px;flex:1;min-width:180px}.salesadd input{min-height:44px}.salesadd .btn{min-height:44px}
 .iconbtn{width:44px;height:44px;min-height:44px}
 select.inline{min-height:44px}
 .nm,.linkbtn{position:relative}
@@ -1392,17 +1393,18 @@ const myTid=()=>{const t=trainerByUid(S.uid);return t?t.id:null};
 
 function realRole(){
   if(S.isOwner)return "admin";
+  if(S.isSales)return "sales";
   if(trainerByUid(S.uid))return "teacher";
   if(learnerByUid(S.uid))return "student";
   const p=D.profiles[S.uid]; if(!p||!p.role)return null;
   return p.role==="parent"?"parent":"pending";
 }
-function role(){const r=realRole();return (r==="admin"&&S.viewAs)?S.viewAs:r;}
+function role(){const r=realRole();if(r==="sales")return S.viewAs==="parent"?"parent":"student";return (r==="admin"&&S.viewAs)?S.viewAs:r;}
 const isStaff=()=>["teacher","admin"].includes(role());
 const scopeAll=()=>role()==="admin"||!myTid();
 function myLearner(){
   const L=learnerByUid(S.uid); if(L)return L;
-  if(S.isOwner)return {id:"_preview",name:myName(),courses:Object.keys(D.courses),uid:S.uid,stage:S.previewStage||"Seeds",preview:true};
+  if(S.isOwner||S.isSales)return {id:"_preview",name:myName(),courses:Object.keys(D.courses),uid:S.uid,stage:S.previewStage||"Seeds",preview:true};
   return null;
 }
 function scopedLearners(){
@@ -1629,7 +1631,7 @@ function topHTML(){
   if(S.status==="ready"&&r&&r!=="pending"){
     const ini=myName().split(/\s+/).map(w=>w[0]).slice(0,2).join("").toUpperCase();
     const un=unreadCount();
-    right=`${r==="admin"?`<div class="viewas"><label for="viewas">View as</label><select id="viewas">${viewAsOpts(cur)}</select></div>`:`<span class="rolechip">${esc(ROLE_LABEL[cur]||"")}</span>`}
+    right=`${r==="admin"||r==="sales"?`<div class="viewas"><label for="viewas">View as</label><select id="viewas">${viewAsOpts(cur)}</select></div>`:`<span class="rolechip">${esc(ROLE_LABEL[cur]||"")}</span>`}
       ${l2Chip()}
       ${clockChip(cur)}
       ${bellHTML()}
@@ -1643,7 +1645,7 @@ function clockChip(cur){
   if(x.open){const base=doneMsToday(tid);return `<button class="clockchip on" data-act="clockOut" data-id="${esc(x.open.id)}" aria-label="Working now. Clock out"><span class="num" data-since="${esc(x.open.startAt)}" data-base="${base}">${fmtDur(base+Date.now()-new Date(x.open.startAt).getTime())}</span><span class="lbl">· Clock out</span></button>`;}
   return `<button class="clockchip" data-act="clockIn" aria-label="Clock in">${ic("clock")}<span class="lbl">Clock in</span></button>`;
 }
-function bindTop(){const v=document.getElementById("viewas");if(v)v.addEventListener("change",()=>{{const [a,b]=v.value.split(":");S.viewAs=a==="admin"?null:a;if(b)setPvStage(b,true);S.game=null;}v.blur();go("home");});}
+function bindTop(){const v=document.getElementById("viewas");if(v)v.addEventListener("change",()=>{{const [a,b]=v.value.split(":");if(S.isSales&&a!=="student"&&a!=="parent")return;S.viewAs=a==="admin"?null:a;if(b)setPvStage(b,true);S.game=null;}v.blur();go("home");});}
 function navItems(){
   const r=role();
   if(r==="student")return [["home","My garden","leaf"],["path","Path","map"],["words","Words","cards"],["play","Games","star"],["fun","Fun corner","sunny"],["wall","Garden wall","wall"],["india","My India","map"],["homework","Homework","pencil"],["schedule","Classes","cal"],["stories","Stories","book"],["me","Me","user"],["notices","Messages","bell"]];
@@ -6514,7 +6516,7 @@ function actCardHTML(L,own){if(!L||!L.uid)return "";const xs=actsOf(L.uid);const
       :`<p class="muted">${own?"Play a game, finish a lesson, try a quiz or a chess game. Everything you do shows up here!":`Games, quizzes, lessons and chess games ${esc(firstOf(L.name))} plays show up here.`}</p>`}</section>`;}
 A.actMore=k=>{S.actAll=S.actAll===k?null:k;render();};
 /* admin "View as learner": say clearly where the work goes */
-function previewNoteHTML(){if(!(realRole()==="admin"&&S.viewAs==="student"))return "";
+function previewNoteHTML(){if(!(isPv()&&S.viewAs==="student"))return "";
   return `<section class="alert a-sun prevnote"><span>👀 <b>Learner preview.</b> You're playing as a sample learner, so your activities save to this preview only, not to a child's portfolio. To see a child's work, open <b>Learners</b> and tap the child.</span>${pvStageChips()}</section>`;}
 /* chess: one line when a game ends (win, loss or draw) */
 const CH_LOGGED=new WeakSet();
@@ -6597,7 +6599,7 @@ const TR={"cat":{"hi":"बिल्ली","ta":"பூனை","te":"పిల�
 const L2=[["hi","हिन्दी","Hindi"],["ta","தமிழ்","Tamil"],["te","తెలుగు","Telugu"],["ml","മലയാളം","Malayalam"],["kn","ಕನ್ನಡ","Kannada"],["ar","العربية","Arabic"]];
 const l2Name=c=>{const x=L2.find(y=>y[0]===c);return x?`${x[2]} (${x[1]})`:"English only";};
 /* admin previewing as a learner or parent: the home language is chosen for this preview only (kept in this tab) */
-const l2Preview=()=>realRole()==="admin"&&(S.viewAs==="student"||S.viewAs==="parent");
+const l2Preview=()=>isPv()&&(S.viewAs==="student"||S.viewAs==="parent");
 const pvL2=()=>{try{return sessionStorage.getItem("ll-pvl2")||""}catch{return ""}};
 const myL2=()=>{const v=l2Preview()?pvL2():(((D.profiles[S.uid]||{}).lang2)||"");return v&&v!=="en"?v:"";};
 const trKey=w=>String(w||"").toLowerCase().replace(/\s+/g," ").trim();
@@ -6827,7 +6829,7 @@ function stageGamesHTML(L,n,dDone){const st=L.stage||"Seeds",list=AG_GAMES[st]||
 function setPvStage(st,quiet){if(!STAGES.some(s=>s.v===st))return;S.previewStage=st;S.game=null;try{sessionStorage.setItem("ll-pvstage",st)}catch{}if(!quiet)render(true);}
 try{const v=sessionStorage.getItem("ll-pvstage");if(v)S.previewStage=v;}catch{}
 A.pvStage=st=>{setPvStage(st);};
-const viewAsOpts=cur=>{const st=S.previewStage||"Seeds";return [["admin","Admin"],["teacher","Trainer"],...STAGES.map(s=>["student:"+s.v,`Learner · ${s.v} (${s.ages.replace("Ages ","")})`]),...STAGES.map(s=>["parent:"+s.v,`Parent · ${s.v} (${s.ages.replace("Ages ","")})`])]
+const viewAsOpts=cur=>{const st=S.previewStage||"Seeds";return [...(S.isSales?[]:[["admin","Admin"],["teacher","Trainer"]]),...STAGES.map(s=>["student:"+s.v,`Learner · ${s.v} (${s.ages.replace("Ages ","")})`]),...STAGES.map(s=>["parent:"+s.v,`Parent · ${s.v} (${s.ages.replace("Ages ","")})`])]
   .map(([v,l])=>opt(v,l,v===(cur==="student"||cur==="parent"?cur+":"+st:cur))).join("");};
 function pvStageChips(){const st=S.previewStage||"Seeds";return `<div class="pvages" role="group" aria-label="Preview age group"><span class="small"><b>Age group:</b></span>${STAGES.map(s=>`<button class="pvchip ${s.v===st?"on":""}" data-act="pvStage" data-id="${s.v}" aria-pressed="${s.v===st}">${esc(s.v)}</button>`).join("")}</div>`;}
 /* hook the new games into the existing engine */
@@ -7345,7 +7347,7 @@ document.addEventListener("change",e=>{const t=e.target;if(t&&t.name==="courses"
 /* ================= Admin parent preview =================
    Admin picks "Parent · <age group>"; the parent pages then show one real child of that age group (the admin can
    switch child). Nothing is saved to the child's family; anything done here is done as the admin. */
-const ppvOn=()=>realRole()==="admin"&&S.viewAs==="parent";
+const ppvOn=()=>isPv()&&S.viewAs==="parent";
 const ppvKids=st=>activeLearners().filter(L=>(L.stage||"Seeds")===st);
 function ppvRank(L){let n=0;for(const s of Object.values(D.sessions||{}))if(s&&(s.forLids||[]).includes(L.id))n++;return (L.uid?1000:0)+((L.parents||[]).length?500:0)+n;}
 function ppvKid(){const st=S.previewStage||"Seeds",ks=ppvKids(st);if(!ks.length)return null;
@@ -7448,7 +7450,7 @@ A.lpvKid=id=>{S.lpvKid=id||null;S.game=null;try{sessionStorage.setItem("ll-lpvki
 document.addEventListener("change",e=>{const t=e.target;if(t&&t.id==="lpv-kid")A.lpvKid(t.value);});
 function lpvPick(){const st=S.previewStage||"Seeds",ks=activeLearners().filter(L=>(L.stage||"Seeds")===st).sort((a,b)=>String(a.name).localeCompare(String(b.name)));const k=lpvKid();
   return `<label class="ppvpick"><span class="small"><b>Child:</b></span><select id="lpv-kid" aria-label="Child whose dashboard to open">${opt("","Sample learner (try activities)",!k)}${ks.map(L=>L.uid?opt(L.id,L.name,k&&k.id===L.id):`<option value="" disabled>${esc(L.name)} (not signed in yet)</option>`).join("")}</select></label>`;}
-previewNoteHTML=function(){if(!(realRole()==="admin"&&S.viewAs==="student"))return "";const k=lpvKid();
+previewNoteHTML=function(){if(!(isPv()&&S.viewAs==="student"))return "";const k=lpvKid();
   return `<section class="alert a-sun prevnote"><span>${k?`👀 <b>${esc(k.name)}'s dashboard.</b> You're seeing exactly what ${esc(firstOf(k.name))} sees. View only: nothing you do here is saved to ${esc(firstOf(k.name))}'s account.`
     :`👀 <b>Learner preview.</b> You're playing as a sample learner, so your activities save to this preview only, not to a child's portfolio. Pick a child to open their own dashboard.`}</span>${pvStageChips()}${lpvPick()}</section>`;};
 /* ================= Pip's feedback report (Debate with Pip, Pip's choice) =================
@@ -7597,6 +7599,51 @@ A.dbrHear=()=>{const r=S.dbrView||(S.debate&&(S.debate.saved||null));if(!r){cons
 /* Ask Pip: a 🔊 button on each of Pip's answers */
 {const f=pipClick;pipClick=function(e){const b=e.target.closest("[data-pip]");if(b&&b.dataset.pip==="hear"){const m=PIPST.chat[+b.dataset.id];if(m)pipRead(m.content);return;}return f.apply(this,arguments);};}
 
+/* ================= Super admin and sales team =================
+   A super admin (supabase/sales-team.sql) adds sales team members by email in Settings. A sales account only sees
+   the demo screens: the child's dashboard and the parent dashboard for each age group, with a sample child.
+   The database gives sales accounts no access level, so no real child, parent, class or fee is ever loaded,
+   and nothing they do in the demo is saved. */
+const isPv=()=>{const r=realRole();return r==="admin"||r==="sales";};
+const SALES_KIDS={Seeds:"Aanya",Sprouts:"Kabir",Blooms:"Meera"};
+/* sample children for the parent demo (kept in this browser only) */
+function salesSeed(){if(!S.isSales)return;D.learners=D.learners||{};const cids=Object.keys(D.courses||{});
+  for(const st of Object.keys(SALES_KIDS)){const id="_demo_"+st;if(!D.learners[id])D.learners[id]={name:SALES_KIDS[st]+" (sample)",stage:st,courses:cids,parents:[S.uid],uid:"demo-"+st,active:true,demo:true,createdAt:1};}}
+{const f=render;render=function(){salesSeed();return f.apply(this,arguments);};}
+/* nothing a sales account does is saved */
+let salesToastAt=0;
+function salesGuard(db){
+  const stop=()=>{if(!S.isSales)return false;if(Date.now()-salesToastAt>4000){salesToastAt=Date.now();setTimeout(()=>toast("Demo mode: nothing is saved."),0);}return true;};
+  const bind=(t,v)=>typeof v==="function"?v.bind(t):v;
+  const ref=r=>new Proxy(r,{get(t,k){if((k==="set"||k==="update"||k==="delete")&&stop())return ()=>Promise.resolve();return bind(t,t[k]);}});
+  const col=c=>new Proxy(c,{get(t,k){if(k==="doc")return (...a)=>ref(t.doc(...a));if(k==="add"&&stop())return ()=>Promise.resolve({id:"demo"});return bind(t,t[k]);}});
+  return new Proxy(db,{get(t,k){if(k==="doc")return p=>ref(t.doc(p));if(k==="collection")return p=>col(t.collection(p));return bind(t,t[k]);}});}
+{const f=lpvGuardDb;lpvGuardDb=db=>salesGuard(f(db));}
+/* the demo notes */
+{const f=previewNoteHTML;previewNoteHTML=function(){if(!(S.isSales&&role()==="student"))return f.apply(this,arguments);
+  return `<section class="alert a-sun prevnote"><span>🎬 <b>Demo: a child's dashboard.</b> This is what a child sees, with a sample learner. Try anything; nothing is saved.</span>${pvStageChips()}</section>`;};}
+{const f=ppvBar;ppvBar=function(){const h=f.apply(this,arguments);if(!S.isSales||!h)return h;
+  return h.replace(/<label class="ppvpick">[\s\S]*?<\/label>/,`<span class="small"><b>Parent of:</b> ${esc((ppvKid()||{}).name||"a sample child")}</span>`)
+    .replace("Preview of what this child's family sees. Messages or changes made here are made as you, the admin.","🎬 Demo: what a family sees, with a sample child. Nothing you do here is saved.");};}
+/* Settings: super admins manage the sales team */
+S.sales=null;
+async function salesLoad(){try{const {data,error}=await window.LL_sb.rpc("ll_sales_list");S.sales=error?{err:/function|does not exist|schema cache/i.test(error.message||"")?"setup":error.message}:{list:data||[]};}catch(e){S.sales={err:"setup"};}render(true);}
+function salesCard(){if(!S.isSuper)return "";if(!S.sales){salesLoad();return `<section class="card panel"><h2>Sales team</h2><p class="small muted">Loading…</p></section>`;}
+  const x=S.sales;if(x.err)return `<section class="card panel"><h2>Sales team</h2><p class="small">${x.err==="setup"?"To turn this on, run <b>supabase/sales-team.sql</b> once in the Supabase SQL editor.":esc(x.err)}</p></section>`;
+  const when=t=>t?fmtDay(new Date(t)):"";
+  return `<section class="card panel salescard"><div class="row" style="justify-content:space-between;align-items:center"><h2 style="margin:0">Sales team</h2><span class="pill p-good">You're a super admin</span></div>
+    <p class="small">Sales team members sign in with their email and see only the demo: a child's dashboard and a parent dashboard for each age group, with a sample child. They can't see real children, parents, classes or fees, and can't add or remove anyone.</p>
+    ${x.list.length?`<div class="list">${x.list.map(m=>`<div class="item"><div class="grow"><div class="t">${esc(m.name||m.email)}</div><div class="s">${esc(m.email)} · added ${esc(when(m.added_at))} · ${m.last_in?"last signed in "+esc(when(m.last_in)):"not signed in yet"}</div></div><button class="btn btn-ghost btn-sm" data-act="salesRemove" data-id="${esc(m.email)}">Remove</button></div>`).join("")}</div>`:`<p class="small muted">No one yet.</p>`}
+    <form class="salesadd" data-form="salesAdd"><label class="small"><b>Name</b><input name="n" type="text" maxlength="80" autocomplete="off" placeholder="e.g. Riya"></label><label class="small"><b>Email</b><input name="e" type="email" required autocomplete="off" placeholder="name@example.com"></label><button class="btn btn-primary" type="submit">Add to sales team</button></form>
+    <p class="small muted">They sign in at classroom.littlelingos.in with this email (a sign-in code is emailed to them).</p></section>`;}
+document.addEventListener("submit",async e=>{const fm=e.target.closest&&e.target.closest('[data-form="salesAdd"]');if(!fm)return;e.preventDefault();
+  const em=fm.e.value.trim(),nm=fm.n.value.trim();const b=fm.querySelector("button");b.disabled=true;
+  try{const {error}=await window.LL_sb.rpc("ll_sales_add",{e:em,n:nm});if(error)throw error;toast((nm||em)+" can now sign in to show the demo.");await salesLoad();}
+  catch(err){toast(String(err.message||err).replace(/^.*?exception:\s*/i,""),true);b.disabled=false;}});
+A.salesRemove=async em=>{if(!confirm("Remove "+em+" from the sales team? They will lose access to the demo."))return;
+  try{const {error}=await window.LL_sb.rpc("ll_sales_remove",{e:em});if(error)throw error;toast("Removed from the sales team.");await salesLoad();}catch(err){toast(String(err.message||err),true);}};
+{const f=VIEWS.settings;if(f)VIEWS.settings=function(){const h=f.apply(this,arguments);return realRole()==="admin"&&!S.viewAs&&S.isSuper&&(S.stab||"academy")==="academy"?salesCard()+h:h;};}
+
 /* ================= events ================= */
 document.addEventListener("click",e=>{
   if(e.target.closest("#modal-root"))return;
@@ -7639,7 +7686,7 @@ async function boot(){
   if(!db||!user){S.status="nodb";render(true);return}
   S.db=lpvGuardDb(db);S.user=user;
   const me=await user.me();
-  S.uid=me.id;S.isOwner=me.isOwner;if(me.name&&S.uid)S.names[S.uid]=me.name;
+  S.uid=me.id;S.isOwner=me.isOwner;S.isSuper=!!me.isSuper;S.isSales=!me.isOwner&&!!me.isSales;if(S.isSales&&S.viewAs!=="parent")S.viewAs="student";if(me.name&&S.uid)S.names[S.uid]=me.name;
   if(!S.uid){S.status="noid";render(true);return}
   const cols={profiles:"profiles",courses:"courses",lessons:"lessons",sessions:"sessions",progress:"progress",learners:"learners",trainers:"trainers",notices:"notices",answers:"answers",ptm:"ptm",ptmb:"ptmb",library:"library",batches:"batches",events:"events",evr:"evr"};
   if(S.isOwner){cols.fees="fees";cols.priv="private";}
